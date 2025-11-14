@@ -21,11 +21,14 @@ document.addEventListener('DOMContentLoaded', initialize);
  * Initializes the dashboard
  */
 async function initialize() {
+  console.log('TimeTracker Pro Dashboard initializing...');
   setupNavigation();
   setupEventListeners();
   await loadEmployeeProfile();
   await loadSettings();
   await loadData();
+  console.log('Dashboard initialized. Current stats:', currentStats);
+  console.log('Dummy data enabled:', useDummyData);
 }
 
 /**
@@ -79,9 +82,15 @@ function switchSection(section) {
 
   // Load section-specific data
   if (section === 'analytics') {
-    loadAnalytics();
+    // Make sure we have data before loading analytics
+    if (currentStats) {
+      loadAnalytics();
+    }
   } else if (section === 'categories') {
-    loadCategories();
+    // Make sure we have data before loading categories
+    if (currentStats) {
+      loadCategories();
+    }
   }
 }
 
@@ -118,24 +127,44 @@ function setupEventListeners() {
  */
 async function loadData() {
   try {
+    console.log('Loading data... Dummy data enabled:', useDummyData);
     // Calculate date range
     const { start, end } = getDateRange(currentDateRange);
 
     if (useDummyData) {
+      console.log('Generating dummy data...');
       currentStats = generateComprehensiveDummyData();
+      console.log('Dummy data generated:', currentStats);
     } else {
+      console.log('Fetching real data...');
       // Try to fetch real data
       currentStats = await fetchRealData(start, end);
 
       // If no real data, show empty state
       if (!currentStats || currentStats.sessionCount === 0) {
+        console.log('No real data found, showing empty state');
         currentStats = generateEmptyStats();
+      } else {
+        console.log('Real data loaded:', currentStats);
       }
     }
 
+    // Update all sections
+    console.log('Updating overview...');
     updateOverview(currentStats);
+    console.log('Updating charts...');
     updateCharts(currentStats);
+    console.log('Updating table...');
     updateTable(currentStats);
+
+    // Update analytics and categories if they're the current section
+    if (currentSection === 'analytics') {
+      console.log('Updating analytics section...');
+      loadAnalytics();
+    } else if (currentSection === 'categories') {
+      console.log('Updating categories section...');
+      loadCategories();
+    }
   } catch (error) {
     console.error('Error loading data:', error);
     currentStats = generateEmptyStats();
@@ -586,6 +615,11 @@ function updateHourlyChart() {
     charts.hourly.destroy();
   }
 
+  // Check if we have valid data
+  if (!currentStats || !currentStats.hourlyData) {
+    return;
+  }
+
   const hourlyData = currentStats.hourlyData.map((time, hour) => ({
     x: hour,
     y: time / (1000 * 60) // Convert to minutes
@@ -631,6 +665,11 @@ function updateWeeklyChart() {
     charts.weekly.destroy();
   }
 
+  // Check if we have valid data
+  if (!currentStats || !currentStats.dailyData) {
+    return;
+  }
+
   // Generate week data from dailyData
   const weekData = [0, 0, 0, 0, 0, 0, 0]; // Sun-Sat
   if (currentStats.dailyData.length > 0) {
@@ -671,6 +710,13 @@ function updateWeeklyChart() {
  */
 function updateInsights() {
   const insights = [];
+
+  // Check if we have valid data
+  if (!currentStats) {
+    const insightsList = document.getElementById('insightsList');
+    insightsList.innerHTML = '<div class="loading">No data available</div>';
+    return;
+  }
 
   if (currentStats.totalTime > 0) {
     const hours = currentStats.totalTime / (1000 * 60 * 60);
