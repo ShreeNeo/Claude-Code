@@ -5,9 +5,22 @@
 
 /* global chrome */
 
-// Import Chart.js and Calendar Sync
+// Import Chart.js, Calendar Sync, and GitHub Sync
 import Chart from 'chart.js/auto';
 import calendarSync from '../integrations/calendar-sync.js';
+import githubSync from '../integrations/github-sync.js';
+import {
+  addManualEntry,
+  updateEntry,
+  deleteManualEntry,
+  getManualEntriesByDate,
+  getAllManualEntries,
+  saveTag,
+  getAllTags,
+  deleteTag,
+  incrementTagUsage,
+  getEntriesByTag
+} from '../background/manual-entries.js';
 
 // State
 let currentSection = 'overview';
@@ -18,6 +31,10 @@ let charts = {};
 let useDummyData = true;
 let employeeProfile = {};
 let currentMeetings = [];
+let currentGitHubActivities = [];
+let currentTimeEntries = [];
+let currentTags = [];
+let currentEditingEntry = null;
 let calendarSettings = {
   autoSync: false
 };
@@ -35,6 +52,8 @@ async function initialize() {
   await loadEmployeeProfile();
   await loadSettings();
   await initializeCalendarStatus();
+  updateGitHubStatus();
+  await loadTagsForFilter();
   await loadData();
   console.log('Dashboard initialized. Current stats:', currentStats);
   console.log('Dummy data enabled:', useDummyData);
@@ -85,7 +104,9 @@ function switchSection(section) {
     overview: 'Overview',
     analytics: 'Analytics',
     categories: 'Categories',
+    timeentries: 'Time Entries',
     meetings: 'Meetings',
+    github: 'GitHub',
     settings: 'Settings'
   };
   document.getElementById('pageTitle').textContent = titles[section];
@@ -101,8 +122,12 @@ function switchSection(section) {
     if (currentStats) {
       loadCategories();
     }
+  } else if (section === 'timeentries') {
+    loadTimeEntries();
   } else if (section === 'meetings') {
     loadMeetings();
+  } else if (section === 'github') {
+    loadGitHubActivities();
   }
 }
 
@@ -145,6 +170,29 @@ function setupEventListeners() {
   document.getElementById('refreshMeetingsBtn').addEventListener('click', loadMeetings);
   document.getElementById('exportMeetingsBtn').addEventListener('click', exportMeetings);
   document.getElementById('meetingsSearch').addEventListener('input', filterMeetingsTable);
+
+  // GitHub integration buttons
+  document.getElementById('saveGitHubBtn').addEventListener('click', saveGitHubCredentials);
+  document.getElementById('disconnectGitHubBtn').addEventListener('click', disconnectGitHub);
+  document.getElementById('refreshGitHubBtn').addEventListener('click', loadGitHubActivities);
+  document.getElementById('exportGitHubBtn').addEventListener('click', exportGitHubActivities);
+  document.getElementById('githubSearch').addEventListener('input', filterGitHubTable);
+
+  // Time entries buttons
+  document.getElementById('addManualEntryBtn').addEventListener('click', openAddEntryModal);
+  document.getElementById('manageTagsBtn').addEventListener('click', openTagsModal);
+  document.getElementById('filterByTag').addEventListener('change', filterEntriesByTag);
+  document.getElementById('entriesSearch').addEventListener('input', filterEntriesTable);
+
+  // Modal close buttons
+  document.getElementById('closeTimeEntryModal').addEventListener('click', closeTimeEntryModal);
+  document.getElementById('cancelTimeEntry').addEventListener('click', closeTimeEntryModal);
+  document.getElementById('closeTagsModal').addEventListener('click', closeTagsModal);
+  document.getElementById('closeTagsModalBtn').addEventListener('click', closeTagsModal);
+
+  // Form submissions
+  document.getElementById('timeEntryForm').addEventListener('submit', handleTimeEntrySubmit);
+  document.getElementById('addTagBtn').addEventListener('click', handleAddTag);
 }
 
 /**
@@ -1832,3 +1880,611 @@ function filterMeetingsTable(e) {
     row.style.display = text.includes(searchTerm) ? '' : 'none';
   });
 }
+
+// ===== GITHUB INTEGRATION FUNCTIONS =====
+
+/**
+ * Save GitHub credentials
+ */
+async function saveGitHubCredentials() {
+  try {
+    const username = document.getElementById('githubUsername').value.trim();
+    const token = document.getElementById('githubToken').value.trim();
+
+    if (!username) {
+      alert('Please enter your GitHub username');
+      return;
+    }
+
+    if (!token) {
+      alert('Please enter your Personal Access Token');
+      return;
+    }
+
+    if (!token.startsWith('ghp_') && !token.startsWith('github_pat_')) {
+      alert('Invalid token format. GitHub Personal Access Tokens start with "ghp_" or "github_pat_"');
+      return;
+    }
+
+    const result = await githubSync.saveToken(token, username);
+
+    if (result.success) {
+      alert('GitHub credentials saved successfully! You can now view your activities in the GitHub tab.');
+      updateGitHubStatus();
+    } else {
+      alert(`Failed to save credentials: ${result.error}`);
+    }
+  } catch (error) {
+    console.error('Error saving GitHub credentials:', error);
+    alert('Failed to save credentials. Please try again.');
+  }
+}
+
+/**
+ * Disconnect GitHub
+ */
+async function disconnectGitHub() {
+  if (!confirm('Are you sure you want to disconnect GitHub? Your activities data will be cleared.')) {
+    return;
+  }
+
+  try {
+    const result = await githubSync.disconnect();
+
+    if (result.success) {
+      document.getElementById('githubUsername').value = '';
+      document.getElementById('githubToken').value = '';
+      alert('GitHub disconnected successfully!');
+      updateGitHubStatus();
+      loadGitHubActivities(); // Refresh to show empty state
+    } else {
+      alert(`Failed to disconnect: ${result.error}`);
+    }
+  } catch (error) {
+    console.error('Error disconnecting GitHub:', error);
+    alert('Failed to disconnect GitHub. Please try again.');
+  }
+}
+
+/**
+ * Update GitHub connection status in UI
+ */
+function updateGitHubStatus() {
+  const isConfigured = githubSync.isConfigured();
+  const statusCard = document.getElementById('githubStatus');
+  const statusText = document.getElementById('githubStatusText');
+  const connectionStatus = document.getElementById('githubConnectionStatus');
+  const disconnectBtn = document.getElementById('disconnectGitHubBtn');
+
+  if (isConfigured) {
+    statusCard.classList.add('connected');
+    statusText.textContent = 'Connected';
+    connectionStatus.textContent = `Connected as ${githubSync.username}`;
+    disconnectBtn.style.display = 'block';
+  } else {
+    statusCard.classList.remove('connected');
+    statusText.textContent = 'Not Connected';
+    connectionStatus.textContent = 'Not connected';
+    disconnectBtn.style.display = 'none';
+  }
+}
+
+/**
+ * Load GitHub activities
+ */
+async function loadGitHubActivities() {
+  try {
+    const { start, end } = getDateRange(currentDateRange);
+
+    if (!githubSync.isConfigured()) {
+      currentGitHubActivities = [];
+      updateGitHubTable();
+      return;
+    }
+
+    const tbody = document.getElementById('githubTableBody');
+    tbody.innerHTML = '<tr><td colspan="6" class="loading">Loading GitHub activities...</td></tr>';
+
+    // Fetch activities
+    const activities = await githubSync.fetchUserEvents(start, end);
+
+    // Correlate with browser sessions
+    const sessions = currentStats?.sessions || [];
+    currentGitHubActivities = await githubSync.correlateWithSessions(activities, sessions);
+
+    // Update UI
+    updateGitHubTable();
+    updateGitHubInsights();
+  } catch (error) {
+    console.error('Error loading GitHub activities:', error);
+    const tbody = document.getElementById('githubTableBody');
+    tbody.innerHTML = `<tr><td colspan="6" class="empty-state">Error loading activities: ${error.message}</td></tr>`;
+  }
+}
+
+/**
+ * Update GitHub table
+ */
+function updateGitHubTable() {
+  const tbody = document.getElementById('githubTableBody');
+
+  if (!currentGitHubActivities || currentGitHubActivities.length === 0) {
+    const noGitHub = !githubSync.isConfigured();
+
+    tbody.innerHTML = `<tr><td colspan="6" class="empty-state">
+      <div style="padding: 40px; text-align: center;">
+        <div style="font-size: 48px; margin-bottom: 16px;">🐙</div>
+        <div style="font-size: 16px; font-weight: 600; margin-bottom: 8px;">
+          ${noGitHub ? 'No GitHub Connected' : 'No Activities Found'}
+        </div>
+        <div style="font-size: 14px; color: #6b7280;">
+          ${noGitHub ? 'Connect your GitHub account in Settings to sync activities' : 'No GitHub activities found for the selected date range'}
+        </div>
+      </div>
+    </td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = currentGitHubActivities.map(activity => {
+    const dateTime = activity.timestamp.toLocaleString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
+    });
+
+    const typeClass = activity.hasTrackedTime ? 'badge-productive' : 'badge-neutral';
+
+    return `<tr>
+      <td>${dateTime}</td>
+      <td><span class="badge ${typeClass}">${activity.type}</span></td>
+      <td><a href="https://github.com/${activity.repo}" target="_blank" style="color: var(--primary-color);">${activity.repo}</a></td>
+      <td>${activity.details || activity.description}</td>
+      <td>${formatDuration(activity.estimatedTime)}</td>
+      <td>${activity.hasTrackedTime ? formatDuration(activity.trackedTime) : '-'}</td>
+    </tr>`;
+  }).join('');
+}
+
+/**
+ * Update GitHub insights
+ */
+function updateGitHubInsights() {
+  const container = document.getElementById('githubInsightsList');
+
+  if (!currentGitHubActivities || currentGitHubActivities.length === 0) {
+    container.innerHTML = '<div class="loading">Connect GitHub to see activity insights...</div>';
+    return;
+  }
+
+  const insights = githubSync.generateInsights(currentGitHubActivities);
+  container.innerHTML = insights.map(insight => `
+    <div class="insight-item ${insight.type}">
+      <div class="insight-title">${insight.title}</div>
+      <div class="insight-message">${insight.message}</div>
+    </div>
+  `).join('');
+}
+
+/**
+ * Export GitHub activities
+ */
+function exportGitHubActivities() {
+  try {
+    if (!currentGitHubActivities || currentGitHubActivities.length === 0) {
+      alert('No GitHub activities to export.');
+      return;
+    }
+
+    const headers = [
+      'Date & Time',
+      'Type',
+      'Repository',
+      'Description',
+      'Estimated Time (Hours)',
+      'Tracked Time (Hours)',
+      'URL'
+    ];
+
+    const rows = currentGitHubActivities.map(activity => {
+      const estimatedHours = (activity.estimatedTime / (1000 * 60 * 60)).toFixed(2);
+      const trackedHours = activity.trackedTime ? (activity.trackedTime / (1000 * 60 * 60)).toFixed(2) : '0';
+      const dateTime = activity.timestamp.toLocaleString('en-US');
+
+      return [
+        dateTime,
+        activity.type,
+        activity.repo,
+        activity.details || activity.description,
+        estimatedHours,
+        trackedHours,
+        activity.url
+      ];
+    });
+
+    const csvContent = [
+      headers.join('\t'),
+      ...rows.map(row => row.join('\t'))
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/tab-separated-values;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+
+    const today = new Date().toISOString().split('T')[0];
+    link.download = `github_activities_${today}.csv`;
+
+    link.click();
+    URL.revokeObjectURL(url);
+
+    alert('GitHub activities exported successfully!');
+  } catch (error) {
+    console.error('Error exporting GitHub activities:', error);
+    alert('Error exporting activities. Please try again.');
+  }
+}
+
+/**
+ * Filter GitHub table
+ */
+function filterGitHubTable(e) {
+  const searchTerm = e.target.value.toLowerCase();
+  const rows = document.querySelectorAll('#githubTable tbody tr');
+
+  rows.forEach(row => {
+    const text = row.textContent.toLowerCase();
+    row.style.display = text.includes(searchTerm) ? '' : 'none';
+  });
+}
+
+// ===== TIME ENTRIES FUNCTIONS =====
+
+/**
+ * Load time entries
+ */
+async function loadTimeEntries() {
+  try {
+    const { start, end } = getDateRange(currentDateRange);
+
+    // Load manual entries
+    const manualEntries = await getManualEntriesByDate(start, end);
+
+    // Combine with automatic sessions
+    const automaticSessions = currentStats?.sessions || [];
+
+    // Combine all entries
+    currentTimeEntries = [
+      ...manualEntries.map(entry => ({
+        ...entry,
+        isManual: true,
+        startTime: new Date(`${entry.date}T${entry.startTime}`).getTime()
+      })),
+      ...automaticSessions.map(session => ({
+        ...session,
+        isManual: false
+      }))
+    ];
+
+    // Sort by start time (newest first)
+    currentTimeEntries.sort((a, b) => b.startTime - a.startTime);
+
+    // Load tags and update filter dropdown
+    await loadTagsForFilter();
+
+    // Update table
+    updateTimeEntriesTable();
+  } catch (error) {
+    console.error('Error loading time entries:', error);
+  }
+}
+
+/**
+ * Update time entries table
+ */
+function updateTimeEntriesTable(filteredEntries = null) {
+  const tbody = document.getElementById('entriesTableBody');
+  const entries = filteredEntries || currentTimeEntries;
+
+  if (!entries || entries.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="8" class="empty-state">No time entries found</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = entries.map(entry => {
+    const date = new Date(entry.startTime).toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric'
+    });
+
+    const time = new Date(entry.startTime).toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
+    });
+
+    const duration = formatDuration(entry.duration);
+    const description = entry.description || entry.title || `${entry.category} on ${entry.domain || 'Unknown'}`;
+    const category = entry.category || 'Other';
+    const tags = entry.tags ? entry.tags.map(tag => `<span class="badge badge-neutral">${tag}</span>`).join(' ') : '-';
+    const type = entry.isManual ? '<span class="badge badge-productive">Manual</span>' : '<span class="badge badge-neutral">Auto</span>';
+
+    const actions = `
+      <button onclick="editEntry(${entry.id || entry.startTime})" class="btn btn-secondary" style="padding: 4px 8px; font-size: 12px;">Edit</button>
+      ${entry.isManual ? `<button onclick="deleteEntry(${entry.id})" class="btn btn-danger" style="padding: 4px 8px; font-size: 12px; margin-left: 4px;">Delete</button>` : ''}
+    `;
+
+    return `<tr>
+      <td>${date}</td>
+      <td>${time}</td>
+      <td>${duration}</td>
+      <td>${description}</td>
+      <td>${category}</td>
+      <td>${tags}</td>
+      <td>${type}</td>
+      <td>${actions}</td>
+    </tr>`;
+  }).join('');
+}
+
+/**
+ * Open add entry modal
+ */
+function openAddEntryModal() {
+  currentEditingEntry = null;
+  document.getElementById('timeEntryModalTitle').textContent = 'Add Manual Time Entry';
+  document.getElementById('timeEntryForm').reset();
+
+  // Set default date to today
+  document.getElementById('entryDate').valueAsDate = new Date();
+
+  document.getElementById('timeEntryModal').style.display = 'flex';
+}
+
+/**
+ * Open edit entry modal
+ */
+window.editEntry = async function(entryId) {
+  // Find the entry
+  const entry = currentTimeEntries.find(e => (e.id || e.startTime) === entryId);
+
+  if (!entry) {
+    alert('Entry not found');
+    return;
+  }
+
+  currentEditingEntry = entry;
+  document.getElementById('timeEntryModalTitle').textContent = 'Edit Time Entry';
+
+  // Populate form
+  const startDate = new Date(entry.startTime);
+  document.getElementById('entryDate').valueAsDate = startDate;
+  document.getElementById('entryStartTime').value = startDate.toTimeString().slice(0, 5);
+  document.getElementById('entryDuration').value = Math.round(entry.duration / (1000 * 60));
+  document.getElementById('entryDescription').value = entry.description || entry.title || '';
+  document.getElementById('entryCategory').value = entry.category || 'Other';
+  document.getElementById('entryTags').value = entry.tags ? entry.tags.join(', ') : '';
+
+  document.getElementById('timeEntryModal').style.display = 'flex';
+};
+
+/**
+ * Delete entry
+ */
+window.deleteEntry = async function(entryId) {
+  if (!confirm('Are you sure you want to delete this entry?')) {
+    return;
+  }
+
+  try {
+    await deleteManualEntry(entryId);
+    alert('Entry deleted successfully!');
+    await loadTimeEntries();
+  } catch (error) {
+    console.error('Error deleting entry:', error);
+    alert('Failed to delete entry. Please try again.');
+  }
+};
+
+/**
+ * Close time entry modal
+ */
+function closeTimeEntryModal() {
+  document.getElementById('timeEntryModal').style.display = 'none';
+  currentEditingEntry = null;
+}
+
+/**
+ * Handle time entry form submission
+ */
+async function handleTimeEntrySubmit(e) {
+  e.preventDefault();
+
+  try {
+    const date = document.getElementById('entryDate').value;
+    const startTime = document.getElementById('entryStartTime').value;
+    const durationMinutes = parseInt(document.getElementById('entryDuration').value);
+    const description = document.getElementById('entryDescription').value;
+    const category = document.getElementById('entryCategory').value;
+    const tagsInput = document.getElementById('entryTags').value;
+
+    const tags = tagsInput ? tagsInput.split(',').map(t => t.trim()).filter(t => t) : [];
+
+    const entry = {
+      date,
+      startTime,
+      duration: durationMinutes * 60 * 1000, // Convert to milliseconds
+      description,
+      category,
+      tags
+    };
+
+    if (currentEditingEntry) {
+      // Update existing entry
+      await updateEntry(currentEditingEntry.id || currentEditingEntry.startTime, entry);
+      alert('Entry updated successfully!');
+    } else {
+      // Add new entry
+      await addManualEntry(entry);
+      alert('Entry added successfully!');
+
+      // Increment tag usage
+      for (const tag of tags) {
+        await incrementTagUsage(tag);
+      }
+    }
+
+    closeTimeEntryModal();
+    await loadTimeEntries();
+  } catch (error) {
+    console.error('Error saving entry:', error);
+    alert('Failed to save entry. Please try again.');
+  }
+}
+
+/**
+ * Filter entries by tag
+ */
+async function filterEntriesByTag(e) {
+  const tagName = e.target.value;
+
+  if (!tagName) {
+    // Show all entries
+    updateTimeEntriesTable();
+    return;
+  }
+
+  // Filter entries by tag
+  const filteredEntries = currentTimeEntries.filter(entry =>
+    entry.tags && entry.tags.includes(tagName)
+  );
+
+  updateTimeEntriesTable(filteredEntries);
+}
+
+/**
+ * Filter entries table by search
+ */
+function filterEntriesTable(e) {
+  const searchTerm = e.target.value.toLowerCase();
+  const rows = document.querySelectorAll('#entriesTable tbody tr');
+
+  rows.forEach(row => {
+    const text = row.textContent.toLowerCase();
+    row.style.display = text.includes(searchTerm) ? '' : 'none';
+  });
+}
+
+/**
+ * Load tags for filter dropdown
+ */
+async function loadTagsForFilter() {
+  try {
+    currentTags = await getAllTags();
+
+    const filterDropdown = document.getElementById('filterByTag');
+    filterDropdown.innerHTML = '<option value="">All Tags</option>';
+
+    currentTags.forEach(tag => {
+      const option = document.createElement('option');
+      option.value = tag.name;
+      option.textContent = `${tag.name} (${tag.usageCount || 0})`;
+      filterDropdown.appendChild(option);
+    });
+  } catch (error) {
+    console.error('Error loading tags:', error);
+  }
+}
+
+// ===== TAGS MANAGEMENT FUNCTIONS =====
+
+/**
+ * Open tags modal
+ */
+async function openTagsModal() {
+  document.getElementById('tagsModal').style.display = 'flex';
+  await loadTagsList();
+}
+
+/**
+ * Close tags modal
+ */
+function closeTagsModal() {
+  document.getElementById('tagsModal').style.display = 'none';
+}
+
+/**
+ * Load tags list
+ */
+async function loadTagsList() {
+  try {
+    currentTags = await getAllTags();
+
+    const container = document.getElementById('tagsListContainer');
+
+    if (currentTags.length === 0) {
+      container.innerHTML = '<div class="empty-state">No tags yet. Create your first tag above.</div>';
+      return;
+    }
+
+    container.innerHTML = currentTags.map(tag => `
+      <div class="tag-item" style="background-color: ${tag.color};">
+        ${tag.name} (${tag.usageCount || 0})
+        <button onclick="removeTag('${tag.name}')" title="Delete tag">×</button>
+      </div>
+    `).join('');
+  } catch (error) {
+    console.error('Error loading tags:', error);
+  }
+}
+
+/**
+ * Handle add tag
+ */
+async function handleAddTag() {
+  try {
+    const name = document.getElementById('newTagName').value.trim();
+    const color = document.getElementById('newTagColor').value;
+
+    if (!name) {
+      alert('Please enter a tag name');
+      return;
+    }
+
+    // Check if tag already exists
+    if (currentTags.find(t => t.name.toLowerCase() === name.toLowerCase())) {
+      alert('Tag already exists');
+      return;
+    }
+
+    await saveTag({ name, color });
+    document.getElementById('newTagName').value = '';
+    document.getElementById('newTagColor').value = '#4f46e5';
+
+    await loadTagsList();
+    await loadTagsForFilter();
+  } catch (error) {
+    console.error('Error adding tag:', error);
+    alert('Failed to add tag. Please try again.');
+  }
+}
+
+/**
+ * Remove tag
+ */
+window.removeTag = async function(tagName) {
+  if (!confirm(`Are you sure you want to delete the tag "${tagName}"?`)) {
+    return;
+  }
+
+  try {
+    await deleteTag(tagName);
+    await loadTagsList();
+    await loadTagsForFilter();
+  } catch (error) {
+    console.error('Error deleting tag:', error);
+    alert('Failed to delete tag. Please try again.');
+  }
+};
