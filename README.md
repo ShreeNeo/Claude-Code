@@ -33,10 +33,16 @@ A comprehensive browser extension for tracking time spent on websites with detai
 - **Custom Categories**: Assign custom categories to domains
 - **Data Retention**: Automatically cleans up data older than 90 days
 - **Settings Sync**: Settings synchronized across devices (via chrome.storage.sync)
-- **Calendar Integration**: 📅 **NEW!** Sync meetings from Google Calendar and Microsoft Outlook
+
+### 🆕 New Integrations & Features (v1.2.0)
+- **BYOC Calendar Integration**: 📅 Sync meetings from Google Calendar and Microsoft Outlook (100% FREE)
+- **GitHub Integration**: 🐙 Track development activities (commits, PRs, issues, reviews) automatically
+- **Manual Time Entries**: ✏️ Add time entries for work done outside the browser (IDE, terminal, offline)
+- **Tags System**: 🏷️ Categorize and organize entries with custom color-coded tags
+- **Entry Editing**: Edit any time entry (automatic or manual) for accuracy
 - **Meeting Tracking**: Correlate calendar meetings with actual time spent
-- **Meeting Analytics**: Track attendance, utilization, and engagement metrics
-- **Meeting Insights**: AI-powered insights on meeting patterns and productivity
+- **GitHub Activity Correlation**: Match GitHub events with browser tracking sessions
+- **Comprehensive Insights**: AI-powered insights across all data sources
 
 ## Installation
 
@@ -121,18 +127,39 @@ Open the dashboard to view:
 - Configure idle timeout
 - Set up Focus Mode
 - Manage blacklist
-- **Connect Google Calendar and Microsoft Outlook** 📅
+- **BYOC Calendar Integration** 📅 - Input your own OAuth Client IDs (FREE)
+- **GitHub Integration** 🐙 - Configure Personal Access Token (FREE)
 - Enable auto-sync for meetings
 - Data management options
 
-#### Meetings Tab 📅 NEW!
+#### Time Entries Tab ✏️ NEW!
+- View all time entries (automatic browser tracking + manual entries)
+- Add manual time entries for offline work (IDE, terminal, meetings, etc.)
+- Edit any time entry (automatic or manual)
+- Delete manual entries
+- Filter by tags, date range, or category
+- Color-coded tags for organization
+- Manage tags (create, edit, delete, customize colors)
+- **Setup Guide**: See [MANUAL_ENTRIES_GUIDE.md](MANUAL_ENTRIES_GUIDE.md) for best practices
+
+#### Meetings Tab 📅
 - View calendar meetings from Google Calendar and Microsoft Outlook
 - See scheduled vs actual time spent in meetings
 - Track meeting attendance confirmation
 - Meeting utilization metrics (engagement level)
 - Export meetings data to CSV
 - Meeting insights and recommendations
-- **Setup Guide**: See [CALENDAR_SETUP_GUIDE.md](CALENDAR_SETUP_GUIDE.md) for OAuth configuration
+- **Setup Guide**: See [CALENDAR_SETUP_GUIDE.md](CALENDAR_SETUP_GUIDE.md) for BYOC setup
+
+#### GitHub Tab 🐙 NEW!
+- View GitHub activities (commits, PRs, issues, code reviews)
+- Estimated time per activity type
+- Actual tracked browser time on GitHub
+- Activity correlation (GitHub events + browser tracking)
+- Filter by repository, activity type, or date
+- Export GitHub activities to CSV
+- GitHub productivity insights
+- **Setup Guide**: See [GITHUB_SETUP_GUIDE.md](GITHUB_SETUP_GUIDE.md) for token setup
 
 ### Keyboard Shortcuts
 
@@ -179,7 +206,8 @@ timetracker-pro/
 │   ├── background/
 │   │   ├── service-worker.js # Main background script
 │   │   ├── storage.js        # IndexedDB operations
-│   │   └── analytics.js      # Data analysis
+│   │   ├── analytics.js      # Data analysis
+│   │   └── manual-entries.js # Manual time entries & tags storage 🆕
 │   ├── content/
 │   │   └── activity-tracker.js # Activity monitoring
 │   ├── popup/
@@ -191,7 +219,8 @@ timetracker-pro/
 │   │   ├── dashboard.css     # Dashboard styles
 │   │   └── dashboard.js      # Dashboard logic with charts
 │   ├── integrations/
-│   │   └── calendar-sync.js  # Calendar integration (Google/Microsoft)
+│   │   ├── calendar-sync.js  # Calendar integration (Google/Microsoft) - BYOC
+│   │   └── github-sync.js    # GitHub integration (Personal Access Token) 🆕
 │   ├── utils/
 │   │   ├── time-formatter.js # Time formatting utilities
 │   │   ├── domain-parser.js  # URL/domain parsing
@@ -261,11 +290,13 @@ npm run package:all
 
 ### IndexedDB Stores
 
-- **sessions**: Individual tracking sessions
+- **sessions**: Individual tracking sessions (automatic browser tracking)
 - **daily_stats**: Aggregated daily statistics
 - **weekly_stats**: Weekly summaries
 - **monthly_stats**: Monthly summaries
 - **categories**: Custom category mappings
+- **manual_entries**: 🆕 Manually added time entries (with tags support)
+- **tags**: 🆕 Custom tags with colors and usage statistics
 
 ### Data Schema
 
@@ -374,6 +405,21 @@ MIT License - see [LICENSE](LICENSE) file for details
 
 ## Changelog
 
+### Version 1.2.0 (2025-01-14) - Cost-Free Complete Solution
+
+- 💰 **BYOC (Bring Your Own Credentials)**: 100% free calendar integration - no monthly costs!
+- 🐙 **GitHub Integration**: Track development activities (commits, PRs, issues, reviews)
+- ✏️ **Manual Time Entries**: Add entries for offline work (IDE, terminal, meetings, etc.)
+- 🏷️ **Tags System**: Color-coded tags for categorizing and organizing entries
+- ✍️ **Entry Editing**: Edit any time entry (automatic or manual) for accuracy
+- 📊 **Activity Correlation**: Match GitHub events with browser tracking sessions
+- 🔍 **Advanced Filtering**: Filter entries by tags, date range, or category
+- 📤 **Comprehensive Export**: Export all data sources (browser + manual + GitHub + calendar)
+- 🎨 **Tag Management**: Create, customize colors, track usage, and organize entries
+- 📖 **Complete Documentation**: Setup guides for GitHub, BYOC calendars, and manual entries
+
+**Key Achievement**: **$0/month cost** instead of $65-320/month for backend services!
+
 ### Version 1.1.0 (2025-01-14)
 
 - 📅 **Calendar Integration**: Sync meetings from Google Calendar and Microsoft Outlook
@@ -398,6 +444,17 @@ MIT License - see [LICENSE](LICENSE) file for details
 
 ## Support
 
+### Documentation Guides
+
+- 📖 [README.md](README.md) - Main documentation (you are here)
+- 📅 [CALENDAR_SETUP_GUIDE.md](CALENDAR_SETUP_GUIDE.md) - BYOC calendar integration setup
+- 🐙 [GITHUB_SETUP_GUIDE.md](GITHUB_SETUP_GUIDE.md) - GitHub integration with PAT
+- ✏️ [MANUAL_ENTRIES_GUIDE.md](MANUAL_ENTRIES_GUIDE.md) - Manual time entries and tags
+- 📊 [USAGE_GUIDE.md](USAGE_GUIDE.md) - General usage instructions
+- 🔄 [DATA_SYNC_GUIDE.md](DATA_SYNC_GUIDE.md) - Data backup and synchronization
+
+### Community & Support
+
 - **Issues**: [GitHub Issues](https://github.com/yourusername/timetracker-pro/issues)
 - **Documentation**: [Wiki](https://github.com/yourusername/timetracker-pro/wiki)
 - **Discussions**: [GitHub Discussions](https://github.com/yourusername/timetracker-pro/discussions)
@@ -410,26 +467,40 @@ MIT License - see [LICENSE](LICENSE) file for details
 - [x] Meeting attendance and utilization metrics
 - [x] Employee timesheet export
 
-### Version 1.2.0
-- [ ] Goals and targets
-- [ ] Notifications for milestones
-- [ ] More chart types
-- [ ] PDF export
+### Version 1.2.0 ✅ COMPLETED - Cost-Free Solution
+- [x] BYOC (Bring Your Own Credentials) for calendars - $0/month!
+- [x] GitHub integration with Personal Access Token
+- [x] Manual time entries with full CRUD operations
+- [x] Tags system with color customization
+- [x] Activity correlation (GitHub + browser tracking)
+- [x] Advanced filtering by tags, date, category
+- [x] Comprehensive documentation (3 new guides)
+
+### Version 1.3.0 - Enhanced Features
+- [ ] Custom time estimates for GitHub activity types
+- [ ] Bulk edit time entries
+- [ ] Tag templates and presets
+- [ ] Goals and targets per project/client
+- [ ] Notifications for milestones and daily summaries
+- [ ] More chart types (Gantt, burndown)
+- [ ] PDF export for reports
 - [ ] Auto-sync meetings every hour
 
-### Version 1.3.0
-- [ ] Multi-device sync
+### Version 1.4.0 - Team & Collaboration
+- [ ] Multi-device sync (cloud backup option)
 - [ ] Teams/shared analytics
-- [ ] Advanced filtering
-- [ ] Custom themes
+- [ ] Project-based tracking with milestones
+- [ ] Custom themes and dashboard layouts
 - [ ] API for integrations
+- [ ] Slack/Discord notifications
 
-### Version 2.0.0
+### Version 2.0.0 - AI & Advanced Analytics
 - [ ] Machine learning for better categorization
-- [ ] Predictive analytics
-- [ ] Project-based tracking
-- [ ] Time tracking across applications
+- [ ] Predictive analytics (estimate project completion)
+- [ ] Time tracking across applications (desktop app)
 - [ ] Mobile companion app
+- [ ] Voice commands for manual entries
+- [ ] Smart suggestions for time optimization
 
 ## Credits
 

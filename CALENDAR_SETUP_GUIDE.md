@@ -1,4 +1,4 @@
-# Calendar Integration Setup Guide
+# Calendar Integration Setup Guide (BYOC - Bring Your Own Credentials)
 
 ## 📅 Overview
 
@@ -11,9 +11,22 @@ TimeTracker Pro now supports calendar integration with **Google Calendar** and *
 
 ---
 
+## 💰 Cost-Free BYOC Approach
+
+This extension uses a **Bring Your Own Credentials (BYOC)** approach, which means:
+- ✅ **100% FREE** - No subscription fees or backend costs
+- ✅ **You create your own free OAuth apps** with Google/Microsoft
+- ✅ **Complete privacy** - Your credentials, your control
+- ✅ **No shared API quotas** - Your own API limits
+- ✅ **Simple setup** - Input Client IDs directly in the dashboard
+
+**No hardcoded credentials means no monthly costs!**
+
+---
+
 ## 🔑 Setting Up OAuth Credentials
 
-To use calendar integration, you need to set up OAuth credentials for Google and/or Microsoft.
+To use calendar integration, you need to create free OAuth apps for Google and/or Microsoft and input your Client IDs in the extension settings.
 
 ---
 
@@ -51,27 +64,25 @@ To use calendar integration, you need to set up OAuth credentials for Google and
    - Paste as **Application ID**
 5. **Copy the Client ID** (looks like: `123456789-abc...apps.googleusercontent.com`)
 
-### Step 4: Update manifest.json
+### Step 4: Configure Client ID in Extension
 
-1. **Open** `manifest.json` in your extension folder
-2. **Replace** `YOUR_GOOGLE_CLIENT_ID` with your actual Client ID:
-   ```json
-   "oauth2": {
-     "client_id": "YOUR_ACTUAL_CLIENT_ID.apps.googleusercontent.com",
-     "scopes": [
-       "https://www.googleapis.com/auth/calendar.readonly"
-     ]
-   }
-   ```
+1. **Open the extension dashboard** (click extension icon → "Open Dashboard")
+2. **Go to Settings tab** → Scroll to **"Calendar Integration"** section
+3. **Find the "Google Calendar" settings**
+4. **Paste your Client ID** in the input field (looks like: `123456789-abc...apps.googleusercontent.com`)
+5. **Click "Save Google Client ID"**
+6. **Wait for confirmation** message
 
-### Step 5: Test the Connection
+**Note**: No need to edit any code files! Everything is configured through the UI.
 
-1. **Reload the extension** in Chrome
-2. **Open dashboard** → **Settings** → **Calendar Integration**
-3. **Click "Connect Google"**
-4. **Sign in** with your Google account
-5. **Grant permissions** when prompted
-6. **Success!** Google Calendar is now connected
+### Step 5: Connect Your Calendar
+
+1. **In the same Calendar Integration section**
+2. **Click "Connect Google Calendar"** button
+3. **Sign in** with your Google account in the popup
+4. **Grant permissions** when prompted
+5. **Success!** Google Calendar is now connected
+6. **Verify**: Status should show "✅ Connected" with your email
 
 ---
 
@@ -113,24 +124,25 @@ To use calendar integration, you need to set up OAuth credentials for Google and
 1. **Go to "Overview"**
 2. **Copy the "Application (client) ID"** (looks like: `12345678-1234-1234-1234-123456789abc`)
 
-### Step 5: Update calendar-sync.js
+### Step 5: Configure Client ID in Extension
 
-1. **Open** `src/integrations/calendar-sync.js`
-2. **Find line** with `YOUR_MICROSOFT_CLIENT_ID`
-3. **Replace** with your actual Client ID:
-   ```javascript
-   const clientId = 'YOUR_ACTUAL_CLIENT_ID'; // Replace this
-   ```
+1. **Open the extension dashboard** (click extension icon → "Open Dashboard")
+2. **Go to Settings tab** → Scroll to **"Calendar Integration"** section
+3. **Find the "Microsoft Outlook" settings**
+4. **Paste your Client ID** in the input field (looks like: `12345678-1234-1234-1234-123456789abc`)
+5. **Click "Save Microsoft Client ID"**
+6. **Wait for confirmation** message
 
-### Step 6: Test the Connection
+**Note**: No code editing or rebuilding required! Everything is configured through the UI.
 
-1. **Rebuild the extension**: `npm run build`
-2. **Reload the extension** in Chrome
-3. **Open dashboard** → **Settings** → **Calendar Integration**
-4. **Click "Connect Outlook"**
-5. **Sign in** with your Microsoft account
-6. **Grant permissions** when prompted
-7. **Success!** Microsoft Outlook is now connected
+### Step 6: Connect Your Calendar
+
+1. **In the same Calendar Integration section**
+2. **Click "Connect Microsoft Outlook"** button
+3. **Sign in** with your Microsoft account in the popup
+4. **Grant permissions** when prompted
+5. **Success!** Microsoft Outlook is now connected
+6. **Verify**: Status should show "✅ Connected" with your email
 
 ---
 
@@ -357,25 +369,28 @@ Planned features:
 
 ## ✅ Quick Reference
 
-### Google Calendar Setup
-1. Create Google Cloud project
+### Google Calendar Setup (BYOC)
+1. Create Google Cloud project (FREE)
 2. Enable Calendar API
 3. Create OAuth client ID (Chrome extension type)
-4. Copy Client ID to manifest.json
-5. Reload extension
+4. **Paste Client ID in Dashboard → Settings → Calendar Integration**
+5. Click "Connect Google Calendar"
 
-### Microsoft Outlook Setup
-1. Register app in Azure Portal
+### Microsoft Outlook Setup (BYOC)
+1. Register app in Azure Portal (FREE)
 2. Add redirect URI for extension
 3. Add Calendars.Read permission
-4. Copy Client ID to calendar-sync.js
-5. Rebuild and reload extension
+4. **Paste Client ID in Dashboard → Settings → Calendar Integration**
+5. Click "Connect Microsoft Outlook"
 
 ### Using Calendar Integration
-1. Connect calendar in Settings
-2. View meetings in Meetings tab
-3. Export data with Export Meetings button
-4. Get insights from Meeting Insights section
+1. Configure Client IDs in Settings (one-time setup)
+2. Connect calendars with one click
+3. View meetings in Meetings tab
+4. Export data with Export Meetings button
+5. Get insights from Meeting Insights section
+
+**💡 Key Advantage**: No code editing, no rebuilding, no monthly costs!
 
 ---
 
