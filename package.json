@@ -34,12 +34,14 @@
     "webpack-cli": "^5.1.4"
   },
   "dependencies": {
-    "chart.js": "^4.4.0",
+    "chart.js": "^4.5.1",
     "date-fns": "^2.30.0"
   },
   "jest": {
     "testEnvironment": "jsdom",
-    "setupFilesAfterEnv": ["<rootDir>/tests/setup.js"],
+    "setupFilesAfterEnv": [
+      "<rootDir>/tests/setup.js"
+    ],
     "collectCoverageFrom": [
       "src/**/*.js",
       "!src/assets/**"

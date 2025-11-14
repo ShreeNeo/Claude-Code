@@ -3,7 +3,10 @@
  * Handles dashboard interactions, charts, and data visualization
  */
 
-/* global chrome, Chart */
+/* global chrome */
+
+// Import Chart.js
+import Chart from 'chart.js/auto';
 
 // State
 let currentSection = 'overview';
