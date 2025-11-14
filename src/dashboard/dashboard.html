@@ -51,6 +51,15 @@
           <h2 class="page-title" id="pageTitle">Overview</h2>
         </div>
         <div class="header-right">
+          <div class="data-mode-toggle">
+            <label class="toggle-label">
+              <span class="toggle-text">Dummy Data</span>
+              <label class="toggle">
+                <input type="checkbox" id="dummyDataToggle" checked>
+                <span class="toggle-slider"></span>
+              </label>
+            </label>
+          </div>
           <div class="date-range">
             <select id="dateRange" class="select">
               <option value="today">Today</option>
@@ -201,6 +210,60 @@
         <!-- Settings Section -->
         <section id="settingsSection" class="section">
           <div class="settings-container">
+            <!-- Employee Profile -->
+            <div class="settings-group">
+              <h3 class="settings-title">Employee Profile</h3>
+              <p class="settings-description">Configure your employee details for data export</p>
+
+              <div class="setting-item">
+                <div class="setting-label">
+                  <span>Employee Code</span>
+                  <span class="setting-description">Your unique employee identifier</span>
+                </div>
+                <input type="text" id="empCode" class="input" placeholder="e.g., neo10013">
+              </div>
+
+              <div class="setting-item">
+                <div class="setting-label">
+                  <span>Employee Name</span>
+                  <span class="setting-description">Your full name</span>
+                </div>
+                <input type="text" id="empName" class="input" placeholder="e.g., SHREEHARAN">
+              </div>
+
+              <div class="setting-item">
+                <div class="setting-label">
+                  <span>Company Code</span>
+                  <span class="setting-description">Your company identifier</span>
+                </div>
+                <input type="text" id="companyCode" class="input" placeholder="e.g., N080">
+              </div>
+
+              <div class="setting-item">
+                <div class="setting-label">
+                  <span>Practice</span>
+                  <span class="setting-description">Your practice or department</span>
+                </div>
+                <input type="text" id="practice" class="input" placeholder="e.g., Product Management">
+              </div>
+
+              <div class="setting-item">
+                <div class="setting-label">
+                  <span>Product Name</span>
+                  <span class="setting-description">Default product you work on</span>
+                </div>
+                <input type="text" id="productName" class="input" placeholder="e.g., NeoPAT 2.0">
+              </div>
+
+              <div class="setting-item">
+                <div class="setting-label">
+                  <span>Project/Client</span>
+                  <span class="setting-description">Default project or client</span>
+                </div>
+                <input type="text" id="projectClient" class="input" placeholder="e.g., NeoPAT 2.0">
+              </div>
+            </div>
+
             <!-- Tracking Settings -->
             <div class="settings-group">
               <h3 class="settings-title">Tracking Settings</h3>

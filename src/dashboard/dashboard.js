@@ -11,6 +11,8 @@ let currentDateRange = 'today';
 let allSessions = [];
 let currentStats = null;
 let charts = {};
+let useDummyData = true;
+let employeeProfile = {};
 
 // Initialize on load
 document.addEventListener('DOMContentLoaded', initialize);
@@ -21,6 +23,7 @@ document.addEventListener('DOMContentLoaded', initialize);
 async function initialize() {
   setupNavigation();
   setupEventListeners();
+  await loadEmployeeProfile();
   await loadSettings();
   await loadData();
 }
@@ -92,6 +95,12 @@ function setupEventListeners() {
     loadData();
   });
 
+  // Dummy data toggle
+  document.getElementById('dummyDataToggle').addEventListener('change', (e) => {
+    useDummyData = e.target.checked;
+    loadData();
+  });
+
   // Export button
   document.getElementById('exportBtn').addEventListener('click', exportData);
 
@@ -112,16 +121,214 @@ async function loadData() {
     // Calculate date range
     const { start, end } = getDateRange(currentDateRange);
 
-    // For demo purposes, we'll generate some sample data
-    // In production, this would fetch from the background script/IndexedDB
-    currentStats = generateSampleStats();
+    if (useDummyData) {
+      currentStats = generateComprehensiveDummyData();
+    } else {
+      // Try to fetch real data
+      currentStats = await fetchRealData(start, end);
+
+      // If no real data, show empty state
+      if (!currentStats || currentStats.sessionCount === 0) {
+        currentStats = generateEmptyStats();
+      }
+    }
 
     updateOverview(currentStats);
     updateCharts(currentStats);
     updateTable(currentStats);
   } catch (error) {
     console.error('Error loading data:', error);
+    currentStats = generateEmptyStats();
+    updateOverview(currentStats);
   }
+}
+
+/**
+ * Generates comprehensive dummy data for visualization
+ */
+function generateComprehensiveDummyData() {
+  // Generate sessions for the past 7 days
+  const sessions = [];
+  const now = new Date();
+
+  // Different websites with varying time distributions
+  const websites = [
+    { domain: 'github.com', category: 'Development', avgTime: 90, variance: 30 },
+    { domain: 'stackoverflow.com', category: 'Development', avgTime: 45, variance: 20 },
+    { domain: 'docs.google.com', category: 'Work & Productivity', avgTime: 60, variance: 25 },
+    { domain: 'gmail.com', category: 'Work & Productivity', avgTime: 30, variance: 15 },
+    { domain: 'youtube.com', category: 'Entertainment', avgTime: 40, variance: 20 },
+    { domain: 'twitter.com', category: 'Social Media', avgTime: 25, variance: 15 },
+    { domain: 'linkedin.com', category: 'Work & Productivity', avgTime: 20, variance: 10 },
+    { domain: 'slack.com', category: 'Work & Productivity', avgTime: 35, variance: 15 },
+    { domain: 'medium.com', category: 'News & Reading', avgTime: 25, variance: 10 },
+    { domain: 'figma.com', category: 'Design', avgTime: 50, variance: 20 },
+    { domain: 'notion.so', category: 'Work & Productivity', avgTime: 40, variance: 15 },
+    { domain: 'reddit.com', category: 'Social Media', avgTime: 20, variance: 10 }
+  ];
+
+  // Generate sessions for past 7 days
+  for (let dayOffset = 0; dayOffset < 7; dayOffset++) {
+    const date = new Date(now);
+    date.setDate(date.getDate() - dayOffset);
+    date.setHours(0, 0, 0, 0);
+
+    // Generate 8-15 sessions per day
+    const sessionsPerDay = 8 + Math.floor(Math.random() * 8);
+
+    for (let i = 0; i < sessionsPerDay; i++) {
+      const site = websites[Math.floor(Math.random() * websites.length)];
+
+      // Random time during work hours (9 AM - 6 PM)
+      const hour = 9 + Math.floor(Math.random() * 9);
+      const minute = Math.floor(Math.random() * 60);
+
+      const startTime = new Date(date);
+      startTime.setHours(hour, minute, 0, 0);
+
+      // Duration in minutes with variance
+      const durationMinutes = Math.max(
+        5,
+        site.avgTime + (Math.random() - 0.5) * site.variance * 2
+      );
+      const duration = durationMinutes * 60 * 1000;
+
+      sessions.push({
+        id: sessions.length + 1,
+        domain: site.domain,
+        category: site.category,
+        title: `${site.domain} - Work Session`,
+        url: `https://${site.domain}`,
+        startTime: startTime.getTime(),
+        endTime: startTime.getTime() + duration,
+        duration: duration,
+        date: startTime.toISOString().split('T')[0]
+      });
+    }
+  }
+
+  // Sort sessions by start time
+  sessions.sort((a, b) => b.startTime - a.startTime);
+
+  // Calculate statistics
+  const totalTime = sessions.reduce((sum, s) => sum + s.duration, 0);
+
+  // Group by domain
+  const domainMap = {};
+  sessions.forEach(session => {
+    if (!domainMap[session.domain]) {
+      domainMap[session.domain] = {
+        domain: session.domain,
+        category: session.category,
+        time: 0,
+        visits: 0
+      };
+    }
+    domainMap[session.domain].time += session.duration;
+    domainMap[session.domain].visits++;
+  });
+
+  const topDomains = Object.values(domainMap)
+    .sort((a, b) => b.time - a.time)
+    .slice(0, 10)
+    .map(d => ({
+      ...d,
+      percentage: (d.time / totalTime) * 100
+    }));
+
+  // Group by category
+  const categoryMap = {};
+  sessions.forEach(session => {
+    if (!categoryMap[session.category]) {
+      categoryMap[session.category] = {
+        category: session.category,
+        time: 0,
+        visitCount: 0
+      };
+    }
+    categoryMap[session.category].time += session.duration;
+    categoryMap[session.category].visitCount++;
+  });
+
+  const categories = Object.values(categoryMap)
+    .sort((a, b) => b.time - a.time)
+    .map(c => ({
+      ...c,
+      percentage: (c.time / totalTime) * 100
+    }));
+
+  // Calculate hourly data
+  const hourlyData = Array(24).fill(0);
+  sessions.forEach(session => {
+    const hour = new Date(session.startTime).getHours();
+    hourlyData[hour] += session.duration;
+  });
+
+  // Calculate daily data
+  const dailyMap = {};
+  sessions.forEach(session => {
+    if (!dailyMap[session.date]) {
+      dailyMap[session.date] = { date: session.date, time: 0, sessionCount: 0 };
+    }
+    dailyMap[session.date].time += session.duration;
+    dailyMap[session.date].sessionCount++;
+  });
+
+  const dailyData = Object.values(dailyMap).sort((a, b) => a.date.localeCompare(b.date));
+
+  // Calculate productivity and focus scores
+  const productiveCategoryTime = categories
+    .filter(c => ['Development', 'Work & Productivity', 'Education & Learning'].includes(c.category))
+    .reduce((sum, c) => sum + c.time, 0);
+
+  const productivityScore = Math.round((productiveCategoryTime / totalTime) * 100);
+
+  // Focus score based on average session length and switches
+  const avgSessionLength = totalTime / sessions.length;
+  const focusScore = Math.min(100, Math.round((avgSessionLength / (30 * 60 * 1000)) * 100));
+
+  return {
+    totalTime,
+    sessionCount: sessions.length,
+    productivityScore,
+    focusScore,
+    topDomains,
+    categories,
+    hourlyData,
+    dailyData,
+    sessions
+  };
+}
+
+/**
+ * Fetches real data from IndexedDB
+ */
+async function fetchRealData(startTime, endTime) {
+  try {
+    // This would fetch from IndexedDB in production
+    // For now, return empty if no dummy data
+    return generateEmptyStats();
+  } catch (error) {
+    console.error('Error fetching real data:', error);
+    return generateEmptyStats();
+  }
+}
+
+/**
+ * Generates empty stats structure
+ */
+function generateEmptyStats() {
+  return {
+    totalTime: 0,
+    sessionCount: 0,
+    productivityScore: 0,
+    focusScore: 0,
+    topDomains: [],
+    categories: [],
+    hourlyData: Array(24).fill(0),
+    dailyData: [],
+    sessions: []
+  };
 }
 
 /**
@@ -161,46 +368,6 @@ function getDateRange(range) {
 }
 
 /**
- * Generates sample stats for demonstration
- */
-function generateSampleStats() {
-  return {
-    totalTime: 4 * 60 * 60 * 1000 + 32 * 60 * 1000, // 4h 32m
-    sessionCount: 24,
-    productivityScore: 68,
-    focusScore: 72,
-    topDomains: [
-      { domain: 'github.com', category: 'Development', time: 2 * 60 * 60 * 1000, visits: 8, percentage: 44 },
-      { domain: 'stackoverflow.com', category: 'Development', time: 1 * 60 * 60 * 1000, visits: 5, percentage: 22 },
-      { domain: 'youtube.com', category: 'Entertainment', time: 45 * 60 * 1000, visits: 3, percentage: 16 },
-      { domain: 'twitter.com', category: 'Social Media', time: 30 * 60 * 1000, visits: 4, percentage: 11 },
-      { domain: 'news.ycombinator.com', category: 'News & Reading', time: 17 * 60 * 1000, visits: 4, percentage: 7 }
-    ],
-    categories: [
-      { category: 'Development', time: 3 * 60 * 60 * 1000, percentage: 66, visitCount: 13 },
-      { category: 'Entertainment', time: 45 * 60 * 1000, percentage: 16, visitCount: 3 },
-      { category: 'Social Media', time: 30 * 60 * 1000, percentage: 11, visitCount: 4 },
-      { category: 'News & Reading', time: 17 * 60 * 1000, percentage: 7, visitCount: 4 }
-    ],
-    hourlyData: Array(24).fill(0).map((_, i) => {
-      if (i >= 9 && i <= 17) {
-        return Math.random() * 60 * 60 * 1000;
-      }
-      return 0;
-    }),
-    dailyData: [
-      { date: '2024-01-08', time: 5 * 60 * 60 * 1000 },
-      { date: '2024-01-09', time: 4 * 60 * 60 * 1000 },
-      { date: '2024-01-10', time: 6 * 60 * 60 * 1000 },
-      { date: '2024-01-11', time: 3 * 60 * 60 * 1000 },
-      { date: '2024-01-12', time: 5.5 * 60 * 60 * 1000 },
-      { date: '2024-01-13', time: 4 * 60 * 60 * 1000 },
-      { date: '2024-01-14', time: 4.5 * 60 * 60 * 1000 }
-    ]
-  };
-}
-
-/**
  * Updates overview section
  */
 function updateOverview(stats) {
@@ -211,17 +378,24 @@ function updateOverview(stats) {
   document.getElementById('sessionCount').textContent = stats.sessionCount;
 
   // Update changes (placeholder)
-  document.getElementById('totalTimeChange').textContent = '+12% from yesterday';
-  document.getElementById('totalTimeChange').className = 'stat-change positive';
+  if (stats.totalTime > 0) {
+    document.getElementById('totalTimeChange').textContent = '+12% from yesterday';
+    document.getElementById('totalTimeChange').className = 'stat-change positive';
 
-  document.getElementById('productivityChange').textContent = '+5% from yesterday';
-  document.getElementById('productivityChange').className = 'stat-change positive';
+    document.getElementById('productivityChange').textContent = '+5% from yesterday';
+    document.getElementById('productivityChange').className = 'stat-change positive';
 
-  document.getElementById('focusChange').textContent = '-3% from yesterday';
-  document.getElementById('focusChange').className = 'stat-change negative';
+    document.getElementById('focusChange').textContent = '-3% from yesterday';
+    document.getElementById('focusChange').className = 'stat-change negative';
 
-  document.getElementById('sessionChange').textContent = '+2 from yesterday';
-  document.getElementById('sessionChange').className = 'stat-change positive';
+    document.getElementById('sessionChange').textContent = '+2 from yesterday';
+    document.getElementById('sessionChange').className = 'stat-change positive';
+  } else {
+    document.getElementById('totalTimeChange').textContent = 'No data';
+    document.getElementById('productivityChange').textContent = 'No data';
+    document.getElementById('focusChange').textContent = 'No data';
+    document.getElementById('sessionChange').textContent = 'No data';
+  }
 }
 
 /**
@@ -240,6 +414,12 @@ function updateDailyChart(stats) {
 
   if (charts.daily) {
     charts.daily.destroy();
+  }
+
+  if (stats.dailyData.length === 0) {
+    // Show empty state
+    ctx.getContext('2d').clearRect(0, 0, ctx.width, ctx.height);
+    return;
   }
 
   charts.daily = new Chart(ctx, {
@@ -288,6 +468,11 @@ function updateCategoryChart(stats) {
     charts.category.destroy();
   }
 
+  if (stats.categories.length === 0) {
+    ctx.getContext('2d').clearRect(0, 0, ctx.width, ctx.height);
+    return;
+  }
+
   const colors = [
     '#4f46e5',
     '#10b981',
@@ -295,7 +480,10 @@ function updateCategoryChart(stats) {
     '#ef4444',
     '#3b82f6',
     '#8b5cf6',
-    '#ec4899'
+    '#ec4899',
+    '#14b8a6',
+    '#f97316',
+    '#84cc16'
   ];
 
   charts.category = new Chart(ctx, {
@@ -327,7 +515,7 @@ function updateTable(stats) {
   const tbody = document.getElementById('domainsTableBody');
 
   if (!stats.topDomains || stats.topDomains.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="6" class="empty-state">No data available</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="6" class="empty-state">No data available. Enable tracking and start browsing!</td></tr>';
     return;
   }
 
@@ -341,7 +529,7 @@ function updateTable(stats) {
         <td><span class="badge ${categoryClass}">${domain.category}</span></td>
         <td>${formatDuration(domain.time)}</td>
         <td>${domain.visits}</td>
-        <td>${domain.percentage}%</td>
+        <td>${domain.percentage.toFixed(1)}%</td>
       </tr>
     `;
   }).join('');
@@ -351,8 +539,8 @@ function updateTable(stats) {
  * Gets category badge class
  */
 function getCategoryClass(category) {
-  const productive = ['Development', 'Work & Productivity', 'Education & Learning'];
-  const unproductive = ['Social Media', 'Entertainment', 'Gaming'];
+  const productive = ['Development', 'Work & Productivity', 'Education & Learning', 'Design'];
+  const unproductive = ['Social Media', 'Entertainment', 'Gaming', 'Shopping'];
 
   if (productive.includes(category)) {
     return 'badge-productive';
@@ -443,18 +631,24 @@ function updateWeeklyChart() {
     charts.weekly.destroy();
   }
 
+  // Generate week data from dailyData
+  const weekData = [0, 0, 0, 0, 0, 0, 0]; // Sun-Sat
+  if (currentStats.dailyData.length > 0) {
+    currentStats.dailyData.forEach(day => {
+      const date = new Date(day.date);
+      const dayOfWeek = date.getDay();
+      weekData[dayOfWeek] += day.time / (1000 * 60 * 60); // Convert to hours
+    });
+  }
+
   charts.weekly = new Chart(ctx, {
     type: 'bar',
     data: {
-      labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+      labels: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
       datasets: [{
         label: 'This Week',
-        data: [5.2, 4.8, 6.1, 5.5, 4.2, 3.1, 2.8],
+        data: weekData,
         backgroundColor: '#4f46e5'
-      }, {
-        label: 'Last Week',
-        data: [4.8, 5.1, 5.5, 4.9, 5.2, 3.5, 3.2],
-        backgroundColor: '#cbd5e1'
       }]
     },
     options: {
@@ -464,7 +658,7 @@ function updateWeeklyChart() {
         y: {
           beginAtZero: true,
           ticks: {
-            callback: (value) => `${value}h`
+            callback: (value) => `${value.toFixed(1)}h`
           }
         }
       }
@@ -476,23 +670,71 @@ function updateWeeklyChart() {
  * Updates insights list
  */
 function updateInsights() {
-  const insights = [
-    {
-      type: 'success',
-      title: 'Highly Productive Day',
-      message: 'Your productivity score is 68%. You spent most of your time on development tasks.'
-    },
-    {
-      type: 'info',
-      title: 'Most Active Hours',
-      message: 'You are most productive between 10 AM and 2 PM. Try scheduling important tasks during this time.'
-    },
-    {
-      type: 'warning',
-      title: 'Social Media Usage',
-      message: 'You spent 30 minutes on social media today. Consider reducing this to improve focus.'
+  const insights = [];
+
+  if (currentStats.totalTime > 0) {
+    const hours = currentStats.totalTime / (1000 * 60 * 60);
+
+    if (currentStats.productivityScore >= 70) {
+      insights.push({
+        type: 'success',
+        title: 'Highly Productive Session',
+        message: `Your productivity score is ${currentStats.productivityScore}%. You spent most of your time on productive tasks. Great work!`
+      });
+    } else if (currentStats.productivityScore < 40) {
+      insights.push({
+        type: 'warning',
+        title: 'Low Productivity Score',
+        message: `Your productivity score is ${currentStats.productivityScore}%. Consider reducing time on distracting sites.`
+      });
+    } else {
+      insights.push({
+        type: 'info',
+        title: 'Balanced Activity',
+        message: `Your productivity score is ${currentStats.productivityScore}%. You have a good balance between work and breaks.`
+      });
     }
-  ];
+
+    if (currentStats.focusScore >= 70) {
+      insights.push({
+        type: 'success',
+        title: 'Excellent Focus',
+        message: `Your focus score is ${currentStats.focusScore}%. You maintained good concentration with minimal context switching.`
+      });
+    } else {
+      insights.push({
+        type: 'warning',
+        title: 'Improve Focus',
+        message: `Your focus score is ${currentStats.focusScore}%. Try to reduce tab switching for better concentration.`
+      });
+    }
+
+    // Find peak hours
+    const peakHour = currentStats.hourlyData.indexOf(Math.max(...currentStats.hourlyData));
+    if (peakHour >= 0 && currentStats.hourlyData[peakHour] > 0) {
+      insights.push({
+        type: 'info',
+        title: 'Peak Activity Hour',
+        message: `You are most active around ${peakHour}:00. Schedule important tasks during this time.`
+      });
+    }
+
+    if (currentStats.topDomains.length > 0) {
+      const topSite = currentStats.topDomains[0];
+      const hours = topSite.time / (1000 * 60 * 60);
+      insights.push({
+        type: 'info',
+        title: 'Most Visited Site',
+        message: `You spent ${hours.toFixed(1)} hours on ${topSite.domain} (${topSite.percentage.toFixed(1)}% of your time).`
+      });
+    }
+  } else {
+    insights.push({
+      type: 'info',
+      title: 'No Data Yet',
+      message: 'Start browsing to see insights about your activity patterns. Enable tracking and visit some websites!'
+    });
+  }
 
   const insightsList = document.getElementById('insightsList');
   insightsList.innerHTML = insights.map(insight => `
@@ -509,8 +751,8 @@ function updateInsights() {
 function loadCategories() {
   const categoriesGrid = document.getElementById('categoriesGrid');
 
-  if (!currentStats || !currentStats.categories) {
-    categoriesGrid.innerHTML = '<div class="loading">No data available</div>';
+  if (!currentStats || !currentStats.categories || currentStats.categories.length === 0) {
+    categoriesGrid.innerHTML = '<div class="empty-state">No category data available. Start tracking to see breakdown by categories.</div>';
     return;
   }
 
@@ -522,13 +764,41 @@ function loadCategories() {
       <div class="category-time">${formatDuration(cat.time)}</div>
       <div class="category-stats">
         <span>${cat.visitCount} visits</span>
-        <span>${cat.percentage}%</span>
+        <span>${cat.percentage.toFixed(1)}%</span>
       </div>
       <div class="category-bar">
         <div class="category-bar-fill" style="width: ${cat.percentage}%"></div>
       </div>
     </div>
   `).join('');
+}
+
+/**
+ * Loads employee profile
+ */
+async function loadEmployeeProfile() {
+  try {
+    employeeProfile = await new Promise(resolve => {
+      chrome.storage.sync.get({
+        empCode: '',
+        empName: '',
+        companyCode: '',
+        practice: '',
+        productName: '',
+        projectClient: ''
+      }, resolve);
+    });
+
+    // Populate form fields
+    document.getElementById('empCode').value = employeeProfile.empCode || '';
+    document.getElementById('empName').value = employeeProfile.empName || '';
+    document.getElementById('companyCode').value = employeeProfile.companyCode || '';
+    document.getElementById('practice').value = employeeProfile.practice || '';
+    document.getElementById('productName').value = employeeProfile.productName || '';
+    document.getElementById('projectClient').value = employeeProfile.projectClient || '';
+  } catch (error) {
+    console.error('Error loading employee profile:', error);
+  }
 }
 
 /**
@@ -562,6 +832,17 @@ async function loadSettings() {
  */
 async function saveSettings() {
   try {
+    // Save employee profile
+    const profile = {
+      empCode: document.getElementById('empCode').value,
+      empName: document.getElementById('empName').value,
+      companyCode: document.getElementById('companyCode').value,
+      practice: document.getElementById('practice').value,
+      productName: document.getElementById('productName').value,
+      projectClient: document.getElementById('projectClient').value
+    };
+
+    // Save tracking settings
     const settings = {
       trackingEnabled: document.getElementById('enableTracking').checked,
       idleTimeout: parseInt(document.getElementById('idleTimeout').value),
@@ -573,12 +854,13 @@ async function saveSettings() {
     };
 
     await new Promise(resolve => {
-      chrome.storage.sync.set(settings, resolve);
+      chrome.storage.sync.set({ ...profile, ...settings }, resolve);
     });
 
     // Update background script
     chrome.runtime.sendMessage({ type: 'updateSettings', settings });
 
+    employeeProfile = profile;
     alert('Settings saved successfully!');
   } catch (error) {
     console.error('Error saving settings:', error);
@@ -640,14 +922,16 @@ window.removeFromBlacklist = function(domain) {
  * Clears all data
  */
 async function clearAllData() {
-  if (!confirm('Are you sure you want to clear all data? This action cannot be undone.')) {
+  if (!confirm('Are you sure you want to clear all tracking data? This action cannot be undone.')) {
     return;
   }
 
   try {
     // This would clear IndexedDB in production
-    alert('All data has been cleared.');
-    location.reload();
+    useDummyData = true;
+    document.getElementById('dummyDataToggle').checked = true;
+    await loadData();
+    alert('All tracking data has been cleared. Dummy data is now displayed.');
   } catch (error) {
     console.error('Error clearing data:', error);
     alert('Error clearing data. Please try again.');
@@ -655,23 +939,81 @@ async function clearAllData() {
 }
 
 /**
- * Exports data as JSON
+ * Exports data in the specified CSV format
  */
 async function exportData() {
   try {
-    const data = {
-      exportDate: new Date().toISOString(),
-      stats: currentStats,
-      sessions: allSessions
-    };
+    // Check if employee profile is complete
+    if (!employeeProfile.empCode || !employeeProfile.empName) {
+      alert('Please complete your employee profile in Settings before exporting data.');
+      switchSection('settings');
+      return;
+    }
 
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const sessions = currentStats.sessions || [];
+
+    if (sessions.length === 0) {
+      alert('No data to export. Start tracking or enable dummy data to see export format.');
+      return;
+    }
+
+    // CSV Header
+    const headers = [
+      'Emp Code',
+      'Emp Name',
+      'Company Code',
+      'Practice',
+      'Product Name',
+      'Project/Client',
+      'Task/Description',
+      'Working Hours (8H)',
+      'Logged Date'
+    ];
+
+    // Convert sessions to CSV rows
+    const rows = sessions.map(session => {
+      const hours = (session.duration / (1000 * 60 * 60)).toFixed(2);
+      const loggedDate = new Date(session.startTime).toLocaleDateString('en-GB', {
+        day: 'numeric',
+        month: 'short',
+        year: '2-digit'
+      });
+
+      // Generate task description from domain and category
+      const taskDescription = `${session.category} work on ${session.domain}`;
+
+      return [
+        employeeProfile.empCode || 'N/A',
+        employeeProfile.empName || 'N/A',
+        employeeProfile.companyCode || 'N/A',
+        employeeProfile.practice || 'N/A',
+        employeeProfile.productName || session.category,
+        employeeProfile.projectClient || session.domain,
+        taskDescription,
+        hours,
+        loggedDate
+      ];
+    });
+
+    // Create CSV content
+    const csvContent = [
+      headers.join('\t'),
+      ...rows.map(row => row.join('\t'))
+    ].join('\n');
+
+    // Create and download file
+    const blob = new Blob([csvContent], { type: 'text/tab-separated-values;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `timetracker-export-${Date.now()}.json`;
-    a.click();
+    const link = document.createElement('a');
+    link.href = url;
+
+    const today = new Date().toISOString().split('T')[0];
+    link.download = `timesheet_${employeeProfile.empCode}_${today}.csv`;
+
+    link.click();
     URL.revokeObjectURL(url);
+
+    alert('Data exported successfully!');
   } catch (error) {
     console.error('Error exporting data:', error);
     alert('Error exporting data. Please try again.');
