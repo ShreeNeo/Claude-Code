@@ -30,6 +30,10 @@
           <span class="nav-icon">📁</span>
           Categories
         </a>
+        <a href="#meetings" class="nav-item" data-section="meetings">
+          <span class="nav-icon">📅</span>
+          Meetings
+        </a>
         <a href="#settings" class="nav-item" data-section="settings">
           <span class="nav-icon">⚙️</span>
           Settings
@@ -240,6 +244,74 @@
           </div>
         </section>
 
+        <!-- Meetings Section -->
+        <section id="meetingsSection" class="section">
+          <!-- Connection Status -->
+          <div class="calendar-status-cards">
+            <div class="status-card" id="googleStatus">
+              <div class="status-header">
+                <span class="status-icon">📧</span>
+                <span class="status-provider">Google Calendar</span>
+              </div>
+              <div class="status-info" id="googleStatusText">Not Connected</div>
+            </div>
+            <div class="status-card" id="microsoftStatus">
+              <div class="status-header">
+                <span class="status-icon">📨</span>
+                <span class="status-provider">Microsoft Outlook</span>
+              </div>
+              <div class="status-info" id="microsoftStatusText">Not Connected</div>
+            </div>
+          </div>
+
+          <!-- Meetings Table -->
+          <div class="table-container">
+            <div class="table-header">
+              <h3 class="table-title">Calendar Meetings</h3>
+              <div class="table-actions">
+                <input type="text" id="meetingsSearch" class="search-input" placeholder="Search meetings...">
+                <button id="refreshMeetingsBtn" class="btn btn-secondary">🔄 Refresh</button>
+                <button id="exportMeetingsBtn" class="btn btn-primary">Export Meetings</button>
+              </div>
+            </div>
+            <div class="table-wrapper">
+              <table class="data-table" id="meetingsTable">
+                <thead>
+                  <tr>
+                    <th>Meeting Title</th>
+                    <th>Date & Time</th>
+                    <th>Scheduled Duration</th>
+                    <th>Actual Time Spent</th>
+                    <th>Attendance</th>
+                    <th>Utilization</th>
+                    <th>Provider</th>
+                    <th>Attendees</th>
+                  </tr>
+                </thead>
+                <tbody id="meetingsTableBody">
+                  <tr>
+                    <td colspan="8" class="empty-state">
+                      <div style="padding: 40px; text-align: center;">
+                        <div style="font-size: 48px; margin-bottom: 16px;">📅</div>
+                        <div style="font-size: 16px; font-weight: 600; margin-bottom: 8px;">No Calendar Connected</div>
+                        <div style="font-size: 14px; color: #6b7280;">Connect your Google or Microsoft calendar in Settings to sync meetings</div>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Meeting Insights -->
+          <div class="insights-container">
+            <h3 class="insights-title">Meeting Insights</h3>
+            <div id="meetingInsightsList" class="insights-list">
+              <div class="loading">Connect a calendar to see meeting insights...</div>
+            </div>
+          </div>
+        </section>
+
         <!-- Settings Section -->
         <section id="settingsSection" class="section">
           <div class="settings-container">
@@ -356,6 +428,45 @@
                   <button id="addBlacklistBtn" class="btn btn-secondary">Add</button>
                 </div>
                 <div id="blacklistList" class="blacklist-list"></div>
+              </div>
+            </div>
+
+            <!-- Calendar Integration -->
+            <div class="settings-group">
+              <h3 class="settings-title">Calendar Integration</h3>
+              <p class="settings-description">Connect your calendars to sync meeting data and track time spent in meetings</p>
+
+              <div class="setting-item">
+                <div class="setting-label">
+                  <span>Google Calendar</span>
+                  <span class="setting-description" id="googleCalendarStatus">Not connected</span>
+                </div>
+                <div class="calendar-actions">
+                  <button id="connectGoogleBtn" class="btn btn-primary">Connect Google</button>
+                  <button id="disconnectGoogleBtn" class="btn btn-secondary" style="display: none;">Disconnect</button>
+                </div>
+              </div>
+
+              <div class="setting-item">
+                <div class="setting-label">
+                  <span>Microsoft Outlook</span>
+                  <span class="setting-description" id="microsoftCalendarStatus">Not connected</span>
+                </div>
+                <div class="calendar-actions">
+                  <button id="connectMicrosoftBtn" class="btn btn-primary">Connect Outlook</button>
+                  <button id="disconnectMicrosoftBtn" class="btn btn-secondary" style="display: none;">Disconnect</button>
+                </div>
+              </div>
+
+              <div class="setting-item">
+                <div class="setting-label">
+                  <span>Auto-sync Meetings</span>
+                  <span class="setting-description">Automatically sync meetings every hour</span>
+                </div>
+                <label class="toggle">
+                  <input type="checkbox" id="autoSyncMeetings">
+                  <span class="toggle-slider"></span>
+                </label>
               </div>
             </div>
 

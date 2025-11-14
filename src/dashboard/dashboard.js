@@ -5,8 +5,9 @@
 
 /* global chrome */
 
-// Import Chart.js
+// Import Chart.js and Calendar Sync
 import Chart from 'chart.js/auto';
+import calendarSync from '../integrations/calendar-sync.js';
 
 // State
 let currentSection = 'overview';
@@ -16,6 +17,10 @@ let currentStats = null;
 let charts = {};
 let useDummyData = true;
 let employeeProfile = {};
+let currentMeetings = [];
+let calendarSettings = {
+  autoSync: false
+};
 
 // Initialize on load
 document.addEventListener('DOMContentLoaded', initialize);
@@ -29,6 +34,7 @@ async function initialize() {
   setupEventListeners();
   await loadEmployeeProfile();
   await loadSettings();
+  await initializeCalendarStatus();
   await loadData();
   console.log('Dashboard initialized. Current stats:', currentStats);
   console.log('Dummy data enabled:', useDummyData);
@@ -79,6 +85,7 @@ function switchSection(section) {
     overview: 'Overview',
     analytics: 'Analytics',
     categories: 'Categories',
+    meetings: 'Meetings',
     settings: 'Settings'
   };
   document.getElementById('pageTitle').textContent = titles[section];
@@ -94,6 +101,8 @@ function switchSection(section) {
     if (currentStats) {
       loadCategories();
     }
+  } else if (section === 'meetings') {
+    loadMeetings();
   }
 }
 
@@ -125,6 +134,15 @@ function setupEventListeners() {
   // Search
   document.getElementById('searchInput').addEventListener('input', filterTable);
   document.getElementById('timesheetSearch').addEventListener('input', filterTimesheetTable);
+
+  // Calendar integration buttons
+  document.getElementById('connectGoogleBtn').addEventListener('click', connectGoogleCalendar);
+  document.getElementById('disconnectGoogleBtn').addEventListener('click', () => disconnectCalendar('google'));
+  document.getElementById('connectMicrosoftBtn').addEventListener('click', connectMicrosoftCalendar);
+  document.getElementById('disconnectMicrosoftBtn').addEventListener('click', () => disconnectCalendar('microsoft'));
+  document.getElementById('refreshMeetingsBtn').addEventListener('click', loadMeetings);
+  document.getElementById('exportMeetingsBtn').addEventListener('click', exportMeetings);
+  document.getElementById('meetingsSearch').addEventListener('input', filterMeetingsTable);
 }
 
 /**
@@ -1131,9 +1149,15 @@ async function saveSettings() {
       )
     };
 
+    // Save calendar settings
+    calendarSettings.autoSync = document.getElementById('autoSyncMeetings').checked;
+
     await new Promise(resolve => {
       chrome.storage.sync.set({ ...profile, ...settings }, resolve);
     });
+
+    // Save calendar settings separately (local storage)
+    await chrome.storage.local.set({ calendarSettings });
 
     // Update background script
     chrome.runtime.sendMessage({ type: 'updateSettings', settings });
@@ -1312,4 +1336,437 @@ function formatDuration(ms) {
     return `${hours}h ${remainingMinutes}m`;
   }
   return `${minutes}m`;
+}
+
+// ===== CALENDAR INTEGRATION FUNCTIONS =====
+
+/**
+ * Initialize calendar status on load
+ */
+async function initializeCalendarStatus() {
+  updateCalendarStatus();
+
+  // Load calendar settings
+  try {
+    const result = await chrome.storage.local.get(['calendarSettings']);
+    if (result.calendarSettings) {
+      calendarSettings = result.calendarSettings;
+      document.getElementById('autoSyncMeetings').checked = calendarSettings.autoSync;
+    }
+  } catch (error) {
+    console.error('Error loading calendar settings:', error);
+  }
+}
+
+/**
+ * Update calendar connection status in UI
+ */
+function updateCalendarStatus() {
+  // Google Calendar status
+  const googleConnected = calendarSync.isConnected('google');
+  const googleStatusCard = document.getElementById('googleStatus');
+  const googleStatusText = document.getElementById('googleStatusText');
+  const googleCalendarStatus = document.getElementById('googleCalendarStatus');
+  const connectGoogleBtn = document.getElementById('connectGoogleBtn');
+  const disconnectGoogleBtn = document.getElementById('disconnectGoogleBtn');
+
+  if (googleConnected) {
+    googleStatusCard.classList.add('connected');
+    googleStatusText.textContent = 'Connected';
+    googleCalendarStatus.textContent = 'Connected and syncing';
+    connectGoogleBtn.style.display = 'none';
+    disconnectGoogleBtn.style.display = 'block';
+  } else {
+    googleStatusCard.classList.remove('connected');
+    googleStatusText.textContent = 'Not Connected';
+    googleCalendarStatus.textContent = 'Not connected';
+    connectGoogleBtn.style.display = 'block';
+    disconnectGoogleBtn.style.display = 'none';
+  }
+
+  // Microsoft Calendar status
+  const microsoftConnected = calendarSync.isConnected('microsoft');
+  const microsoftStatusCard = document.getElementById('microsoftStatus');
+  const microsoftStatusText = document.getElementById('microsoftStatusText');
+  const microsoftCalendarStatus = document.getElementById('microsoftCalendarStatus');
+  const connectMicrosoftBtn = document.getElementById('connectMicrosoftBtn');
+  const disconnectMicrosoftBtn = document.getElementById('disconnectMicrosoftBtn');
+
+  if (microsoftConnected) {
+    microsoftStatusCard.classList.add('connected');
+    microsoftStatusText.textContent = 'Connected';
+    microsoftCalendarStatus.textContent = 'Connected and syncing';
+    connectMicrosoftBtn.style.display = 'none';
+    disconnectMicrosoftBtn.style.display = 'block';
+  } else {
+    microsoftStatusCard.classList.remove('connected');
+    microsoftStatusText.textContent = 'Not Connected';
+    microsoftCalendarStatus.textContent = 'Not connected';
+    connectMicrosoftBtn.style.display = 'block';
+    disconnectMicrosoftBtn.style.display = 'none';
+  }
+}
+
+/**
+ * Connect Google Calendar
+ */
+async function connectGoogleCalendar() {
+  try {
+    const btn = document.getElementById('connectGoogleBtn');
+    btn.disabled = true;
+    btn.textContent = 'Connecting...';
+
+    const result = await calendarSync.authenticateGoogle();
+
+    if (result.success) {
+      alert('Google Calendar connected successfully!');
+      updateCalendarStatus();
+      loadMeetings();
+    } else {
+      alert(`Failed to connect Google Calendar: ${result.error}`);
+    }
+  } catch (error) {
+    console.error('Error connecting Google Calendar:', error);
+    alert('Failed to connect Google Calendar. Please try again.');
+  } finally {
+    const btn = document.getElementById('connectGoogleBtn');
+    btn.disabled = false;
+    btn.textContent = 'Connect Google';
+  }
+}
+
+/**
+ * Connect Microsoft Outlook Calendar
+ */
+async function connectMicrosoftCalendar() {
+  try {
+    const btn = document.getElementById('connectMicrosoftBtn');
+    btn.disabled = true;
+    btn.textContent = 'Connecting...';
+
+    const result = await calendarSync.authenticateMicrosoft();
+
+    if (result.success) {
+      alert('Microsoft Outlook connected successfully!');
+      updateCalendarStatus();
+      loadMeetings();
+    } else {
+      alert(`Failed to connect Microsoft Outlook: ${result.error}`);
+    }
+  } catch (error) {
+    console.error('Error connecting Microsoft Outlook:', error);
+    alert('Failed to connect Microsoft Outlook. Please try again.');
+  } finally {
+    const btn = document.getElementById('connectMicrosoftBtn');
+    btn.disabled = false;
+    btn.textContent = 'Connect Outlook';
+  }
+}
+
+/**
+ * Disconnect a calendar provider
+ */
+async function disconnectCalendar(provider) {
+  const providerName = provider === 'google' ? 'Google Calendar' : 'Microsoft Outlook';
+
+  if (!confirm(`Are you sure you want to disconnect ${providerName}?`)) {
+    return;
+  }
+
+  try {
+    const result = await calendarSync.disconnect(provider);
+
+    if (result.success) {
+      alert(`${providerName} disconnected successfully!`);
+      updateCalendarStatus();
+      loadMeetings(); // Refresh meetings list
+    } else {
+      alert(`Failed to disconnect ${providerName}: ${result.error}`);
+    }
+  } catch (error) {
+    console.error(`Error disconnecting ${provider}:`, error);
+    alert(`Failed to disconnect ${providerName}. Please try again.`);
+  }
+}
+
+/**
+ * Load and display meetings from connected calendars
+ */
+async function loadMeetings() {
+  try {
+    const { start, end } = getDateRange(currentDateRange);
+
+    // Check if any calendar is connected
+    if (!calendarSync.isConnected('google') && !calendarSync.isConnected('microsoft')) {
+      currentMeetings = [];
+      updateMeetingsTable();
+      return;
+    }
+
+    // Show loading state
+    const tbody = document.getElementById('meetingsTableBody');
+    tbody.innerHTML = '<tr><td colspan="8" class="loading">Loading meetings...</td></tr>';
+
+    // Fetch meetings from all connected calendars
+    const meetings = await calendarSync.fetchAllEvents(start, end);
+
+    // Correlate with tracking sessions
+    const sessions = currentStats?.sessions || [];
+    currentMeetings = await calendarSync.correlateMeetingsWithSessions(meetings, sessions);
+
+    // Update UI
+    updateMeetingsTable();
+    updateMeetingInsights();
+
+  } catch (error) {
+    console.error('Error loading meetings:', error);
+    const tbody = document.getElementById('meetingsTableBody');
+    tbody.innerHTML = `<tr><td colspan="8" class="empty-state">Error loading meetings: ${error.message}</td></tr>`;
+  }
+}
+
+/**
+ * Update meetings table
+ */
+function updateMeetingsTable() {
+  const tbody = document.getElementById('meetingsTableBody');
+
+  if (!currentMeetings || currentMeetings.length === 0) {
+    const noCalendar = !calendarSync.isConnected('google') && !calendarSync.isConnected('microsoft');
+
+    tbody.innerHTML = `<tr><td colspan="8" class="empty-state">
+      <div style="padding: 40px; text-align: center;">
+        <div style="font-size: 48px; margin-bottom: 16px;">📅</div>
+        <div style="font-size: 16px; font-weight: 600; margin-bottom: 8px;">
+          ${noCalendar ? 'No Calendar Connected' : 'No Meetings Found'}
+        </div>
+        <div style="font-size: 14px; color: #6b7280;">
+          ${noCalendar ? 'Connect your Google or Microsoft calendar in Settings to sync meetings' : 'No meetings found for the selected date range'}
+        </div>
+      </div>
+    </td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = currentMeetings.map(meeting => {
+    const scheduledHours = (meeting.scheduledDuration / (1000 * 60 * 60)).toFixed(2);
+    const actualHours = (meeting.actualTimeSpent / (1000 * 60 * 60)).toFixed(2);
+    const dateTime = meeting.startTime.toLocaleString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
+    });
+
+    // Determine utilization class
+    let utilizationClass = 'utilization-low';
+    if (meeting.utilizationRate >= 80) {
+      utilizationClass = 'utilization-high';
+    } else if (meeting.utilizationRate >= 50) {
+      utilizationClass = 'utilization-medium';
+    }
+
+    // Attendance status
+    const attendanceClass = meeting.attendanceConfirmed ? 'confirmed' : 'unconfirmed';
+    const attendanceIcon = meeting.attendanceConfirmed ? '✓' : '?';
+    const attendanceText = meeting.attendanceConfirmed ? 'Confirmed' : 'Unconfirmed';
+
+    // Provider badge
+    const providerIcon = meeting.provider === 'google' ? '📧' : '📨';
+
+    return `<tr>
+      <td><strong>${meeting.title}</strong></td>
+      <td>${dateTime}</td>
+      <td>${formatDuration(meeting.scheduledDuration)}</td>
+      <td>${formatDuration(meeting.actualTimeSpent)}</td>
+      <td>
+        <span class="attendance-status ${attendanceClass}">
+          ${attendanceIcon} ${attendanceText}
+        </span>
+      </td>
+      <td>
+        <span class="utilization-badge ${utilizationClass}">
+          ${Math.round(meeting.utilizationRate)}%
+        </span>
+      </td>
+      <td>
+        <span class="provider-badge">
+          ${providerIcon} ${meeting.provider === 'google' ? 'Google' : 'Outlook'}
+        </span>
+      </td>
+      <td>${meeting.attendees || 0}</td>
+    </tr>`;
+  }).join('');
+}
+
+/**
+ * Update meeting insights
+ */
+function updateMeetingInsights() {
+  const container = document.getElementById('meetingInsightsList');
+
+  if (!currentMeetings || currentMeetings.length === 0) {
+    container.innerHTML = '<div class="loading">Connect a calendar to see meeting insights...</div>';
+    return;
+  }
+
+  const insights = generateMeetingInsights(currentMeetings);
+  container.innerHTML = insights.map(insight => `
+    <div class="insight-item ${insight.type}">
+      <div class="insight-title">${insight.title}</div>
+      <div class="insight-message">${insight.message}</div>
+    </div>
+  `).join('');
+}
+
+/**
+ * Generate insights from meetings data
+ */
+function generateMeetingInsights(meetings) {
+  const insights = [];
+
+  // Total meeting time
+  const totalScheduled = meetings.reduce((sum, m) => sum + m.scheduledDuration, 0);
+  const totalActual = meetings.reduce((sum, m) => sum + m.actualTimeSpent, 0);
+  const avgUtilization = meetings.reduce((sum, m) => sum + m.utilizationRate, 0) / meetings.length;
+
+  insights.push({
+    type: 'info',
+    title: 'Total Meeting Time',
+    message: `You had ${meetings.length} meetings scheduled for ${formatDuration(totalScheduled)}. Actual time spent: ${formatDuration(totalActual)}.`
+  });
+
+  // Attendance rate
+  const attended = meetings.filter(m => m.attendanceConfirmed).length;
+  const attendanceRate = (attended / meetings.length) * 100;
+
+  if (attendanceRate >= 80) {
+    insights.push({
+      type: 'success',
+      title: 'Great Meeting Attendance',
+      message: `You attended ${attended} out of ${meetings.length} meetings (${Math.round(attendanceRate)}%). Keep it up!`
+    });
+  } else {
+    insights.push({
+      type: 'warning',
+      title: 'Meeting Attendance',
+      message: `You attended ${attended} out of ${meetings.length} meetings (${Math.round(attendanceRate)}%). Some meetings may have been missed.`
+    });
+  }
+
+  // Utilization insights
+  if (avgUtilization >= 80) {
+    insights.push({
+      type: 'success',
+      title: 'High Meeting Engagement',
+      message: `Average meeting utilization is ${Math.round(avgUtilization)}%. You're actively engaged in your meetings.`
+    });
+  } else if (avgUtilization < 50) {
+    insights.push({
+      type: 'warning',
+      title: 'Low Meeting Engagement',
+      message: `Average meeting utilization is ${Math.round(avgUtilization)}%. You may be multitasking or some meetings ran shorter than scheduled.`
+    });
+  }
+
+  // Longest meeting
+  const longest = meetings.reduce((max, m) => m.scheduledDuration > max.scheduledDuration ? m : max, meetings[0]);
+  if (longest.scheduledDuration > 2 * 60 * 60 * 1000) { // > 2 hours
+    insights.push({
+      type: 'info',
+      title: 'Long Meeting Alert',
+      message: `Your longest meeting "${longest.title}" was scheduled for ${formatDuration(longest.scheduledDuration)}. Consider breaking long meetings into smaller sessions.`
+    });
+  }
+
+  return insights;
+}
+
+/**
+ * Export meetings to CSV
+ */
+function exportMeetings() {
+  try {
+    if (!currentMeetings || currentMeetings.length === 0) {
+      alert('No meetings to export. Please connect a calendar and load meetings first.');
+      return;
+    }
+
+    // CSV headers
+    const headers = [
+      'Meeting Title',
+      'Date',
+      'Start Time',
+      'End Time',
+      'Scheduled Duration (Hours)',
+      'Actual Time Spent (Hours)',
+      'Attendance Status',
+      'Utilization %',
+      'Provider',
+      'Attendees',
+      'Organizer'
+    ];
+
+    // Generate rows
+    const rows = currentMeetings.map(meeting => {
+      const scheduledHours = (meeting.scheduledDuration / (1000 * 60 * 60)).toFixed(2);
+      const actualHours = (meeting.actualTimeSpent / (1000 * 60 * 60)).toFixed(2);
+      const date = meeting.startTime.toLocaleDateString('en-US');
+      const startTime = meeting.startTime.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+      const endTime = meeting.endTime.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+      const attendanceStatus = meeting.attendanceConfirmed ? 'Confirmed' : 'Unconfirmed';
+      const provider = meeting.provider === 'google' ? 'Google Calendar' : 'Microsoft Outlook';
+
+      return [
+        meeting.title,
+        date,
+        startTime,
+        endTime,
+        scheduledHours,
+        actualHours,
+        attendanceStatus,
+        Math.round(meeting.utilizationRate),
+        provider,
+        meeting.attendees || 0,
+        meeting.organizer || 'Unknown'
+      ];
+    });
+
+    // Create CSV content
+    const csvContent = [
+      headers.join('\t'),
+      ...rows.map(row => row.join('\t'))
+    ].join('\n');
+
+    // Create and download file
+    const blob = new Blob([csvContent], { type: 'text/tab-separated-values;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+
+    const today = new Date().toISOString().split('T')[0];
+    link.download = `meetings_${employeeProfile.empCode || 'export'}_${today}.csv`;
+
+    link.click();
+    URL.revokeObjectURL(url);
+
+    alert('Meetings exported successfully!');
+  } catch (error) {
+    console.error('Error exporting meetings:', error);
+    alert('Error exporting meetings. Please try again.');
+  }
+}
+
+/**
+ * Filter meetings table
+ */
+function filterMeetingsTable(e) {
+  const searchTerm = e.target.value.toLowerCase();
+  const rows = document.querySelectorAll('#meetingsTable tbody tr');
+
+  rows.forEach(row => {
+    const text = row.textContent.toLowerCase();
+    row.style.display = text.includes(searchTerm) ? '' : 'none';
+  });
 }

@@ -7,8 +7,15 @@
     "tabs",
     "storage",
     "idle",
-    "alarms"
+    "alarms",
+    "identity"
   ],
+  "oauth2": {
+    "client_id": "YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com",
+    "scopes": [
+      "https://www.googleapis.com/auth/calendar.readonly"
+    ]
+  },
   "host_permissions": [
     "<all_urls>"
   ],

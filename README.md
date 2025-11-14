@@ -1,6 +1,6 @@
 # TimeTracker Pro
 
-A comprehensive browser extension for tracking time spent on websites with detailed analytics and productivity insights.
+A comprehensive browser extension for tracking time spent on websites with detailed analytics, productivity insights, and **calendar integration** to sync and track meetings from Google Calendar and Microsoft Outlook.
 
 ## Features
 
@@ -28,10 +28,15 @@ A comprehensive browser extension for tracking time spent on websites with detai
 ### Advanced Features
 - **Focus Mode**: Get alerts when spending too much time on distracting sites
 - **Blacklist**: Exclude specific domains from tracking
-- **Data Export**: Export your data as JSON/CSV
+- **Data Export**: Export your data as JSON/CSV for timesheet reporting
+- **Employee Timesheet**: Professional timesheet export with employee details
 - **Custom Categories**: Assign custom categories to domains
 - **Data Retention**: Automatically cleans up data older than 90 days
 - **Settings Sync**: Settings synchronized across devices (via chrome.storage.sync)
+- **Calendar Integration**: 📅 **NEW!** Sync meetings from Google Calendar and Microsoft Outlook
+- **Meeting Tracking**: Correlate calendar meetings with actual time spent
+- **Meeting Analytics**: Track attendance, utilization, and engagement metrics
+- **Meeting Insights**: AI-powered insights on meeting patterns and productivity
 
 ## Installation
 
@@ -173,6 +178,8 @@ timetracker-pro/
 │   │   ├── dashboard.html    # Dashboard interface
 │   │   ├── dashboard.css     # Dashboard styles
 │   │   └── dashboard.js      # Dashboard logic with charts
+│   ├── integrations/
+│   │   └── calendar-sync.js  # Calendar integration (Google/Microsoft)
 │   ├── utils/
 │   │   ├── time-formatter.js # Time formatting utilities
 │   │   ├── domain-parser.js  # URL/domain parsing
@@ -355,6 +362,15 @@ MIT License - see [LICENSE](LICENSE) file for details
 
 ## Changelog
 
+### Version 1.1.0 (2025-01-14)
+
+- 📅 **Calendar Integration**: Sync meetings from Google Calendar and Microsoft Outlook
+- Meeting tracking with actual time spent vs scheduled time
+- Meeting attendance confirmation and utilization metrics
+- Meeting insights and analytics
+- Export meetings data with timesheet
+- OAuth 2.0 authentication for calendar providers
+
 ### Version 1.0.0 (2024-01-01)
 
 - Initial release
@@ -363,8 +379,10 @@ MIT License - see [LICENSE](LICENSE) file for details
 - Interactive dashboard
 - Focus mode
 - Data export
+- Employee timesheet export
 - Category classification
 - Hourly/daily/weekly/monthly analytics
+- Dummy data visualization
 
 ## Support
 
@@ -374,14 +392,20 @@ MIT License - see [LICENSE](LICENSE) file for details
 
 ## Roadmap
 
-### Version 1.1.0
+### Version 1.1.0 ✅ COMPLETED
+- [x] Calendar integration (Google Calendar & Microsoft Outlook)
+- [x] Meeting tracking and analytics
+- [x] Meeting attendance and utilization metrics
+- [x] Employee timesheet export
+
+### Version 1.2.0
 - [ ] Goals and targets
 - [ ] Notifications for milestones
 - [ ] More chart types
 - [ ] PDF export
-- [ ] Calendar integration
+- [ ] Auto-sync meetings every hour
 
-### Version 1.2.0
+### Version 1.3.0
 - [ ] Multi-device sync
 - [ ] Teams/shared analytics
 - [ ] Advanced filtering
