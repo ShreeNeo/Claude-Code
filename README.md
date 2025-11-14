@@ -116,11 +116,23 @@ Open the dashboard to view:
 - Visit counts and percentages
 
 #### Settings Tab
+- Configure employee profile for timesheet export
 - Enable/disable tracking
 - Configure idle timeout
 - Set up Focus Mode
 - Manage blacklist
+- **Connect Google Calendar and Microsoft Outlook** 📅
+- Enable auto-sync for meetings
 - Data management options
+
+#### Meetings Tab 📅 NEW!
+- View calendar meetings from Google Calendar and Microsoft Outlook
+- See scheduled vs actual time spent in meetings
+- Track meeting attendance confirmation
+- Meeting utilization metrics (engagement level)
+- Export meetings data to CSV
+- Meeting insights and recommendations
+- **Setup Guide**: See [CALENDAR_SETUP_GUIDE.md](CALENDAR_SETUP_GUIDE.md) for OAuth configuration
 
 ### Keyboard Shortcuts
 
