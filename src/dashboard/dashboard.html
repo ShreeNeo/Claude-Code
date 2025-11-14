@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TimeTracker Pro - Dashboard</title>
+  <link rel="stylesheet" href="dashboard.css">
+</head>
+<body>
+  <div class="dashboard">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <h1 class="logo">
+          <span class="logo-icon">⏱️</span>
+          TimeTracker Pro
+        </h1>
+      </div>
+
+      <nav class="nav">
+        <a href="#overview" class="nav-item active" data-section="overview">
+          <span class="nav-icon">📊</span>
+          Overview
+        </a>
+        <a href="#analytics" class="nav-item" data-section="analytics">
+          <span class="nav-icon">📈</span>
+          Analytics
+        </a>
+        <a href="#categories" class="nav-item" data-section="categories">
+          <span class="nav-icon">📁</span>
+          Categories
+        </a>
+        <a href="#settings" class="nav-item" data-section="settings">
+          <span class="nav-icon">⚙️</span>
+          Settings
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <button id="exportBtn" class="btn-sidebar">
+          <span>💾</span> Export Data
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <!-- Header -->
+      <header class="header">
+        <div class="header-left">
+          <h2 class="page-title" id="pageTitle">Overview</h2>
+        </div>
+        <div class="header-right">
+          <div class="date-range">
+            <select id="dateRange" class="select">
+              <option value="today">Today</option>
+              <option value="week">This Week</option>
+              <option value="month">This Month</option>
+              <option value="custom">Custom Range</option>
+            </select>
+          </div>
+          <div class="tracking-status">
+            <span class="status-indicator" id="statusIndicator"></span>
+            <span id="trackingStatus">Tracking</span>
+          </div>
+        </div>
+      </header>
+
+      <!-- Content Sections -->
+      <div class="content">
+        <!-- Overview Section -->
+        <section id="overviewSection" class="section active">
+          <!-- Stats Cards -->
+          <div class="stats-cards">
+            <div class="stat-card">
+              <div class="stat-card-header">
+                <span class="stat-icon">⏱️</span>
+                <span class="stat-label">Total Time</span>
+              </div>
+              <div class="stat-value" id="totalTime">0h 0m</div>
+              <div class="stat-change" id="totalTimeChange">—</div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-card-header">
+                <span class="stat-icon">🎯</span>
+                <span class="stat-label">Productivity Score</span>
+              </div>
+              <div class="stat-value" id="productivityScore">0%</div>
+              <div class="stat-change" id="productivityChange">—</div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-card-header">
+                <span class="stat-icon">🔥</span>
+                <span class="stat-label">Focus Score</span>
+              </div>
+              <div class="stat-value" id="focusScore">0%</div>
+              <div class="stat-change" id="focusChange">—</div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-card-header">
+                <span class="stat-icon">📊</span>
+                <span class="stat-label">Sessions</span>
+              </div>
+              <div class="stat-value" id="sessionCount">0</div>
+              <div class="stat-change" id="sessionChange">—</div>
+            </div>
+          </div>
+
+          <!-- Charts Row -->
+          <div class="charts-row">
+            <div class="chart-container">
+              <div class="chart-header">
+                <h3 class="chart-title">Daily Activity</h3>
+              </div>
+              <div class="chart-wrapper">
+                <canvas id="dailyChart"></canvas>
+              </div>
+            </div>
+
+            <div class="chart-container">
+              <div class="chart-header">
+                <h3 class="chart-title">Category Breakdown</h3>
+              </div>
+              <div class="chart-wrapper">
+                <canvas id="categoryChart"></canvas>
+              </div>
+            </div>
+          </div>
+
+          <!-- Top Domains Table -->
+          <div class="table-container">
+            <div class="table-header">
+              <h3 class="table-title">Top Domains</h3>
+              <div class="table-actions">
+                <input type="text" id="searchInput" class="search-input" placeholder="Search domains...">
+              </div>
+            </div>
+            <div class="table-wrapper">
+              <table class="data-table" id="domainsTable">
+                <thead>
+                  <tr>
+                    <th>Rank</th>
+                    <th>Domain</th>
+                    <th>Category</th>
+                    <th>Time Spent</th>
+                    <th>Visits</th>
+                    <th>Percentage</th>
+                  </tr>
+                </thead>
+                <tbody id="domainsTableBody">
+                  <tr>
+                    <td colspan="6" class="loading">Loading...</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- Analytics Section -->
+        <section id="analyticsSection" class="section">
+          <div class="charts-grid">
+            <div class="chart-container large">
+              <div class="chart-header">
+                <h3 class="chart-title">Hourly Activity Heatmap</h3>
+              </div>
+              <div class="chart-wrapper">
+                <canvas id="hourlyChart"></canvas>
+              </div>
+            </div>
+
+            <div class="chart-container">
+              <div class="chart-header">
+                <h3 class="chart-title">Weekly Comparison</h3>
+              </div>
+              <div class="chart-wrapper">
+                <canvas id="weeklyChart"></canvas>
+              </div>
+            </div>
+          </div>
+
+          <!-- Insights -->
+          <div class="insights-container">
+            <h3 class="insights-title">Insights & Recommendations</h3>
+            <div id="insightsList" class="insights-list">
+              <div class="loading">Generating insights...</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Categories Section -->
+        <section id="categoriesSection" class="section">
+          <div class="categories-grid" id="categoriesGrid">
+            <div class="loading">Loading categories...</div>
+          </div>
+        </section>
+
+        <!-- Settings Section -->
+        <section id="settingsSection" class="section">
+          <div class="settings-container">
+            <!-- Tracking Settings -->
+            <div class="settings-group">
+              <h3 class="settings-title">Tracking Settings</h3>
+
+              <div class="setting-item">
+                <div class="setting-label">
+                  <span>Enable Tracking</span>
+                  <span class="setting-description">Track time spent on websites</span>
+                </div>
+                <label class="toggle">
+                  <input type="checkbox" id="enableTracking" checked>
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+
+              <div class="setting-item">
+                <div class="setting-label">
+                  <span>Idle Timeout</span>
+                  <span class="setting-description">Minutes of inactivity before stopping tracking</span>
+                </div>
+                <input type="number" id="idleTimeout" class="input-number" value="1" min="1" max="10">
+              </div>
+            </div>
+
+            <!-- Focus Mode -->
+            <div class="settings-group">
+              <h3 class="settings-title">Focus Mode</h3>
+
+              <div class="setting-item">
+                <div class="setting-label">
+                  <span>Enable Focus Mode</span>
+                  <span class="setting-description">Get alerts when spending too much time on distracting sites</span>
+                </div>
+                <label class="toggle">
+                  <input type="checkbox" id="enableFocusMode">
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+
+              <div class="setting-item">
+                <div class="setting-label">
+                  <span>Time Threshold (minutes)</span>
+                  <span class="setting-description">Alert after this many minutes on distracting sites</span>
+                </div>
+                <input type="number" id="focusThreshold" class="input-number" value="30" min="5" max="120">
+              </div>
+            </div>
+
+            <!-- Blacklist -->
+            <div class="settings-group">
+              <h3 class="settings-title">Blacklist</h3>
+              <p class="settings-description">Domains to exclude from tracking</p>
+
+              <div class="blacklist-container">
+                <div class="blacklist-input-group">
+                  <input type="text" id="blacklistInput" class="input" placeholder="example.com">
+                  <button id="addBlacklistBtn" class="btn btn-secondary">Add</button>
+                </div>
+                <div id="blacklistList" class="blacklist-list"></div>
+              </div>
+            </div>
+
+            <!-- Data Management -->
+            <div class="settings-group">
+              <h3 class="settings-title">Data Management</h3>
+
+              <div class="setting-item">
+                <button id="clearDataBtn" class="btn btn-danger">Clear All Data</button>
+              </div>
+            </div>
+
+            <!-- Save Button -->
+            <div class="settings-actions">
+              <button id="saveSettingsBtn" class="btn btn-primary">Save Settings</button>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script src="dashboard.js"></script>
+</body>
+</html>

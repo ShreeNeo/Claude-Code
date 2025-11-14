@@ -1,0 +1,2 @@
+This is a placeholder for icon16.png
+For production, replace with actual 16x16 icon image
