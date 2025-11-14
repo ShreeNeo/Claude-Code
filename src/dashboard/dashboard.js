@@ -136,6 +136,8 @@ function setupEventListeners() {
   document.getElementById('timesheetSearch').addEventListener('input', filterTimesheetTable);
 
   // Calendar integration buttons
+  document.getElementById('saveGoogleClientIdBtn').addEventListener('click', () => saveClientId('google'));
+  document.getElementById('saveMicrosoftClientIdBtn').addEventListener('click', () => saveClientId('microsoft'));
   document.getElementById('connectGoogleBtn').addEventListener('click', connectGoogleCalendar);
   document.getElementById('disconnectGoogleBtn').addEventListener('click', () => disconnectCalendar('google'));
   document.getElementById('connectMicrosoftBtn').addEventListener('click', connectMicrosoftCalendar);
@@ -1355,6 +1357,66 @@ async function initializeCalendarStatus() {
     }
   } catch (error) {
     console.error('Error loading calendar settings:', error);
+  }
+
+  // Load and display client IDs
+  await loadClientIds();
+}
+
+/**
+ * Load client IDs from storage and display in UI
+ */
+async function loadClientIds() {
+  try {
+    const result = await chrome.storage.local.get(['calendarClientIds']);
+    if (result.calendarClientIds) {
+      if (result.calendarClientIds.google) {
+        document.getElementById('googleClientId').value = result.calendarClientIds.google;
+      }
+      if (result.calendarClientIds.microsoft) {
+        document.getElementById('microsoftClientId').value = result.calendarClientIds.microsoft;
+      }
+    }
+  } catch (error) {
+    console.error('Error loading client IDs:', error);
+  }
+}
+
+/**
+ * Save client ID for a provider
+ */
+async function saveClientId(provider) {
+  try {
+    const inputId = provider === 'google' ? 'googleClientId' : 'microsoftClientId';
+    const clientId = document.getElementById(inputId).value.trim();
+
+    if (!clientId) {
+      alert(`Please enter a ${provider === 'google' ? 'Google' : 'Microsoft'} Client ID`);
+      return;
+    }
+
+    // Validate format
+    if (provider === 'google' && !clientId.endsWith('.apps.googleusercontent.com')) {
+      alert('Invalid Google Client ID format. It should end with .apps.googleusercontent.com');
+      return;
+    }
+
+    if (provider === 'microsoft' && !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(clientId)) {
+      alert('Invalid Microsoft Client ID format. It should be a GUID (e.g., 12345678-1234-1234-1234-123456789abc)');
+      return;
+    }
+
+    // Save to calendar sync manager
+    const result = await calendarSync.saveClientIds(provider, clientId);
+
+    if (result.success) {
+      alert(`${provider === 'google' ? 'Google' : 'Microsoft'} Client ID saved successfully! You can now connect your calendar.`);
+    } else {
+      alert(`Failed to save Client ID: ${result.error}`);
+    }
+  } catch (error) {
+    console.error('Error saving client ID:', error);
+    alert('Failed to save Client ID. Please try again.');
   }
 }
 

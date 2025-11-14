@@ -34,7 +34,12 @@ class CalendarSyncManager {
       google: null,
       microsoft: null
     };
+    this.clientIds = {
+      google: null,
+      microsoft: null
+    };
     this.loadTokensFromStorage();
+    this.loadClientIdsFromStorage();
   }
 
   /**
@@ -49,6 +54,48 @@ class CalendarSyncManager {
     } catch (error) {
       console.error('Error loading calendar tokens:', error);
     }
+  }
+
+  /**
+   * Load saved client IDs from Chrome storage
+   */
+  async loadClientIdsFromStorage() {
+    try {
+      const result = await chrome.storage.local.get(['calendarClientIds']);
+      if (result.calendarClientIds) {
+        this.clientIds = result.calendarClientIds;
+      }
+    } catch (error) {
+      console.error('Error loading calendar client IDs:', error);
+    }
+  }
+
+  /**
+   * Save client IDs to Chrome storage
+   */
+  async saveClientIds(provider, clientId) {
+    try {
+      this.clientIds[provider] = clientId;
+      await chrome.storage.local.set({ calendarClientIds: this.clientIds });
+      return { success: true };
+    } catch (error) {
+      console.error('Error saving client ID:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  /**
+   * Check if client ID is configured for a provider
+   */
+  hasClientId(provider) {
+    return !!this.clientIds[provider];
+  }
+
+  /**
+   * Get client ID for a provider
+   */
+  getClientId(provider) {
+    return this.clientIds[provider];
   }
 
   /**
@@ -67,6 +114,14 @@ class CalendarSyncManager {
    */
   async authenticateGoogle() {
     try {
+      // Check if client ID is configured
+      if (!this.hasClientId('google')) {
+        return {
+          success: false,
+          error: 'Please configure your Google Client ID in settings first. See setup guide for instructions.'
+        };
+      }
+
       // Use Chrome Identity API for OAuth
       const token = await new Promise((resolve, reject) => {
         chrome.identity.getAuthToken({ interactive: true }, (token) => {
@@ -92,8 +147,16 @@ class CalendarSyncManager {
    */
   async authenticateMicrosoft() {
     try {
+      // Check if client ID is configured
+      if (!this.hasClientId('microsoft')) {
+        return {
+          success: false,
+          error: 'Please configure your Microsoft Client ID in settings first. See setup guide for instructions.'
+        };
+      }
+
       // For Microsoft, we need to use a custom OAuth flow
-      const clientId = 'YOUR_MICROSOFT_CLIENT_ID'; // To be configured by user
+      const clientId = this.getClientId('microsoft');
       const redirectUri = chrome.identity.getRedirectURL('microsoft');
       const scopes = OAUTH_CONFIG.microsoft.scopes.join(' ');
 

@@ -30,9 +30,17 @@
           <span class="nav-icon">📁</span>
           Categories
         </a>
+        <a href="#timeentries" class="nav-item" data-section="timeentries">
+          <span class="nav-icon">✏️</span>
+          Time Entries
+        </a>
         <a href="#meetings" class="nav-item" data-section="meetings">
           <span class="nav-icon">📅</span>
           Meetings
+        </a>
+        <a href="#github" class="nav-item" data-section="github">
+          <span class="nav-icon">🐙</span>
+          GitHub
         </a>
         <a href="#settings" class="nav-item" data-section="settings">
           <span class="nav-icon">⚙️</span>
@@ -244,6 +252,51 @@
           </div>
         </section>
 
+        <!-- Time Entries Section -->
+        <section id="timeentriesSection" class="section">
+          <!-- Add Manual Entry Button -->
+          <div style="margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;">
+            <button id="addManualEntryBtn" class="btn btn-primary">+ Add Manual Time Entry</button>
+            <div style="display: flex; gap: 10px;">
+              <button id="manageTagsBtn" class="btn btn-secondary">🏷️ Manage Tags</button>
+              <select id="filterByTag" class="select">
+                <option value="">All Tags</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Time Entries Table -->
+          <div class="table-container">
+            <div class="table-header">
+              <h3 class="table-title">Time Entries (Automatic & Manual)</h3>
+              <div class="table-actions">
+                <input type="text" id="entriesSearch" class="search-input" placeholder="Search entries...">
+              </div>
+            </div>
+            <div class="table-wrapper">
+              <table class="data-table" id="entriesTable">
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Time</th>
+                    <th>Duration</th>
+                    <th>Description</th>
+                    <th>Category</th>
+                    <th>Tags</th>
+                    <th>Type</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="entriesTableBody">
+                  <tr>
+                    <td colspan="8" class="empty-state">No time entries found</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
         <!-- Meetings Section -->
         <section id="meetingsSection" class="section">
           <!-- Connection Status -->
@@ -308,6 +361,65 @@
             <h3 class="insights-title">Meeting Insights</h3>
             <div id="meetingInsightsList" class="insights-list">
               <div class="loading">Connect a calendar to see meeting insights...</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- GitHub Section -->
+        <section id="githubSection" class="section">
+          <!-- Connection Status -->
+          <div class="calendar-status-cards">
+            <div class="status-card" id="githubStatus">
+              <div class="status-header">
+                <span class="status-icon">🐙</span>
+                <span class="status-provider">GitHub</span>
+              </div>
+              <div class="status-info" id="githubStatusText">Not Connected</div>
+            </div>
+          </div>
+
+          <!-- GitHub Activities Table -->
+          <div class="table-container">
+            <div class="table-header">
+              <h3 class="table-title">GitHub Activities</h3>
+              <div class="table-actions">
+                <input type="text" id="githubSearch" class="search-input" placeholder="Search activities...">
+                <button id="refreshGitHubBtn" class="btn btn-secondary">🔄 Refresh</button>
+                <button id="exportGitHubBtn" class="btn btn-primary">Export Activities</button>
+              </div>
+            </div>
+            <div class="table-wrapper">
+              <table class="data-table" id="githubTable">
+                <thead>
+                  <tr>
+                    <th>Date & Time</th>
+                    <th>Type</th>
+                    <th>Repository</th>
+                    <th>Description</th>
+                    <th>Estimated Time</th>
+                    <th>Tracked Time</th>
+                  </tr>
+                </thead>
+                <tbody id="githubTableBody">
+                  <tr>
+                    <td colspan="6" class="empty-state">
+                      <div style="padding: 40px; text-align: center;">
+                        <div style="font-size: 48px; margin-bottom: 16px;">🐙</div>
+                        <div style="font-size: 16px; font-weight: 600; margin-bottom: 8px;">No GitHub Connected</div>
+                        <div style="font-size: 14px; color: #6b7280;">Connect your GitHub account in Settings to sync activities</div>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- GitHub Insights -->
+          <div class="insights-container">
+            <h3 class="insights-title">GitHub Insights</h3>
+            <div id="githubInsightsList" class="insights-list">
+              <div class="loading">Connect GitHub to see activity insights...</div>
             </div>
           </div>
         </section>
@@ -431,14 +543,64 @@
               </div>
             </div>
 
-            <!-- Calendar Integration -->
+            <!-- GitHub Integration -->
             <div class="settings-group">
-              <h3 class="settings-title">Calendar Integration</h3>
-              <p class="settings-description">Connect your calendars to sync meeting data and track time spent in meetings</p>
+              <h3 class="settings-title">GitHub Integration (Personal Access Token)</h3>
+              <p class="settings-description">🎉 FREE! Track GitHub commits, PRs, and issues. <a href="https://github.com/settings/tokens" target="_blank" style="color: var(--primary-color);">Get your Personal Access Token</a></p>
+
+              <div class="setting-item" style="flex-direction: column; align-items: flex-start; gap: 10px;">
+                <div style="width: 100%;">
+                  <label style="font-weight: 600; margin-bottom: 8px; display: block;">GitHub Username</label>
+                  <input type="text" id="githubUsername" class="input" style="flex: 1; max-width: 100%;" placeholder="Your GitHub username">
+                </div>
+              </div>
+
+              <div class="setting-item" style="flex-direction: column; align-items: flex-start; gap: 10px;">
+                <div style="width: 100%;">
+                  <label style="font-weight: 600; margin-bottom: 8px; display: block;">Personal Access Token</label>
+                  <div style="display: flex; gap: 10px; align-items: center;">
+                    <input type="password" id="githubToken" class="input" style="flex: 1; max-width: 100%;" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx">
+                    <button id="saveGitHubBtn" class="btn btn-primary">Save</button>
+                  </div>
+                  <small style="color: var(--text-secondary); margin-top: 4px; display: block;">
+                    Required scopes: <code>read:user</code>, <code>repo</code> (or <code>public_repo</code> for public repos only)
+                  </small>
+                </div>
+              </div>
 
               <div class="setting-item">
                 <div class="setting-label">
-                  <span>Google Calendar</span>
+                  <span>GitHub Connection</span>
+                  <span class="setting-description" id="githubConnectionStatus">Not connected</span>
+                </div>
+                <div class="calendar-actions">
+                  <button id="disconnectGitHubBtn" class="btn btn-secondary" style="display: none;">Disconnect</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Calendar Integration -->
+            <div class="settings-group">
+              <h3 class="settings-title">Calendar Integration (BYOC - Bring Your Own Credentials)</h3>
+              <p class="settings-description">🎉 Completely FREE! Use your own OAuth credentials. <a href="CALENDAR_SETUP_GUIDE.md" target="_blank" style="color: var(--primary-color); text-decoration: underline;">Setup Guide</a></p>
+
+              <!-- Google Calendar Client ID -->
+              <div class="setting-item" style="flex-direction: column; align-items: flex-start; gap: 10px;">
+                <div style="width: 100%;">
+                  <label style="font-weight: 600; margin-bottom: 8px; display: block;">Google Calendar Client ID</label>
+                  <div style="display: flex; gap: 10px; align-items: center;">
+                    <input type="text" id="googleClientId" class="input" style="flex: 1; max-width: 100%;" placeholder="Your Google OAuth Client ID (ends with .apps.googleusercontent.com)">
+                    <button id="saveGoogleClientIdBtn" class="btn btn-primary">Save</button>
+                  </div>
+                  <small style="color: var(--text-secondary); margin-top: 4px; display: block;">
+                    <a href="https://console.cloud.google.com/apis/credentials" target="_blank" style="color: var(--primary-color);">Get Client ID from Google Cloud Console</a> - Follow our <a href="CALENDAR_SETUP_GUIDE.md#google-calendar-setup" target="_blank" style="color: var(--primary-color);">5-minute setup guide</a>
+                  </small>
+                </div>
+              </div>
+
+              <div class="setting-item">
+                <div class="setting-label">
+                  <span>Google Calendar Connection</span>
                   <span class="setting-description" id="googleCalendarStatus">Not connected</span>
                 </div>
                 <div class="calendar-actions">
@@ -447,9 +609,23 @@
                 </div>
               </div>
 
+              <!-- Microsoft Outlook Client ID -->
+              <div class="setting-item" style="flex-direction: column; align-items: flex-start; gap: 10px;">
+                <div style="width: 100%;">
+                  <label style="font-weight: 600; margin-bottom: 8px; display: block;">Microsoft Outlook Client ID</label>
+                  <div style="display: flex; gap: 10px; align-items: center;">
+                    <input type="text" id="microsoftClientId" class="input" style="flex: 1; max-width: 100%;" placeholder="Your Microsoft OAuth Client ID (GUID format)">
+                    <button id="saveMicrosoftClientIdBtn" class="btn btn-primary">Save</button>
+                  </div>
+                  <small style="color: var(--text-secondary); margin-top: 4px; display: block;">
+                    <a href="https://portal.azure.com/#view/Microsoft_AAD_RegisteredApps/ApplicationsListBlade" target="_blank" style="color: var(--primary-color);">Get Client ID from Azure Portal</a> - Follow our <a href="CALENDAR_SETUP_GUIDE.md#microsoft-outlook-setup" target="_blank" style="color: var(--primary-color);">5-minute setup guide</a>
+                  </small>
+                </div>
+              </div>
+
               <div class="setting-item">
                 <div class="setting-label">
-                  <span>Microsoft Outlook</span>
+                  <span>Microsoft Outlook Connection</span>
                   <span class="setting-description" id="microsoftCalendarStatus">Not connected</span>
                 </div>
                 <div class="calendar-actions">
@@ -487,6 +663,77 @@
         </section>
       </div>
     </main>
+  </div>
+
+  <!-- Modals -->
+  <!-- Add/Edit Time Entry Modal -->
+  <div id="timeEntryModal" class="modal" style="display: none;">
+    <div class="modal-content">
+      <span class="modal-close" id="closeTimeEntryModal">&times;</span>
+      <h2 id="timeEntryModalTitle">Add Manual Time Entry</h2>
+      <form id="timeEntryForm">
+        <div class="form-group">
+          <label>Date</label>
+          <input type="date" id="entryDate" required class="input">
+        </div>
+        <div class="form-group">
+          <label>Start Time</label>
+          <input type="time" id="entryStartTime" required class="input">
+        </div>
+        <div class="form-group">
+          <label>Duration (minutes)</label>
+          <input type="number" id="entryDuration" min="1" required class="input">
+        </div>
+        <div class="form-group">
+          <label>Description</label>
+          <textarea id="entryDescription" rows="3" required class="input"></textarea>
+        </div>
+        <div class="form-group">
+          <label>Category</label>
+          <select id="entryCategory" required class="select">
+            <option value="Development">Development</option>
+            <option value="Work & Productivity">Work & Productivity</option>
+            <option value="Communication">Communication</option>
+            <option value="Research">Research</option>
+            <option value="Design">Design</option>
+            <option value="Testing">Testing</option>
+            <option value="Documentation">Documentation</option>
+            <option value="Meeting">Meeting</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Tags (comma-separated)</label>
+          <input type="text" id="entryTags" placeholder="e.g., client-work, bug-fix, urgent" class="input">
+        </div>
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary">Save</button>
+          <button type="button" class="btn btn-secondary" id="cancelTimeEntry">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Manage Tags Modal -->
+  <div id="tagsModal" class="modal" style="display: none;">
+    <div class="modal-content">
+      <span class="modal-close" id="closeTagsModal">&times;</span>
+      <h2>Manage Tags</h2>
+      <div class="form-group">
+        <label>Create New Tag</label>
+        <div style="display: flex; gap: 10px;">
+          <input type="text" id="newTagName" placeholder="Tag name" style="flex: 1;" class="input">
+          <input type="color" id="newTagColor" value="#4f46e5">
+          <button id="addTagBtn" class="btn btn-primary">Add</button>
+        </div>
+      </div>
+      <div class="tags-list" id="tagsListContainer">
+        <div class="loading">Loading tags...</div>
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-secondary" id="closeTagsModalBtn">Close</button>
+      </div>
+    </div>
   </div>
 
   <script src="dashboard.js"></script>
