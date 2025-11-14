@@ -171,6 +171,39 @@
 
         <!-- Analytics Section -->
         <section id="analyticsSection" class="section">
+          <!-- Timesheet Table -->
+          <div class="table-container">
+            <div class="table-header">
+              <h3 class="table-title">Employee Timesheet</h3>
+              <div class="table-actions">
+                <input type="text" id="timesheetSearch" class="search-input" placeholder="Search timesheet...">
+                <button id="exportTimesheetBtn" class="btn btn-primary">Export Timesheet</button>
+              </div>
+            </div>
+            <div class="table-wrapper">
+              <table class="data-table" id="timesheetTable">
+                <thead>
+                  <tr>
+                    <th>Emp Code</th>
+                    <th>Emp Name</th>
+                    <th>Company Code</th>
+                    <th>Practice</th>
+                    <th>Product Name</th>
+                    <th>Project/Client</th>
+                    <th>Task/Description</th>
+                    <th>Working Hours</th>
+                    <th>Logged Date</th>
+                  </tr>
+                </thead>
+                <tbody id="timesheetTableBody">
+                  <tr>
+                    <td colspan="9" class="loading">Loading timesheet data...</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
           <div class="charts-grid">
             <div class="chart-container large">
               <div class="chart-header">

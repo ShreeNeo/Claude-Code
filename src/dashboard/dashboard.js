@@ -115,6 +115,7 @@ function setupEventListeners() {
 
   // Export button
   document.getElementById('exportBtn').addEventListener('click', exportData);
+  document.getElementById('exportTimesheetBtn').addEventListener('click', exportData);
 
   // Settings buttons
   document.getElementById('saveSettingsBtn').addEventListener('click', saveSettings);
@@ -123,6 +124,7 @@ function setupEventListeners() {
 
   // Search
   document.getElementById('searchInput').addEventListener('input', filterTable);
+  document.getElementById('timesheetSearch').addEventListener('input', filterTimesheetTable);
 }
 
 /**
@@ -337,13 +339,177 @@ function generateComprehensiveDummyData() {
  */
 async function fetchRealData(startTime, endTime) {
   try {
-    // This would fetch from IndexedDB in production
-    // For now, return empty if no dummy data
-    return generateEmptyStats();
+    // Open IndexedDB
+    const db = await openDatabase();
+
+    if (!db) {
+      console.log('Database not available');
+      return generateEmptyStats();
+    }
+
+    // Fetch sessions from IndexedDB
+    const sessions = await getSessionsFromDB(db, startTime, endTime);
+
+    if (!sessions || sessions.length === 0) {
+      console.log('No sessions found in database');
+      return generateEmptyStats();
+    }
+
+    // Process sessions into stats format
+    const stats = processSessionsIntoStats(sessions);
+    return stats;
   } catch (error) {
     console.error('Error fetching real data:', error);
     return generateEmptyStats();
   }
+}
+
+/**
+ * Opens IndexedDB database
+ */
+function openDatabase() {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open('TimeTrackerDB', 1);
+
+    request.onerror = () => {
+      console.error('Failed to open database');
+      resolve(null);
+    };
+
+    request.onsuccess = () => {
+      resolve(request.result);
+    };
+
+    request.onupgradeneeded = () => {
+      // Database doesn't exist yet, will be created by background script
+      resolve(null);
+    };
+  });
+}
+
+/**
+ * Gets sessions from IndexedDB
+ */
+function getSessionsFromDB(db, startTime, endTime) {
+  return new Promise((resolve, reject) => {
+    try {
+      const transaction = db.transaction(['sessions'], 'readonly');
+      const store = transaction.objectStore('sessions');
+      const index = store.index('startTime');
+      const range = IDBKeyRange.bound(startTime, endTime);
+      const request = index.getAll(range);
+
+      request.onsuccess = () => {
+        resolve(request.result || []);
+      };
+
+      request.onerror = () => {
+        console.error('Error fetching sessions from DB');
+        resolve([]);
+      };
+    } catch (error) {
+      console.error('Error accessing database:', error);
+      resolve([]);
+    }
+  });
+}
+
+/**
+ * Processes sessions into stats format
+ */
+function processSessionsIntoStats(sessions) {
+  if (!sessions || sessions.length === 0) {
+    return generateEmptyStats();
+  }
+
+  const totalTime = sessions.reduce((sum, s) => sum + (s.duration || 0), 0);
+
+  // Group by domain
+  const domainMap = {};
+  sessions.forEach(session => {
+    if (!domainMap[session.domain]) {
+      domainMap[session.domain] = {
+        domain: session.domain,
+        category: session.category,
+        time: 0,
+        visits: 0
+      };
+    }
+    domainMap[session.domain].time += session.duration;
+    domainMap[session.domain].visits++;
+  });
+
+  const topDomains = Object.values(domainMap)
+    .sort((a, b) => b.time - a.time)
+    .slice(0, 10)
+    .map(d => ({
+      ...d,
+      percentage: totalTime > 0 ? (d.time / totalTime) * 100 : 0
+    }));
+
+  // Group by category
+  const categoryMap = {};
+  sessions.forEach(session => {
+    if (!categoryMap[session.category]) {
+      categoryMap[session.category] = {
+        category: session.category,
+        time: 0,
+        visitCount: 0
+      };
+    }
+    categoryMap[session.category].time += session.duration;
+    categoryMap[session.category].visitCount++;
+  });
+
+  const categories = Object.values(categoryMap)
+    .sort((a, b) => b.time - a.time)
+    .map(c => ({
+      ...c,
+      percentage: totalTime > 0 ? (c.time / totalTime) * 100 : 0
+    }));
+
+  // Calculate hourly data
+  const hourlyData = Array(24).fill(0);
+  sessions.forEach(session => {
+    const hour = new Date(session.startTime).getHours();
+    hourlyData[hour] += session.duration;
+  });
+
+  // Calculate daily data
+  const dailyMap = {};
+  sessions.forEach(session => {
+    const date = session.date || new Date(session.startTime).toISOString().split('T')[0];
+    if (!dailyMap[date]) {
+      dailyMap[date] = { date, time: 0, sessionCount: 0 };
+    }
+    dailyMap[date].time += session.duration;
+    dailyMap[date].sessionCount++;
+  });
+
+  const dailyData = Object.values(dailyMap).sort((a, b) => a.date.localeCompare(b.date));
+
+  // Calculate productivity score
+  const productiveCategoryTime = categories
+    .filter(c => ['Development', 'Work & Productivity', 'Education & Learning'].includes(c.category))
+    .reduce((sum, c) => sum + c.time, 0);
+
+  const productivityScore = totalTime > 0 ? Math.round((productiveCategoryTime / totalTime) * 100) : 0;
+
+  // Calculate focus score
+  const avgSessionLength = totalTime / sessions.length;
+  const focusScore = Math.min(100, Math.round((avgSessionLength / (30 * 60 * 1000)) * 100));
+
+  return {
+    totalTime,
+    sessionCount: sessions.length,
+    productivityScore,
+    focusScore,
+    topDomains,
+    categories,
+    hourlyData,
+    dailyData,
+    sessions
+  };
 }
 
 /**
@@ -603,6 +769,7 @@ function filterTable() {
  * Loads analytics section
  */
 function loadAnalytics() {
+  updateTimesheetTable();
   updateHourlyChart();
   updateWeeklyChart();
   updateInsights();
@@ -792,6 +959,68 @@ function updateInsights() {
       <div class="insight-message">${insight.message}</div>
     </div>
   `).join('');
+}
+
+/**
+ * Updates timesheet table
+ */
+function updateTimesheetTable() {
+  const tbody = document.getElementById('timesheetTableBody');
+
+  // Check if we have valid data and employee profile
+  if (!currentStats || !currentStats.sessions || currentStats.sessions.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="9" class="empty-state">No timesheet data available. Start tracking or enable dummy data.</td></tr>';
+    return;
+  }
+
+  if (!employeeProfile.empCode || !employeeProfile.empName) {
+    tbody.innerHTML = '<tr><td colspan="9" class="empty-state">Please configure your employee profile in Settings to view timesheet.</td></tr>';
+    return;
+  }
+
+  const sessions = currentStats.sessions || [];
+
+  tbody.innerHTML = sessions.map(session => {
+    const hours = (session.duration / (1000 * 60 * 60)).toFixed(2);
+    const loggedDate = new Date(session.startTime).toLocaleDateString('en-GB', {
+      day: 'numeric',
+      month: 'short',
+      year: '2-digit'
+    });
+
+    const taskDescription = `${session.category} work on ${session.domain}`;
+
+    return `
+      <tr>
+        <td>${employeeProfile.empCode || 'N/A'}</td>
+        <td>${employeeProfile.empName || 'N/A'}</td>
+        <td>${employeeProfile.companyCode || 'N/A'}</td>
+        <td>${employeeProfile.practice || 'N/A'}</td>
+        <td>${employeeProfile.productName || session.category}</td>
+        <td>${employeeProfile.projectClient || session.domain}</td>
+        <td>${taskDescription}</td>
+        <td>${hours}</td>
+        <td>${loggedDate}</td>
+      </tr>
+    `;
+  }).join('');
+}
+
+/**
+ * Filters timesheet table based on search
+ */
+function filterTimesheetTable() {
+  const searchTerm = document.getElementById('timesheetSearch').value.toLowerCase();
+  const rows = document.querySelectorAll('#timesheetTableBody tr');
+
+  rows.forEach(row => {
+    const text = row.textContent.toLowerCase();
+    if (text.includes(searchTerm)) {
+      row.style.display = '';
+    } else {
+      row.style.display = 'none';
+    }
+  });
 }
 
 /**
