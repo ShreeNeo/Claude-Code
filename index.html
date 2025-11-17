@@ -19,6 +19,25 @@
       --text-primary: #0f172a;
       --text-secondary: #64748b;
       --border: #e2e8f0;
+
+      /* Dark theme (default) */
+      --bg-gradient: linear-gradient(135deg, #4f46e5 0%, #6366f1 50%, #8b5cf6 100%);
+      --text-color: white;
+      --nav-bg: rgba(255, 255, 255, 0.15);
+      --nav-border: rgba(255, 255, 255, 0.2);
+      --card-bg: rgba(255, 255, 255, 0.12);
+      --card-border: rgba(255, 255, 255, 0.2);
+      --section-bg: var(--dark);
+    }
+
+    [data-theme="light"] {
+      --bg-gradient: linear-gradient(135deg, #e0e7ff 0%, #f3e8ff 50%, #fce7f3 100%);
+      --text-color: #0f172a;
+      --nav-bg: rgba(255, 255, 255, 0.9);
+      --nav-border: rgba(99, 102, 241, 0.2);
+      --card-bg: rgba(255, 255, 255, 0.8);
+      --card-border: rgba(99, 102, 241, 0.3);
+      --section-bg: #f8fafc;
     }
 
     * {
@@ -34,73 +53,132 @@
     body {
       font-family: 'Poppins', -apple-system, BlinkMacSystemFont, sans-serif;
       line-height: 1.6;
-      color: white;
-      background: linear-gradient(135deg, #4f46e5 0%, #6366f1 50%, #8b5cf6 100%);
+      color: var(--text-color);
+      background: var(--bg-gradient);
       background-attachment: fixed;
       overflow-x: hidden;
       position: relative;
       min-height: 100vh;
+      transition: background 0.3s ease, color 0.3s ease;
     }
 
-    /* Animated Clock Background - Follows Scroll */
+    /* RPM Meter in Corner - Follows Scroll */
     .scroll-clock {
       position: fixed;
-      top: 50%;
-      left: 50%;
-      width: 1000px;
-      height: 1000px;
-      margin-left: -500px;
-      margin-top: -500px;
-      z-index: 0;
+      bottom: 40px;
+      right: 40px;
+      width: 280px;
+      height: 280px;
+      z-index: 100;
       pointer-events: none;
-      opacity: 0.08;
+      opacity: 0.9;
     }
 
-    .clock-dial {
+    .rpm-meter {
+      position: relative;
+      width: 100%;
+      height: 100%;
+    }
+
+    .rpm-gauge {
       position: absolute;
       width: 100%;
       height: 100%;
-      border: 8px solid rgba(255, 255, 255, 0.3);
-      border-radius: 50%;
     }
 
-    .clock-center {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      width: 30px;
-      height: 30px;
-      background: rgba(255, 255, 255, 0.5);
-      border-radius: 50%;
-      transform: translate(-50%, -50%);
-      z-index: 10;
+    .rpm-arc {
+      fill: none;
+      stroke: rgba(99, 102, 241, 0.2);
+      stroke-width: 20;
+      stroke-linecap: round;
     }
 
-    .scroll-hand {
+    [data-theme="light"] .rpm-arc {
+      stroke: rgba(99, 102, 241, 0.3);
+    }
+
+    .rpm-arc-active {
+      fill: none;
+      stroke: url(#rpmGradient);
+      stroke-width: 20;
+      stroke-linecap: round;
+      stroke-dasharray: 471;
+      stroke-dashoffset: 471;
+      transition: stroke-dashoffset 0.1s linear;
+    }
+
+    .rpm-center {
       position: absolute;
-      bottom: 50%;
+      bottom: 20px;
       left: 50%;
-      width: 14px;
-      height: 450px;
-      margin-left: -7px;
-      background: linear-gradient(180deg, rgba(236, 72, 153, 0.6), rgba(255, 255, 255, 0.4));
+      transform: translateX(-50%);
+      width: 20px;
+      height: 20px;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      border-radius: 50%;
+      box-shadow: 0 0 20px rgba(236, 72, 153, 0.6);
+    }
+
+    .rpm-needle {
+      position: absolute;
+      bottom: 30px;
+      left: 50%;
+      width: 6px;
+      height: 120px;
+      margin-left: -3px;
+      background: linear-gradient(180deg, var(--accent), rgba(236, 72, 153, 0.3));
       border-radius: 10px;
       transform-origin: bottom center;
       transition: transform 0.1s linear;
+      box-shadow: 0 0 15px rgba(236, 72, 153, 0.8);
     }
 
-    .clock-number {
+    .rpm-number {
       position: absolute;
-      font-size: 48px;
-      font-weight: 900;
-      color: rgba(255, 255, 255, 0.4);
+      font-size: 16px;
+      font-weight: 800;
+      color: var(--text-color);
       font-family: 'Poppins', sans-serif;
+      opacity: 0.7;
     }
 
-    .clock-number.n12 { top: 20px; left: 50%; transform: translateX(-50%); }
-    .clock-number.n3 { right: 20px; top: 50%; transform: translateY(-50%); }
-    .clock-number.n6 { bottom: 20px; left: 50%; transform: translateX(-50%); }
-    .clock-number.n9 { left: 20px; top: 50%; transform: translateY(-50%); }
+    .rpm-number.n0 { bottom: 10px; left: 30px; }
+    .rpm-number.n25 { bottom: 100px; left: 10px; }
+    .rpm-number.n50 { top: 80px; left: 50%; transform: translateX(-50%); }
+    .rpm-number.n75 { bottom: 100px; right: 10px; }
+    .rpm-number.n100 { bottom: 10px; right: 30px; }
+
+    .rpm-label {
+      position: absolute;
+      bottom: -5px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text-color);
+      opacity: 0.5;
+      letter-spacing: 3px;
+    }
+
+    /* Theme Toggle */
+    .theme-toggle {
+      background: var(--card-bg);
+      border: 2px solid var(--card-border);
+      backdrop-filter: blur(10px);
+      padding: 8px 12px;
+      border-radius: 50px;
+      cursor: pointer;
+      font-size: 20px;
+      transition: all 0.3s;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .theme-toggle:hover {
+      transform: scale(1.1);
+      box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+    }
 
     /* Navigation */
     .nav {
@@ -109,10 +187,11 @@
       left: 0;
       right: 0;
       z-index: 1000;
-      background: rgba(255, 255, 255, 0.15);
+      background: var(--nav-bg);
       backdrop-filter: blur(20px);
-      border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+      border-bottom: 1px solid var(--nav-border);
       box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      transition: all 0.3s ease;
     }
 
     .nav-container {
@@ -171,10 +250,11 @@
 
     .nav-link {
       text-decoration: none;
-      color: rgba(255, 255, 255, 0.9);
+      color: var(--text-color);
+      opacity: 0.9;
       font-weight: 600;
       font-size: 15px;
-      transition: color 0.3s;
+      transition: all 0.3s;
       position: relative;
     }
 
@@ -190,7 +270,7 @@
     }
 
     .nav-link:hover {
-      color: white;
+      opacity: 1;
     }
 
     .nav-link:hover::after {
@@ -404,10 +484,11 @@
 
     /* Stats */
     .stats {
-      background: var(--dark);
-      color: white;
+      background: var(--section-bg);
+      color: var(--text-color);
       padding: 6rem 2rem;
       position: relative;
+      transition: all 0.3s ease;
     }
 
     .stats-grid {
@@ -505,11 +586,11 @@
     }
 
     .feature-card {
-      background: rgba(255, 255, 255, 0.12);
+      background: var(--card-bg);
       backdrop-filter: blur(20px);
       padding: 3rem 2.5rem;
       border-radius: 20px;
-      border: 2px solid rgba(255, 255, 255, 0.2);
+      border: 2px solid var(--card-border);
       transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
       opacity: 0;
       transform: translateY(30px);
@@ -705,9 +786,9 @@
     }
 
     .pricing-card {
-      background: rgba(255, 255, 255, 0.12);
+      background: var(--card-bg);
       backdrop-filter: blur(20px);
-      border: 3px solid rgba(255, 255, 255, 0.25);
+      border: 3px solid var(--card-border);
       border-radius: 28px;
       padding: 4rem 3rem;
       transition: all 0.4s;
@@ -892,15 +973,30 @@
   </style>
 </head>
 <body>
-  <!-- Scroll-based Clock Background -->
+  <!-- RPM Meter - Scroll Based -->
   <div class="scroll-clock">
-    <div class="clock-dial">
-      <div class="clock-number n12">12</div>
-      <div class="clock-number n3">3</div>
-      <div class="clock-number n6">6</div>
-      <div class="clock-number n9">9</div>
-      <div class="clock-center"></div>
-      <div class="scroll-hand" id="scrollHand"></div>
+    <div class="rpm-meter">
+      <svg class="rpm-gauge" viewBox="0 0 200 200">
+        <defs>
+          <linearGradient id="rpmGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stop-color="#6366f1"/>
+            <stop offset="50%" stop-color="#8b5cf6"/>
+            <stop offset="100%" stop-color="#ec4899"/>
+          </linearGradient>
+        </defs>
+        <!-- Background arc -->
+        <path class="rpm-arc" d="M 30 170 A 85 85 0 0 1 170 170" />
+        <!-- Active arc that fills based on scroll -->
+        <path class="rpm-arc-active" id="rpmArc" d="M 30 170 A 85 85 0 0 1 170 170" />
+      </svg>
+      <div class="rpm-number n0">0</div>
+      <div class="rpm-number n25">25</div>
+      <div class="rpm-number n50">50</div>
+      <div class="rpm-number n75">75</div>
+      <div class="rpm-number n100">100</div>
+      <div class="rpm-needle" id="rpmNeedle"></div>
+      <div class="rpm-center"></div>
+      <div class="rpm-label">SCROLL</div>
     </div>
   </div>
 
@@ -946,6 +1042,9 @@
         <li><a href="#features" class="nav-link">Features</a></li>
         <li><a href="#timeline" class="nav-link">How It Works</a></li>
         <li><a href="#pricing" class="nav-link">Pricing</a></li>
+        <li><button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
+          <span id="themeIcon">🌙</span>
+        </button></li>
         <li><a href="#cta" class="btn btn-primary">Get Started</a></li>
       </ul>
     </div>

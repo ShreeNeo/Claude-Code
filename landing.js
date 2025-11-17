@@ -18,18 +18,47 @@ function updateClock() {
 updateClock();
 setInterval(updateClock, 1000);
 
-// Scroll-based clock hand rotation (0deg at top, 360deg at bottom)
-function updateScrollClock() {
+// Theme toggle functionality
+const themeToggle = document.getElementById('themeToggle');
+const themeIcon = document.getElementById('themeIcon');
+const htmlElement = document.documentElement;
+
+// Check for saved theme preference or default to 'dark'
+const currentTheme = localStorage.getItem('theme') || 'dark';
+htmlElement.setAttribute('data-theme', currentTheme);
+themeIcon.textContent = currentTheme === 'dark' ? '🌙' : '☀️';
+
+themeToggle?.addEventListener('click', () => {
+  const theme = htmlElement.getAttribute('data-theme');
+  const newTheme = theme === 'dark' ? 'light' : 'dark';
+
+  htmlElement.setAttribute('data-theme', newTheme);
+  localStorage.setItem('theme', newTheme);
+  themeIcon.textContent = newTheme === 'dark' ? '🌙' : '☀️';
+});
+
+// RPM meter scroll animation
+function updateRPMMeter() {
   const scrollPercentage = window.scrollY / (document.documentElement.scrollHeight - window.innerHeight);
-  const rotation = scrollPercentage * 360;
-  const scrollHand = document.getElementById('scrollHand');
-  if (scrollHand) {
-    scrollHand.style.transform = `rotate(${rotation}deg)`;
+
+  // Rotate needle from -90deg (left) to 90deg (right)
+  const rotation = -90 + (scrollPercentage * 180);
+  const rpmNeedle = document.getElementById('rpmNeedle');
+  if (rpmNeedle) {
+    rpmNeedle.style.transform = `rotate(${rotation}deg)`;
+  }
+
+  // Fill the arc based on scroll percentage
+  const arcLength = 471; // Approximate arc length
+  const offset = arcLength - (scrollPercentage * arcLength);
+  const rpmArc = document.getElementById('rpmArc');
+  if (rpmArc) {
+    rpmArc.style.strokeDashoffset = offset;
   }
 }
 
-window.addEventListener('scroll', updateScrollClock);
-updateScrollClock();
+window.addEventListener('scroll', updateRPMMeter);
+updateRPMMeter();
 
 // Scroll animations
 const observer = new IntersectionObserver((entries) => {
