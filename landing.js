@@ -40,17 +40,13 @@ const observer = new IntersectionObserver((entries) => {
   });
 }, { threshold: 0.1, rootMargin: '0px 0px -100px 0px' });
 
-document.querySelectorAll('.stat, .feature-card, .timeline-step, .pricing-card').forEach(el => {
+document.querySelectorAll('.feature-card, .timeline-step, .pricing-card').forEach(el => {
   observer.observe(el);
 });
 
 // Stagger animations
 document.querySelectorAll('.feature-card').forEach((card, i) => {
   card.style.transitionDelay = `${i * 0.1}s`;
-});
-
-document.querySelectorAll('.stat').forEach((stat, i) => {
-  stat.style.transitionDelay = `${i * 0.15}s`;
 });
 
 document.querySelectorAll('.timeline-step').forEach((step, i) => {
