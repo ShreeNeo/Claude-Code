@@ -3,22 +3,30 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Neram - Professional time tracking browser extension with GitHub integration, calendar sync, and comprehensive analytics. Track your productivity with complete privacy.">
-  <meta name="keywords" content="time tracking, productivity, browser extension, GitHub integration, calendar sync, BYOC, free time tracker">
-  <title>Neram - Time Tracking Extension for Professionals</title>
+  <meta name="description" content="Neram - Professional time tracking for modern developers. Track productivity across websites, GitHub, and calendar with complete privacy.">
+  <meta name="keywords" content="time tracking, productivity, developer tools, GitHub integration, calendar sync">
+  <title>Neram | நேரம் - Professional Time Tracking for Developers</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
     :root {
-      --primary-color: #6366f1;
-      --primary-hover: #4f46e5;
+      --primary: #6366f1;
+      --primary-dark: #4f46e5;
       --primary-light: #818cf8;
-      --bg-color: #f8fafc;
-      --bg-secondary: #ffffff;
+      --secondary: #8b5cf6;
+      --accent: #ec4899;
+      --success: #10b981;
+      --dark: #0f172a;
+      --dark-2: #1e293b;
+      --dark-3: #334155;
+      --light: #f8fafc;
+      --light-2: #f1f5f9;
+      --white: #ffffff;
       --text-primary: #0f172a;
-      --text-secondary: #475569;
-      --border-color: #e2e8f0;
-      --success-color: #10b981;
-      --gradient-start: #6366f1;
-      --gradient-end: #8b5cf6;
+      --text-secondary: #64748b;
+      --border: #e2e8f0;
+      --shadow: rgba(99, 102, 241, 0.1);
     }
 
     * {
@@ -27,372 +35,686 @@
       box-sizing: border-box;
     }
 
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-      line-height: 1.6;
-      color: var(--text-primary);
-      background: var(--bg-color);
+    html {
+      scroll-behavior: smooth;
     }
 
-    .container {
-      max-width: 1200px;
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      line-height: 1.6;
+      color: var(--text-primary);
+      background: var(--white);
+      overflow-x: hidden;
+    }
+
+    /* Navigation */
+    .nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 1000;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--border);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .nav.scrolled {
+      box-shadow: 0 4px 20px var(--shadow);
+    }
+
+    .nav-container {
+      max-width: 1280px;
       margin: 0 auto;
-      padding: 0 20px;
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: var(--text-primary);
+    }
+
+    .logo-icon {
+      width: 40px;
+      height: 40px;
+    }
+
+    .logo-text {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+
+    .logo-primary {
+      font-size: 24px;
+      font-weight: 800;
+      line-height: 1;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .logo-secondary {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      letter-spacing: 1px;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 2rem;
+      list-style: none;
+      align-items: center;
+    }
+
+    .nav-link {
+      text-decoration: none;
+      color: var(--text-secondary);
+      font-weight: 500;
+      font-size: 14px;
+      transition: color 0.3s;
+      position: relative;
+    }
+
+    .nav-link::after {
+      content: '';
+      position: absolute;
+      bottom: -4px;
+      left: 0;
+      width: 0;
+      height: 2px;
+      background: var(--primary);
+      transition: width 0.3s;
+    }
+
+    .nav-link:hover {
+      color: var(--primary);
+    }
+
+    .nav-link:hover::after {
+      width: 100%;
+    }
+
+    .btn {
+      padding: 12px 24px;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 14px;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      border: none;
+      cursor: pointer;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      color: white;
+      box-shadow: 0 4px 12px var(--shadow);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px var(--shadow);
+    }
+
+    .btn-outline {
+      background: transparent;
+      color: var(--primary);
+      border: 2px solid var(--primary);
+    }
+
+    .btn-outline:hover {
+      background: var(--primary);
+      color: white;
     }
 
     /* Hero Section */
     .hero {
-      background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-end) 100%);
-      color: white;
-      padding: 80px 20px 100px;
-      text-align: center;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       position: relative;
       overflow: hidden;
+      padding-top: 80px;
     }
 
     .hero::before {
       content: '';
       position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: url('data:image/svg+xml,<svg width="100" height="100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="2" fill="rgba(255,255,255,0.1)"/></svg>');
-      opacity: 0.3;
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(circle at 30% 50%, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
+    }
+
+    .animated-bg {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    .time-particle {
+      position: absolute;
+      color: rgba(255, 255, 255, 0.1);
+      font-size: 48px;
+      font-weight: 700;
+      animation: float 20s infinite;
+      pointer-events: none;
+    }
+
+    @keyframes float {
+      0%, 100% {
+        transform: translateY(0) rotate(0deg);
+        opacity: 0;
+      }
+      10% {
+        opacity: 0.1;
+      }
+      90% {
+        opacity: 0.1;
+      }
+      100% {
+        transform: translateY(-100vh) rotate(360deg);
+        opacity: 0;
+      }
     }
 
     .hero-content {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 0 2rem;
+      text-align: center;
       position: relative;
       z-index: 1;
     }
 
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(10px);
+      padding: 8px 20px;
+      border-radius: 50px;
+      color: white;
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 2rem;
+      animation: fadeInUp 0.8s ease-out;
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .hero-clock {
+      width: 120px;
+      height: 120px;
+      margin: 0 auto 2rem;
+      animation: fadeInUp 0.8s ease-out 0.2s both;
+    }
+
     .hero h1 {
-      font-size: 56px;
-      font-weight: 700;
-      margin-bottom: 20px;
-      letter-spacing: -1px;
+      font-size: clamp(48px, 8vw, 80px);
+      font-weight: 800;
+      color: white;
+      margin-bottom: 1.5rem;
+      line-height: 1.1;
+      animation: fadeInUp 0.8s ease-out 0.3s both;
     }
 
-    .hero .tagline {
-      font-size: 24px;
-      margin-bottom: 10px;
-      opacity: 0.95;
+    .tamil-text {
+      display: block;
+      font-size: clamp(32px, 5vw, 56px);
+      opacity: 0.9;
+      font-weight: 600;
+      margin-top: 0.5rem;
+    }
+
+    .hero p {
+      font-size: clamp(18px, 2vw, 24px);
+      color: rgba(255, 255, 255, 0.95);
+      max-width: 700px;
+      margin: 0 auto 3rem;
       font-weight: 300;
+      animation: fadeInUp 0.8s ease-out 0.4s both;
     }
 
-    .hero .subtitle {
-      font-size: 18px;
-      margin-bottom: 40px;
-      opacity: 0.85;
-      font-weight: 300;
-    }
-
-    .cta-buttons {
+    .hero-cta {
       display: flex;
-      gap: 20px;
+      gap: 1rem;
       justify-content: center;
       flex-wrap: wrap;
+      animation: fadeInUp 0.8s ease-out 0.5s both;
     }
 
-    .btn {
+    .btn-hero {
       padding: 16px 32px;
-      border-radius: 8px;
-      text-decoration: none;
-      font-weight: 600;
       font-size: 16px;
-      transition: all 0.3s ease;
-      display: inline-block;
-      cursor: pointer;
-      border: 2px solid transparent;
     }
 
-    .btn-primary {
+    .btn-white {
       background: white;
-      color: var(--primary-color);
+      color: var(--primary);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
     }
 
-    .btn-primary:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    .btn-white:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 48px rgba(0, 0, 0, 0.3);
     }
 
-    .btn-secondary {
-      background: transparent;
+    .btn-glass {
+      background: rgba(255, 255, 255, 0.2);
       color: white;
-      border-color: white;
+      backdrop-filter: blur(10px);
+      border: 2px solid rgba(255, 255, 255, 0.3);
     }
 
-    .btn-secondary:hover {
-      background: rgba(255,255,255,0.1);
+    .btn-glass:hover {
+      background: rgba(255, 255, 255, 0.3);
+      transform: translateY(-2px);
+    }
+
+    /* Stats Section */
+    .stats {
+      background: var(--dark);
+      color: white;
+      padding: 4rem 2rem;
+      position: relative;
+    }
+
+    .stats-grid {
+      max-width: 1280px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 3rem;
+      text-align: center;
+    }
+
+    .stat {
+      opacity: 0;
+      transform: translateY(30px);
+      transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .stat.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .stat-number {
+      font-size: 48px;
+      font-weight: 800;
+      background: linear-gradient(135deg, var(--primary-light), var(--accent));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 0.5rem;
+    }
+
+    .stat-label {
+      font-size: 16px;
+      color: rgba(255, 255, 255, 0.7);
+      font-weight: 500;
     }
 
     /* Features Section */
     .features {
-      padding: 80px 20px;
-      background: white;
+      padding: 8rem 2rem;
+      background: var(--light);
+    }
+
+    .section-header {
+      text-align: center;
+      max-width: 800px;
+      margin: 0 auto 5rem;
+    }
+
+    .section-badge {
+      display: inline-block;
+      background: var(--primary-light);
+      color: white;
+      padding: 6px 16px;
+      border-radius: 50px;
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 1rem;
     }
 
     .section-title {
-      text-align: center;
-      font-size: 40px;
-      font-weight: 700;
-      margin-bottom: 60px;
+      font-size: clamp(36px, 5vw, 56px);
+      font-weight: 800;
       color: var(--text-primary);
+      margin-bottom: 1rem;
+      line-height: 1.2;
+    }
+
+    .section-description {
+      font-size: 18px;
+      color: var(--text-secondary);
+      line-height: 1.8;
     }
 
     .features-grid {
+      max-width: 1280px;
+      margin: 0 auto;
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-      gap: 40px;
-      margin-top: 40px;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 2rem;
     }
 
     .feature-card {
-      padding: 30px;
-      border-radius: 12px;
-      background: var(--bg-color);
-      border: 1px solid var(--border-color);
-      transition: all 0.3s ease;
+      background: white;
+      padding: 2.5rem;
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      opacity: 0;
+      transform: translateY(30px);
+    }
+
+    .feature-card.visible {
+      opacity: 1;
+      transform: translateY(0);
     }
 
     .feature-card:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+      transform: translateY(-8px);
+      box-shadow: 0 20px 60px rgba(99, 102, 241, 0.15);
+      border-color: var(--primary-light);
     }
 
     .feature-icon {
-      font-size: 48px;
-      margin-bottom: 20px;
+      width: 64px;
+      height: 64px;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 32px;
+      margin-bottom: 1.5rem;
     }
 
     .feature-card h3 {
       font-size: 22px;
-      margin-bottom: 12px;
+      font-weight: 700;
       color: var(--text-primary);
+      margin-bottom: 1rem;
     }
 
     .feature-card p {
       color: var(--text-secondary);
       line-height: 1.8;
+      font-size: 15px;
     }
 
-    /* Cost-Free Section */
-    .cost-free {
-      padding: 80px 20px;
-      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-      color: white;
-      text-align: center;
-    }
-
-    .cost-free h2 {
-      font-size: 40px;
-      margin-bottom: 20px;
-    }
-
-    .cost-free .price-comparison {
-      display: flex;
-      gap: 40px;
-      justify-content: center;
-      margin-top: 40px;
-      flex-wrap: wrap;
-    }
-
-    .price-box {
-      background: rgba(255,255,255,0.15);
-      padding: 30px;
-      border-radius: 12px;
-      backdrop-filter: blur(10px);
-      min-width: 250px;
-    }
-
-    .price-box.competitor {
-      opacity: 0.7;
-    }
-
-    .price-box .price {
-      font-size: 48px;
-      font-weight: 700;
-      margin-bottom: 10px;
-    }
-
-    .price-box .label {
-      font-size: 18px;
-      opacity: 0.9;
-    }
-
-    /* Integrations Section */
-    .integrations {
-      padding: 80px 20px;
-      background: var(--bg-color);
-    }
-
-    .integrations-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-      gap: 30px;
-      margin-top: 40px;
-    }
-
-    .integration-card {
+    /* Timeline Section */
+    .timeline {
+      padding: 8rem 2rem;
       background: white;
-      padding: 40px;
-      border-radius: 16px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+      position: relative;
     }
 
-    .integration-card h3 {
-      font-size: 24px;
-      margin-bottom: 16px;
+    .timeline-container {
+      max-width: 900px;
+      margin: 0 auto;
+      position: relative;
+    }
+
+    .timeline-line {
+      position: absolute;
+      left: 50%;
+      top: 0;
+      bottom: 0;
+      width: 3px;
+      background: linear-gradient(180deg, var(--primary), var(--secondary));
+      transform: translateX(-50%);
+    }
+
+    .timeline-item {
       display: flex;
       align-items: center;
-      gap: 12px;
-    }
-
-    .integration-card .badge {
-      background: var(--success-color);
-      color: white;
-      padding: 4px 12px;
-      border-radius: 12px;
-      font-size: 12px;
-      font-weight: 600;
-    }
-
-    .integration-features {
-      list-style: none;
-      margin-top: 20px;
-    }
-
-    .integration-features li {
-      padding: 10px 0;
-      padding-left: 30px;
+      margin-bottom: 4rem;
       position: relative;
-      color: var(--text-secondary);
+      opacity: 0;
+      transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
-    .integration-features li::before {
-      content: '✓';
-      position: absolute;
-      left: 0;
-      color: var(--success-color);
-      font-weight: 700;
-      font-size: 18px;
+    .timeline-item.visible {
+      opacity: 1;
     }
 
-    /* Installation Section */
-    .installation {
-      padding: 80px 20px;
+    .timeline-item:nth-child(even) {
+      flex-direction: row-reverse;
+    }
+
+    .timeline-content {
+      flex: 1;
       background: white;
+      padding: 2rem;
+      border-radius: 16px;
+      box-shadow: 0 8px 32px rgba(99, 102, 241, 0.1);
+      border: 1px solid var(--border);
+      transition: all 0.4s;
     }
 
-    .install-steps {
-      max-width: 800px;
-      margin: 40px auto 0;
+    .timeline-content:hover {
+      box-shadow: 0 16px 48px rgba(99, 102, 241, 0.2);
+      transform: scale(1.02);
     }
 
-    .step {
-      display: flex;
-      gap: 30px;
-      margin-bottom: 40px;
-      align-items: flex-start;
-    }
-
-    .step-number {
-      min-width: 60px;
-      height: 60px;
-      background: var(--primary-color);
-      color: white;
+    .timeline-time {
+      width: 120px;
+      height: 120px;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
       border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 28px;
+      color: white;
+      font-size: 20px;
       font-weight: 700;
       flex-shrink: 0;
+      margin: 0 2rem;
+      box-shadow: 0 8px 24px rgba(99, 102, 241, 0.3);
     }
 
-    .step-content h3 {
-      font-size: 22px;
-      margin-bottom: 10px;
+    .timeline-content h3 {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 0.5rem;
     }
 
-    .step-content p {
+    .timeline-content p {
       color: var(--text-secondary);
       line-height: 1.8;
     }
 
-    .code-block {
-      background: var(--bg-color);
-      padding: 16px;
-      border-radius: 8px;
-      margin-top: 12px;
-      font-family: 'Courier New', monospace;
-      font-size: 14px;
-      overflow-x: auto;
-    }
-
-    /* Screenshots Section */
-    .screenshots {
-      padding: 80px 20px;
-      background: var(--bg-color);
+    /* Pricing Section */
+    .pricing {
+      padding: 8rem 2rem;
+      background: linear-gradient(135deg, var(--success) 0%, #059669 100%);
+      color: white;
       text-align: center;
     }
 
-    .screenshot-grid {
+    .pricing-comparison {
+      max-width: 1000px;
+      margin: 4rem auto 0;
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-      gap: 30px;
-      margin-top: 40px;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 2rem;
     }
 
-    .screenshot-card {
-      background: white;
-      padding: 20px;
-      border-radius: 12px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    .pricing-card {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(20px);
+      border: 2px solid rgba(255, 255, 255, 0.2);
+      border-radius: 24px;
+      padding: 3rem 2rem;
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      opacity: 0;
+      transform: scale(0.9);
     }
 
-    .screenshot-placeholder {
-      width: 100%;
-      aspect-ratio: 16/10;
-      background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
-      border-radius: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: var(--text-secondary);
-      font-size: 18px;
-      margin-bottom: 16px;
+    .pricing-card.visible {
+      opacity: 1;
+      transform: scale(1);
     }
 
-    .screenshot-card h3 {
-      font-size: 18px;
-      margin-bottom: 8px;
+    .pricing-card:hover {
+      transform: scale(1.05);
+      background: rgba(255, 255, 255, 0.15);
     }
 
-    .screenshot-card p {
-      color: var(--text-secondary);
+    .pricing-card.highlight {
+      background: rgba(255, 255, 255, 0.95);
+      color: var(--text-primary);
+      border-color: white;
+      transform: scale(1.05);
+    }
+
+    .pricing-card.highlight:hover {
+      transform: scale(1.08);
+    }
+
+    .pricing-label {
       font-size: 14px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 1rem;
+      opacity: 0.9;
+    }
+
+    .pricing-amount {
+      font-size: 64px;
+      font-weight: 800;
+      line-height: 1;
+      margin-bottom: 0.5rem;
+    }
+
+    .pricing-period {
+      font-size: 18px;
+      opacity: 0.8;
+      margin-bottom: 2rem;
+    }
+
+    .pricing-features {
+      list-style: none;
+      margin-top: 2rem;
+      text-align: left;
+    }
+
+    .pricing-features li {
+      padding: 0.75rem 0;
+      padding-left: 2rem;
+      position: relative;
+      font-size: 15px;
+    }
+
+    .pricing-features li::before {
+      content: '✓';
+      position: absolute;
+      left: 0;
+      font-weight: 700;
+      font-size: 18px;
+    }
+
+    /* CTA Section */
+    .cta {
+      padding: 8rem 2rem;
+      background: linear-gradient(135deg, var(--dark), var(--dark-2));
+      color: white;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .cta::before {
+      content: '';
+      position: absolute;
+      width: 500px;
+      height: 500px;
+      background: radial-gradient(circle, rgba(99, 102, 241, 0.2) 0%, transparent 70%);
+      top: -250px;
+      right: -250px;
+    }
+
+    .cta-content {
+      max-width: 800px;
+      margin: 0 auto;
+      position: relative;
+      z-index: 1;
+    }
+
+    .cta h2 {
+      font-size: clamp(36px, 5vw, 56px);
+      font-weight: 800;
+      margin-bottom: 1.5rem;
+      line-height: 1.2;
+    }
+
+    .cta p {
+      font-size: 20px;
+      color: rgba(255, 255, 255, 0.8);
+      margin-bottom: 3rem;
+      line-height: 1.8;
+    }
+
+    .cta-buttons {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      flex-wrap: wrap;
     }
 
     /* Footer */
     .footer {
-      background: var(--text-primary);
-      color: white;
-      padding: 60px 20px 30px;
+      background: var(--dark);
+      color: rgba(255, 255, 255, 0.7);
+      padding: 4rem 2rem 2rem;
     }
 
     .footer-content {
-      max-width: 1200px;
+      max-width: 1280px;
       margin: 0 auto;
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-      gap: 40px;
-      margin-bottom: 40px;
+      gap: 3rem;
+      margin-bottom: 3rem;
     }
 
     .footer-section h4 {
-      font-size: 18px;
-      margin-bottom: 16px;
+      color: white;
+      font-weight: 700;
+      margin-bottom: 1.5rem;
+      font-size: 16px;
     }
 
     .footer-section ul {
@@ -400,278 +722,334 @@
     }
 
     .footer-section a {
-      color: rgba(255,255,255,0.8);
+      color: rgba(255, 255, 255, 0.6);
       text-decoration: none;
       display: block;
-      padding: 6px 0;
-      transition: color 0.3s ease;
+      padding: 0.5rem 0;
+      transition: color 0.3s;
+      font-size: 14px;
     }
 
     .footer-section a:hover {
-      color: white;
+      color: var(--primary-light);
     }
 
     .footer-bottom {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding-top: 2rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
       text-align: center;
-      padding-top: 30px;
-      border-top: 1px solid rgba(255,255,255,0.1);
-      color: rgba(255,255,255,0.6);
+      font-size: 14px;
     }
 
-    /* Responsive */
+    /* Mobile Responsive */
     @media (max-width: 768px) {
-      .hero h1 {
-        font-size: 40px;
+      .nav-links {
+        display: none;
       }
 
-      .hero .tagline {
-        font-size: 20px;
+      .timeline-line {
+        left: 30px;
       }
 
-      .section-title {
-        font-size: 32px;
+      .timeline-item,
+      .timeline-item:nth-child(even) {
+        flex-direction: column;
+        align-items: flex-start;
+        padding-left: 80px;
       }
 
-      .features-grid,
-      .integrations-grid,
-      .screenshot-grid {
-        grid-template-columns: 1fr;
+      .timeline-time {
+        position: absolute;
+        left: 0;
+        width: 60px;
+        height: 60px;
+        font-size: 14px;
+        margin: 0;
+      }
+
+      .timeline-content {
+        margin-left: 0;
+      }
+    }
+
+    /* Scroll Animations */
+    .fade-in-up {
+      opacity: 0;
+      transform: translateY(30px);
+      transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .fade-in-up.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* Loading Animation */
+    @keyframes pulse {
+      0%, 100% {
+        opacity: 1;
+      }
+      50% {
+        opacity: 0.5;
       }
     }
   </style>
 </head>
 <body>
+  <!-- Navigation -->
+  <nav class="nav" id="nav">
+    <div class="nav-container">
+      <a href="#" class="logo">
+        <svg class="logo-icon" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="20" cy="20" r="18" fill="url(#gradient1)" stroke="url(#gradient2)" stroke-width="2"/>
+          <path d="M20 8V20L26 26" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+          <circle cx="20" cy="20" r="2" fill="white"/>
+          <defs>
+            <linearGradient id="gradient1" x1="0" y1="0" x2="40" y2="40" gradientUnits="userSpaceOnUse">
+              <stop stop-color="#6366f1"/>
+              <stop offset="1" stop-color="#8b5cf6"/>
+            </linearGradient>
+            <linearGradient id="gradient2" x1="0" y1="0" x2="40" y2="40" gradientUnits="userSpaceOnUse">
+              <stop stop-color="#818cf8"/>
+              <stop offset="1" stop-color="#a78bfa"/>
+            </linearGradient>
+          </defs>
+        </svg>
+        <div class="logo-text">
+          <span class="logo-primary">Neram</span>
+          <span class="logo-secondary">நேரம்</span>
+        </div>
+      </a>
+      <ul class="nav-links">
+        <li><a href="#features" class="nav-link">Features</a></li>
+        <li><a href="#how-it-works" class="nav-link">How It Works</a></li>
+        <li><a href="#pricing" class="nav-link">Pricing</a></li>
+        <li><a href="#installation" class="btn btn-primary">Get Started</a></li>
+      </ul>
+    </div>
+  </nav>
+
   <!-- Hero Section -->
-  <section class="hero">
+  <section class="hero" id="hero">
+    <div class="animated-bg">
+      <div class="time-particle" style="left: 10%; animation-delay: 0s;">00:00</div>
+      <div class="time-particle" style="left: 25%; animation-delay: 3s;">12:00</div>
+      <div class="time-particle" style="left: 50%; animation-delay: 6s;">18:30</div>
+      <div class="time-particle" style="left: 75%; animation-delay: 9s;">23:59</div>
+      <div class="time-particle" style="left: 85%; animation-delay: 12s;">06:15</div>
+    </div>
     <div class="hero-content">
-      <div class="feature-icon">⏱️</div>
-      <h1>Neram</h1>
-      <p class="tagline">Professional Time Tracking for Modern Developers</p>
-      <p class="subtitle">Track your productivity across websites, GitHub, and calendar meetings - completely free and privacy-focused</p>
-      <div class="cta-buttons">
-        <a href="#installation" class="btn btn-primary">Get Started Free</a>
-        <a href="https://github.com/yourusername/neram" class="btn btn-secondary" target="_blank">View on GitHub</a>
+      <div class="hero-badge">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+          <path d="M8 0L10 6H16L11 10L13 16L8 12L3 16L5 10L0 6H6L8 0Z"/>
+        </svg>
+        100% Free • Privacy-First • Open Source
+      </div>
+      <svg class="hero-clock" viewBox="0 0 120 120" fill="none">
+        <circle cx="60" cy="60" r="54" stroke="white" stroke-width="4" opacity="0.3"/>
+        <circle cx="60" cy="60" r="48" fill="rgba(255,255,255,0.1)"/>
+        <path id="hourHand" d="M60 60L60 30" stroke="white" stroke-width="4" stroke-linecap="round"/>
+        <path id="minuteHand" d="M60 60L60 20" stroke="white" stroke-width="3" stroke-linecap="round"/>
+        <circle cx="60" cy="60" r="4" fill="white"/>
+      </svg>
+      <h1>
+        Neram
+        <span class="tamil-text">நேரம்</span>
+      </h1>
+      <p>Professional time tracking for modern developers. Track your productivity across websites, GitHub, and calendar meetings with complete privacy.</p>
+      <div class="hero-cta">
+        <a href="#installation" class="btn btn-white btn-hero">
+          Start Tracking Free
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+            <path d="M10 0L12 8H20L14 13L16 20L10 15L4 20L6 13L0 8H8L10 0Z"/>
+          </svg>
+        </a>
+        <a href="https://github.com/yourusername/neram" class="btn btn-glass btn-hero" target="_blank">
+          View on GitHub
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+            <path d="M10 0C4.477 0 0 4.477 0 10c0 4.42 2.865 8.17 6.839 9.49.5.092.682-.217.682-.482 0-.237-.008-.866-.013-1.7-2.782.603-3.369-1.34-3.369-1.34-.454-1.156-1.11-1.463-1.11-1.463-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.831.092-.646.35-1.086.636-1.336-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.578 9.578 0 0110 4.836c.85.004 1.705.114 2.504.336 1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.203 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.578.688.48C17.137 18.163 20 14.418 20 10c0-5.523-4.477-10-10-10z"/>
+          </svg>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Stats Section -->
+  <section class="stats">
+    <div class="stats-grid">
+      <div class="stat">
+        <div class="stat-number">$0</div>
+        <div class="stat-label">Monthly Cost</div>
+      </div>
+      <div class="stat">
+        <div class="stat-number">100%</div>
+        <div class="stat-label">Privacy Focused</div>
+      </div>
+      <div class="stat">
+        <div class="stat-number">∞</div>
+        <div class="stat-label">Unlimited Tracking</div>
+      </div>
+      <div class="stat">
+        <div class="stat-number">3</div>
+        <div class="stat-label">Integrations</div>
       </div>
     </div>
   </section>
 
   <!-- Features Section -->
-  <section class="features">
-    <div class="container">
-      <h2 class="section-title">Everything You Need to Track Time</h2>
-      <div class="features-grid">
-        <div class="feature-card">
-          <div class="feature-icon">🚀</div>
-          <h3>Automatic Browser Tracking</h3>
-          <p>Effortlessly track time spent on websites with intelligent domain grouping, idle detection, and privacy-focused tracking that respects sensitive sites.</p>
-        </div>
+  <section class="features" id="features">
+    <div class="section-header fade-in-up">
+      <span class="section-badge">FEATURES</span>
+      <h2 class="section-title">Everything you need to track time</h2>
+      <p class="section-description">Comprehensive time tracking with automatic browser monitoring, GitHub integration, calendar sync, and detailed analytics.</p>
+    </div>
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon">🚀</div>
+        <h3>Automatic Browser Tracking</h3>
+        <p>Effortlessly track time spent on websites with intelligent domain grouping, idle detection, and privacy-focused tracking.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">📊</div>
+        <h3>Comprehensive Analytics</h3>
+        <p>Beautiful charts and insights including productivity scores, focus metrics, and hourly heatmaps.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">✏️</div>
+        <h3>Manual Time Entries</h3>
+        <p>Add time for offline work, IDE development, and meetings. Tag and categorize for complete coverage.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🐙</div>
+        <h3>GitHub Integration</h3>
+        <p>Track commits, pull requests, issues, and code reviews. Correlate GitHub activity with browser sessions.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">📅</div>
+        <h3>Calendar Sync (BYOC)</h3>
+        <p>Sync meetings from Google Calendar and Microsoft Outlook using your own OAuth credentials.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🔒</div>
+        <h3>Privacy First</h3>
+        <p>All data stored locally. No external servers, no tracking, no analytics. Your data belongs to you.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">📤</div>
+        <h3>Professional Export</h3>
+        <p>Export timesheet data in CSV format, perfect for billing, HR reporting, and project management.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🏷️</div>
+        <h3>Tags & Organization</h3>
+        <p>Create color-coded tags, filter by projects, clients, or categories.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🎯</div>
+        <h3>Focus Mode</h3>
+        <p>Get alerts when spending too much time on distracting sites. Stay productive with customizable thresholds.</p>
+      </div>
+    </div>
+  </section>
 
-        <div class="feature-card">
-          <div class="feature-icon">📊</div>
-          <h3>Comprehensive Analytics</h3>
-          <p>Beautiful charts and insights including productivity scores, focus metrics, hourly heatmaps, and AI-powered recommendations to optimize your workflow.</p>
+  <!-- Timeline Section -->
+  <section class="timeline" id="how-it-works">
+    <div class="section-header fade-in-up">
+      <span class="section-badge">HOW IT WORKS</span>
+      <h2 class="section-title">Track time in 4 simple steps</h2>
+    </div>
+    <div class="timeline-container">
+      <div class="timeline-line"></div>
+      <div class="timeline-item">
+        <div class="timeline-time">Step 1</div>
+        <div class="timeline-content">
+          <h3>Install Extension</h3>
+          <p>Clone the repository, install dependencies, build the extension, and load it in your browser. Takes less than 5 minutes.</p>
         </div>
-
-        <div class="feature-card">
-          <div class="feature-icon">✏️</div>
-          <h3>Manual Time Entries</h3>
-          <p>Add time for offline work, IDE development, terminal sessions, and meetings. Tag and categorize entries for perfect time tracking coverage.</p>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-time">Step 2</div>
+        <div class="timeline-content">
+          <h3>Configure Profile</h3>
+          <p>Set up your employee profile for timesheet exports. Configure tracking settings, focus mode, and blocked domains.</p>
         </div>
-
-        <div class="feature-card">
-          <div class="feature-icon">🐙</div>
-          <h3>GitHub Integration</h3>
-          <p>Automatically track commits, pull requests, issues, and code reviews. Correlate GitHub activity with browser sessions for complete development visibility.</p>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-time">Step 3</div>
+        <div class="timeline-content">
+          <h3>Connect Integrations</h3>
+          <p>Optionally connect GitHub with a Personal Access Token and calendar with BYOC OAuth credentials.</p>
         </div>
-
-        <div class="feature-card">
-          <div class="feature-icon">📅</div>
-          <h3>Calendar Sync (BYOC)</h3>
-          <p>Sync meetings from Google Calendar and Microsoft Outlook using your own OAuth credentials. Track attendance, utilization, and meeting patterns.</p>
-        </div>
-
-        <div class="feature-card">
-          <div class="feature-icon">🔒</div>
-          <h3>Privacy First</h3>
-          <p>All data stored locally on your device. No external servers, no tracking, no analytics. Your time data belongs to you, always.</p>
-        </div>
-
-        <div class="feature-card">
-          <div class="feature-icon">📤</div>
-          <h3>Professional Export</h3>
-          <p>Export timesheet data in CSV format with employee details, perfect for billing, HR reporting, and project management integration.</p>
-        </div>
-
-        <div class="feature-card">
-          <div class="feature-icon">🏷️</div>
-          <h3>Tags & Organization</h3>
-          <p>Create color-coded tags, filter by projects, clients, or categories. Organize your time entries exactly how you need them.</p>
-        </div>
-
-        <div class="feature-card">
-          <div class="feature-icon">🎯</div>
-          <h3>Focus Mode</h3>
-          <p>Get alerts when spending too much time on distracting sites. Stay productive with customizable thresholds and smart notifications.</p>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-time">Step 4</div>
+        <div class="timeline-content">
+          <h3>Start Tracking</h3>
+          <p>Browse as usual. Neram automatically tracks your time, categorizes activities, and provides insights.</p>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- Cost-Free Section -->
-  <section class="cost-free">
-    <div class="container">
-      <h2>💰 Zero Monthly Costs</h2>
-      <p style="font-size: 20px; margin-bottom: 20px; opacity: 0.95;">
-        Traditional time tracking solutions with calendar and GitHub integration cost $65-320/month.<br>
+  <!-- Pricing Section -->
+  <section class="pricing" id="pricing">
+    <div class="section-header">
+      <h2 class="section-title" style="color: white;">Zero Monthly Costs</h2>
+      <p class="section-description" style="color: rgba(255, 255, 255, 0.9); font-size: 20px;">
+        Traditional time tracking solutions cost $65-320/month.<br>
         Neram costs <strong style="font-size: 24px;">$0/month</strong>.
       </p>
-      <div class="price-comparison">
-        <div class="price-box competitor">
-          <div class="label">Traditional SaaS</div>
-          <div class="price">$65-320</div>
-          <div class="label">per month</div>
-        </div>
-        <div class="price-box">
-          <div class="label">Neram</div>
-          <div class="price">$0</div>
-          <div class="label">forever</div>
-        </div>
-      </div>
-      <p style="font-size: 18px; margin-top: 40px; opacity: 0.9;">
-        ✨ BYOC (Bring Your Own Credentials) architecture means no backend servers, no subscriptions, no hidden fees
-      </p>
     </div>
-  </section>
-
-  <!-- Integrations Section -->
-  <section class="integrations">
-    <div class="container">
-      <h2 class="section-title">Powerful Integrations</h2>
-      <div class="integrations-grid">
-        <div class="integration-card">
-          <h3>
-            🐙 GitHub Integration
-            <span class="badge">FREE</span>
-          </h3>
-          <p>Track all your development activities automatically using a Personal Access Token</p>
-          <ul class="integration-features">
-            <li>Commits and pushes</li>
-            <li>Pull requests and code reviews</li>
-            <li>Issues and comments</li>
-            <li>Activity correlation with browser time</li>
-            <li>Time estimates per activity type</li>
-            <li>Export GitHub activities to CSV</li>
-          </ul>
-        </div>
-
-        <div class="integration-card">
-          <h3>
-            📅 Calendar Integration
-            <span class="badge">BYOC</span>
-          </h3>
-          <p>Sync meetings using your own OAuth credentials - completely free</p>
-          <ul class="integration-features">
-            <li>Google Calendar sync</li>
-            <li>Microsoft Outlook sync</li>
-            <li>Meeting attendance tracking</li>
-            <li>Utilization metrics</li>
-            <li>Scheduled vs actual time</li>
-            <li>Meeting insights and analytics</li>
-          </ul>
-        </div>
-
-        <div class="integration-card">
-          <h3>
-            📊 Data Export
-            <span class="badge">BUILT-IN</span>
-          </h3>
-          <p>Export your time data in professional formats for reporting and billing</p>
-          <ul class="integration-features">
-            <li>CSV timesheet export</li>
-            <li>Employee profile integration</li>
-            <li>Multiple data sources combined</li>
-            <li>Custom date ranges</li>
-            <li>Excel/Google Sheets compatible</li>
-            <li>Client billing ready</li>
-          </ul>
-        </div>
+    <div class="pricing-comparison">
+      <div class="pricing-card">
+        <div class="pricing-label">Traditional SaaS</div>
+        <div class="pricing-amount">$65-320</div>
+        <div class="pricing-period">per month</div>
+        <ul class="pricing-features">
+          <li>Backend servers</li>
+          <li>Monthly subscriptions</li>
+          <li>Data privacy concerns</li>
+          <li>Limited features</li>
+        </ul>
+      </div>
+      <div class="pricing-card highlight">
+        <div class="pricing-label" style="color: var(--success);">Neram</div>
+        <div class="pricing-amount" style="background: linear-gradient(135deg, var(--primary), var(--secondary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">$0</div>
+        <div class="pricing-period">forever</div>
+        <ul class="pricing-features" style="color: var(--text-primary);">
+          <li>No backend required</li>
+          <li>100% free forever</li>
+          <li>Complete privacy</li>
+          <li>All features included</li>
+          <li>Open source</li>
+        </ul>
       </div>
     </div>
+    <p style="font-size: 18px; margin-top: 3rem; opacity: 0.95;">
+      ✨ BYOC (Bring Your Own Credentials) means no servers, no subscriptions, no hidden fees
+    </p>
   </section>
 
-  <!-- Installation Section -->
-  <section id="installation" class="installation">
-    <div class="container">
-      <h2 class="section-title">Get Started in Minutes</h2>
-      <div class="install-steps">
-        <div class="step">
-          <div class="step-number">1</div>
-          <div class="step-content">
-            <h3>Clone the Repository</h3>
-            <p>Get the source code from GitHub</p>
-            <div class="code-block">
-git clone https://github.com/yourusername/neram.git<br>
-cd neram
-            </div>
-          </div>
-        </div>
-
-        <div class="step">
-          <div class="step-number">2</div>
-          <div class="step-content">
-            <h3>Install Dependencies & Build</h3>
-            <p>Set up the project and create the extension bundle</p>
-            <div class="code-block">
-npm install<br>
-npm run build
-            </div>
-          </div>
-        </div>
-
-        <div class="step">
-          <div class="step-number">3</div>
-          <div class="step-content">
-            <h3>Load in Browser</h3>
-            <p>Open Chrome/Edge, go to <code>chrome://extensions/</code>, enable "Developer mode", click "Load unpacked", and select the <code>dist</code> folder.</p>
-          </div>
-        </div>
-
-        <div class="step">
-          <div class="step-number">4</div>
-          <div class="step-content">
-            <h3>Start Tracking!</h3>
-            <p>Click the extension icon to see your dashboard. Configure your employee profile and start tracking your time automatically.</p>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Screenshots Section -->
-  <section class="screenshots">
-    <div class="container">
-      <h2 class="section-title">Beautiful & Intuitive Interface</h2>
-      <div class="screenshot-grid">
-        <div class="screenshot-card">
-          <div class="screenshot-placeholder">📊 Dashboard Overview</div>
-          <h3>Comprehensive Dashboard</h3>
-          <p>View all your stats, charts, and insights in one beautiful interface</p>
-        </div>
-        <div class="screenshot-card">
-          <div class="screenshot-placeholder">📈 Analytics</div>
-          <h3>Detailed Analytics</h3>
-          <p>Hourly heatmaps, category breakdowns, and productivity insights</p>
-        </div>
-        <div class="screenshot-card">
-          <div class="screenshot-placeholder">⚙️ Settings</div>
-          <h3>Easy Configuration</h3>
-          <p>Collapsible settings sections for streamlined setup</p>
-        </div>
-        <div class="screenshot-card">
-          <div class="screenshot-placeholder">✏️ Time Entries</div>
-          <h3>Manual Entries</h3>
-          <p>Add, edit, and tag time entries with a clean, intuitive interface</p>
-        </div>
+  <!-- CTA Section -->
+  <section class="cta" id="installation">
+    <div class="cta-content">
+      <h2>Ready to track your time?</h2>
+      <p>Get started in minutes with our comprehensive documentation and easy installation process.</p>
+      <div class="cta-buttons">
+        <a href="https://github.com/yourusername/neram" class="btn btn-white btn-hero" target="_blank">
+          Clone Repository
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+            <path d="M10 0L12 8H20L14 13L16 20L10 15L4 20L6 13L0 8H8L10 0Z"/>
+          </svg>
+        </a>
+        <a href="README.md" class="btn btn-glass btn-hero">
+          Read Documentation
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+            <path d="M10 20C4.477 20 0 15.523 0 10S4.477 0 10 0s10 4.477 10 10-4.477 10-10 10zm1-11V5H9v4H5v2h4v4h2v-4h4V9h-4z"/>
+          </svg>
+        </a>
       </div>
     </div>
   </section>
@@ -680,8 +1058,8 @@ npm run build
   <footer class="footer">
     <div class="footer-content">
       <div class="footer-section">
-        <h4>Neram</h4>
-        <p style="opacity: 0.8; margin-top: 10px;">Professional time tracking for developers. Built with privacy and simplicity in mind.</p>
+        <h4>Neram | நேரம்</h4>
+        <p style="opacity: 0.6; margin-top: 1rem; line-height: 1.8;">Professional time tracking for developers. Built with privacy and simplicity in mind.</p>
       </div>
       <div class="footer-section">
         <h4>Documentation</h4>
@@ -714,5 +1092,85 @@ npm run build
       <p>&copy; 2025 Neram. Open source under MIT License. Made with ⏱️ by developers, for developers.</p>
     </div>
   </footer>
+
+  <script>
+    // Animated clock in hero
+    function updateClock() {
+      const now = new Date();
+      const hours = now.getHours() % 12;
+      const minutes = now.getMinutes();
+
+      const hourAngle = (hours * 30) + (minutes * 0.5);
+      const minuteAngle = minutes * 6;
+
+      const hourHand = document.getElementById('hourHand');
+      const minuteHand = document.getElementById('minuteHand');
+
+      if (hourHand && minuteHand) {
+        hourHand.style.transform = `rotate(${hourAngle}deg)`;
+        hourHand.style.transformOrigin = '60px 60px';
+        minuteHand.style.transform = `rotate(${minuteAngle}deg)`;
+        minuteHand.style.transformOrigin = '60px 60px';
+      }
+    }
+
+    updateClock();
+    setInterval(updateClock, 1000);
+
+    // Navbar scroll effect
+    const nav = document.getElementById('nav');
+    window.addEventListener('scroll', () => {
+      if (window.scrollY > 50) {
+        nav.classList.add('scrolled');
+      } else {
+        nav.classList.remove('scrolled');
+      }
+    });
+
+    // Intersection Observer for scroll animations
+    const observerOptions = {
+      threshold: 0.1,
+      rootMargin: '0px 0px -100px 0px'
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+        }
+      });
+    }, observerOptions);
+
+    // Observe all animated elements
+    document.querySelectorAll('.stat, .feature-card, .timeline-item, .fade-in-up, .pricing-card').forEach(el => {
+      observer.observe(el);
+    });
+
+    // Smooth scroll for anchor links
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+      anchor.addEventListener('click', function (e) {
+        e.preventDefault();
+        const target = document.querySelector(this.getAttribute('href'));
+        if (target) {
+          target.scrollIntoView({
+            behavior: 'smooth',
+            block: 'start'
+          });
+        }
+      });
+    });
+
+    // Stagger animations for feature cards
+    const featureCards = document.querySelectorAll('.feature-card');
+    featureCards.forEach((card, index) => {
+      card.style.transitionDelay = `${index * 0.1}s`;
+    });
+
+    // Stagger animations for stats
+    const stats = document.querySelectorAll('.stat');
+    stats.forEach((stat, index) => {
+      stat.style.transitionDelay = `${index * 0.15}s`;
+    });
+  </script>
 </body>
 </html>
