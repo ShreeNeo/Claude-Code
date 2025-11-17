@@ -472,20 +472,23 @@ async function fetchRealData(startTime, endTime) {
  */
 function openDatabase() {
   return new Promise((resolve, reject) => {
-    const request = indexedDB.open('TimeTrackerDB', 1);
+    const request = indexedDB.open('TimeTrackerDB', 2); // Updated to version 2
 
-    request.onerror = () => {
-      console.error('Failed to open database');
+    request.onerror = (event) => {
+      console.error('Failed to open database:', event.target.error);
       resolve(null);
     };
 
     request.onsuccess = () => {
+      console.log('Dashboard: Database opened successfully');
       resolve(request.result);
     };
 
-    request.onupgradeneeded = () => {
-      // Database doesn't exist yet, will be created by background script
-      resolve(null);
+    request.onupgradeneeded = (event) => {
+      // Database schema is managed by service-worker's storage.js
+      // This should not fire if service worker already initialized the DB
+      console.log('Dashboard: Database upgrade triggered - version', event.oldVersion, 'to', event.newVersion);
+      // Just let it proceed, schema should already be created
     };
   });
 }
