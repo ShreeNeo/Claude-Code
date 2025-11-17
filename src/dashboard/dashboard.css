@@ -196,6 +196,17 @@ body {
   transform: translateY(-1px);
 }
 
+.btn-sidebar-link {
+  text-decoration: none;
+  margin-top: 10px;
+  display: flex;
+  cursor: pointer;
+}
+
+.btn-sidebar-link:hover {
+  text-decoration: none;
+}
+
 /* Main Content */
 .main-content {
   margin-left: 280px;
