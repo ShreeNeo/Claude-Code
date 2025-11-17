@@ -188,8 +188,12 @@ function setupEventListeners() {
 
   // Settings buttons
   document.getElementById('saveSettingsBtn').addEventListener('click', saveSettings);
+  document.getElementById('saveSettingsBtnBottom').addEventListener('click', saveSettings);
   document.getElementById('clearDataBtn').addEventListener('click', clearAllData);
   document.getElementById('addBlacklistBtn').addEventListener('click', addToBlacklist);
+
+  // Collapsible settings sections
+  setupCollapsibleSections();
 
   // Search
   document.getElementById('searchInput').addEventListener('input', filterTable);
@@ -228,6 +232,29 @@ function setupEventListeners() {
   // Form submissions
   document.getElementById('timeEntryForm').addEventListener('submit', handleTimeEntrySubmit);
   document.getElementById('addTagBtn').addEventListener('click', handleAddTag);
+}
+
+/**
+ * Sets up collapsible settings sections
+ */
+function setupCollapsibleSections() {
+  const collapsibleTitles = document.querySelectorAll('.settings-title-collapsible');
+
+  collapsibleTitles.forEach(title => {
+    title.addEventListener('click', function() {
+      const targetId = this.getAttribute('data-target');
+      const content = document.getElementById(targetId);
+      const group = this.closest('.settings-group-collapsible');
+
+      if (content.style.display === 'none') {
+        content.style.display = 'block';
+        group.classList.remove('collapsed');
+      } else {
+        content.style.display = 'none';
+        group.classList.add('collapsed');
+      }
+    });
+  });
 }
 
 /**

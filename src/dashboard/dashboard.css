@@ -689,10 +689,79 @@ body {
   margin-bottom: 16px;
 }
 
+/* Collapsible Settings */
+.settings-group-collapsible {
+  cursor: pointer;
+}
+
+.settings-title-collapsible {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  user-select: none;
+  transition: color var(--transition);
+}
+
+.settings-title-collapsible:hover {
+  color: var(--primary-color);
+}
+
+.settings-toggle {
+  font-size: 12px;
+  transition: transform var(--transition);
+}
+
+.settings-group-collapsible.collapsed .settings-toggle {
+  transform: rotate(-90deg);
+}
+
+.settings-content {
+  max-height: 2000px;
+  overflow: hidden;
+  transition: max-height 0.3s ease-out, opacity 0.3s ease-out;
+  opacity: 1;
+}
+
+.settings-content[style*="display: none"] {
+  max-height: 0;
+  opacity: 0;
+}
+
+/* Settings Actions at Top */
+.settings-actions-top {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 20px;
+  padding: 12px 20px;
+  background: var(--bg-secondary);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+}
+
+/* Settings Subtitle for Subsections */
+.settings-subtitle {
+  font-size: 15px;
+  font-weight: 600;
+  margin-bottom: 12px;
+  color: var(--text-primary);
+}
+
+.integration-subsection {
+  margin-bottom: 20px;
+}
+
 .settings-description {
   font-size: 13px;
   color: var(--text-secondary);
   margin-bottom: 16px;
+}
+
+/* Large Button */
+.btn-large {
+  padding: 14px 32px;
+  font-size: 16px;
+  font-weight: 600;
 }
 
 .setting-item {
