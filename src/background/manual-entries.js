@@ -6,6 +6,7 @@
 const DB_NAME = 'TimeTrackerDB';
 const MANUAL_ENTRIES_STORE = 'manual_entries';
 const TAGS_STORE = 'tags';
+const SESSIONS_STORE = 'sessions';
 
 /**
  * Open or create the database with manual entries and tags stores
@@ -19,6 +20,17 @@ async function openManualEntriesDB() {
 
     request.onupgradeneeded = (event) => {
       const db = event.target.result;
+
+      // Create sessions store if it doesn't exist (from storage.js schema)
+      if (!db.objectStoreNames.contains(SESSIONS_STORE)) {
+        const sessionsStore = db.createObjectStore(SESSIONS_STORE, {
+          keyPath: 'id',
+          autoIncrement: true
+        });
+        sessionsStore.createIndex('domain', 'domain', { unique: false });
+        sessionsStore.createIndex('date', 'date', { unique: false });
+        sessionsStore.createIndex('startTime', 'startTime', { unique: false });
+      }
 
       // Create manual entries store if it doesn't exist
       if (!db.objectStoreNames.contains(MANUAL_ENTRIES_STORE)) {
@@ -299,5 +311,49 @@ export async function getEntriesByTag(tagName) {
   } catch (error) {
     console.error('Error getting entries by tag:', error);
     return [];
+  }
+}
+
+/**
+ * Update an automatic session (browser tracking session)
+ * This marks it as edited and updates the specified fields
+ */
+export async function updateAutomaticSession(sessionId, updates) {
+  try {
+    const db = await openManualEntriesDB();
+    const transaction = db.transaction([SESSIONS_STORE], 'readwrite');
+    const store = transaction.objectStore(SESSIONS_STORE);
+
+    // Get the existing session
+    const getRequest = store.get(sessionId);
+
+    return new Promise((resolve, reject) => {
+      getRequest.onsuccess = () => {
+        const session = getRequest.result;
+
+        if (!session) {
+          reject(new Error('Session not found'));
+          return;
+        }
+
+        // Update the session with new fields and mark as edited
+        const updatedSession = {
+          ...session,
+          ...updates,
+          isEdited: true,
+          editedAt: Date.now()
+        };
+
+        const updateRequest = store.put(updatedSession);
+
+        updateRequest.onsuccess = () => resolve(updatedSession);
+        updateRequest.onerror = () => reject(updateRequest.error);
+      };
+
+      getRequest.onerror = () => reject(getRequest.error);
+    });
+  } catch (error) {
+    console.error('Error updating automatic session:', error);
+    throw error;
   }
 }

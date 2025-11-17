@@ -122,6 +122,62 @@ export async function updateSession(session) {
 }
 
 /**
+ * Updates an automatic session (marks it as edited)
+ * @param {number} sessionId - Session ID
+ * @param {Object} updates - Fields to update
+ * @returns {Promise<void>}
+ */
+export async function updateAutomaticSession(sessionId, updates) {
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction([STORES.SESSIONS], 'readwrite');
+    const store = transaction.objectStore(STORES.SESSIONS);
+
+    // First get the existing session
+    const getRequest = store.get(sessionId);
+
+    getRequest.onsuccess = () => {
+      const session = getRequest.result;
+      if (!session) {
+        reject(new Error('Session not found'));
+        return;
+      }
+
+      // Update fields
+      const updatedSession = {
+        ...session,
+        ...updates,
+        isEdited: true,
+        editedAt: Date.now()
+      };
+
+      // Save updated session
+      const putRequest = store.put(updatedSession);
+      putRequest.onsuccess = () => resolve();
+      putRequest.onerror = () => reject(putRequest.error);
+    };
+
+    getRequest.onerror = () => reject(getRequest.error);
+  });
+}
+
+/**
+ * Gets a single session by ID
+ * @param {number} sessionId - Session ID
+ * @returns {Promise<Object>} Session object
+ */
+export async function getSessionById(sessionId) {
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction([STORES.SESSIONS], 'readonly');
+    const store = transaction.objectStore(STORES.SESSIONS);
+
+    const request = store.get(sessionId);
+
+    request.onsuccess = () => resolve(request.result || null);
+    request.onerror = () => reject(request.error);
+  });
+}
+
+/**
  * Gets sessions by date range
  * @param {number} startTime - Start timestamp
  * @param {number} endTime - End timestamp

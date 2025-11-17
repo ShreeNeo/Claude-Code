@@ -19,7 +19,8 @@ import {
   getAllTags,
   deleteTag,
   incrementTagUsage,
-  getEntriesByTag
+  getEntriesByTag,
+  updateAutomaticSession
 } from '../background/manual-entries.js';
 
 // State
@@ -2209,11 +2210,20 @@ function updateTimeEntriesTable(filteredEntries = null) {
     const description = entry.description || entry.title || `${entry.category} on ${entry.domain || 'Unknown'}`;
     const category = entry.category || 'Other';
     const tags = entry.tags ? entry.tags.map(tag => `<span class="badge badge-neutral">${tag}</span>`).join(' ') : '-';
-    const type = entry.isManual ? '<span class="badge badge-productive">Manual</span>' : '<span class="badge badge-neutral">Auto</span>';
+
+    // Determine entry type badge
+    let type;
+    if (entry.isManual) {
+      type = '<span class="badge badge-productive">Manual</span>';
+    } else if (entry.isEdited) {
+      type = '<span class="badge badge-warning" title="This automatic entry was edited">Auto (Edited) ✏️</span>';
+    } else {
+      type = '<span class="badge badge-neutral">Auto</span>';
+    }
 
     const actions = `
-      <button onclick="editEntry(${entry.id || entry.startTime})" class="btn btn-secondary" style="padding: 4px 8px; font-size: 12px;">Edit</button>
-      ${entry.isManual ? `<button onclick="deleteEntry(${entry.id})" class="btn btn-danger" style="padding: 4px 8px; font-size: 12px; margin-left: 4px;">Delete</button>` : ''}
+      <button onclick="editEntry(${entry.id || entry.startTime})" class="btn btn-secondary" style="padding: 4px 8px; font-size: 12px;">✏️ Edit</button>
+      ${entry.isManual ? `<button onclick="deleteEntry(${entry.id})" class="btn btn-danger" style="padding: 4px 8px; font-size: 12px; margin-left: 4px;">🗑️ Delete</button>` : ''}
     `;
 
     return `<tr>
@@ -2304,7 +2314,7 @@ async function handleTimeEntrySubmit(e) {
 
   try {
     const date = document.getElementById('entryDate').value;
-    const startTime = document.getElementById('entryStartTime').value;
+    const startTimeStr = document.getElementById('entryStartTime').value;
     const durationMinutes = parseInt(document.getElementById('entryDuration').value);
     const description = document.getElementById('entryDescription').value;
     const category = document.getElementById('entryCategory').value;
@@ -2312,21 +2322,60 @@ async function handleTimeEntrySubmit(e) {
 
     const tags = tagsInput ? tagsInput.split(',').map(t => t.trim()).filter(t => t) : [];
 
-    const entry = {
-      date,
-      startTime,
-      duration: durationMinutes * 60 * 1000, // Convert to milliseconds
-      description,
-      category,
-      tags
-    };
-
     if (currentEditingEntry) {
-      // Update existing entry
-      await updateEntry(currentEditingEntry.id || currentEditingEntry.startTime, entry);
-      alert('Entry updated successfully!');
+      // Determine if this is a manual or automatic entry
+      const isManualEntry = currentEditingEntry.isManual === true;
+
+      if (isManualEntry) {
+        // Update manual entry
+        const entry = {
+          date,
+          startTime: startTimeStr,
+          duration: durationMinutes * 60 * 1000,
+          description,
+          category,
+          tags
+        };
+
+        await updateEntry(currentEditingEntry.id, entry);
+        alert('Manual entry updated successfully!');
+      } else {
+        // Update automatic session
+        // Calculate new start time timestamp
+        const [hours, minutes] = startTimeStr.split(':').map(Number);
+        const dateObj = new Date(date);
+        dateObj.setHours(hours, minutes, 0, 0);
+        const newStartTime = dateObj.getTime();
+
+        const updates = {
+          startTime: newStartTime,
+          endTime: newStartTime + (durationMinutes * 60 * 1000),
+          duration: durationMinutes * 60 * 1000,
+          title: description, // Use description as title for automatic entries
+          category,
+          tags,
+          date
+        };
+
+        await updateAutomaticSession(currentEditingEntry.id, updates);
+        alert('Automatic entry updated successfully!');
+      }
+
+      // Increment tag usage for new tags
+      for (const tag of tags) {
+        await incrementTagUsage(tag);
+      }
     } else {
-      // Add new entry
+      // Add new manual entry
+      const entry = {
+        date,
+        startTime: startTimeStr,
+        duration: durationMinutes * 60 * 1000,
+        description,
+        category,
+        tags
+      };
+
       await addManualEntry(entry);
       alert('Entry added successfully!');
 
