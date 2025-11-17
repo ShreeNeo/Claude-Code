@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Neram - Professional time tracking browser extension with GitHub integration, calendar sync, and comprehensive analytics. Track your productivity with complete privacy.">
+  <meta name="keywords" content="time tracking, productivity, browser extension, GitHub integration, calendar sync, BYOC, free time tracker">
+  <title>Neram - Time Tracking Extension for Professionals</title>
+  <style>
+    :root {
+      --primary-color: #6366f1;
+      --primary-hover: #4f46e5;
+      --primary-light: #818cf8;
+      --bg-color: #f8fafc;
+      --bg-secondary: #ffffff;
+      --text-primary: #0f172a;
+      --text-secondary: #475569;
+      --border-color: #e2e8f0;
+      --success-color: #10b981;
+      --gradient-start: #6366f1;
+      --gradient-end: #8b5cf6;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      line-height: 1.6;
+      color: var(--text-primary);
+      background: var(--bg-color);
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 20px;
+    }
+
+    /* Hero Section */
+    .hero {
+      background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-end) 100%);
+      color: white;
+      padding: 80px 20px 100px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: url('data:image/svg+xml,<svg width="100" height="100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="2" fill="rgba(255,255,255,0.1)"/></svg>');
+      opacity: 0.3;
+    }
+
+    .hero-content {
+      position: relative;
+      z-index: 1;
+    }
+
+    .hero h1 {
+      font-size: 56px;
+      font-weight: 700;
+      margin-bottom: 20px;
+      letter-spacing: -1px;
+    }
+
+    .hero .tagline {
+      font-size: 24px;
+      margin-bottom: 10px;
+      opacity: 0.95;
+      font-weight: 300;
+    }
+
+    .hero .subtitle {
+      font-size: 18px;
+      margin-bottom: 40px;
+      opacity: 0.85;
+      font-weight: 300;
+    }
+
+    .cta-buttons {
+      display: flex;
+      gap: 20px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      padding: 16px 32px;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 16px;
+      transition: all 0.3s ease;
+      display: inline-block;
+      cursor: pointer;
+      border: 2px solid transparent;
+    }
+
+    .btn-primary {
+      background: white;
+      color: var(--primary-color);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    }
+
+    .btn-secondary {
+      background: transparent;
+      color: white;
+      border-color: white;
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255,255,255,0.1);
+    }
+
+    /* Features Section */
+    .features {
+      padding: 80px 20px;
+      background: white;
+    }
+
+    .section-title {
+      text-align: center;
+      font-size: 40px;
+      font-weight: 700;
+      margin-bottom: 60px;
+      color: var(--text-primary);
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 40px;
+      margin-top: 40px;
+    }
+
+    .feature-card {
+      padding: 30px;
+      border-radius: 12px;
+      background: var(--bg-color);
+      border: 1px solid var(--border-color);
+      transition: all 0.3s ease;
+    }
+
+    .feature-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    }
+
+    .feature-icon {
+      font-size: 48px;
+      margin-bottom: 20px;
+    }
+
+    .feature-card h3 {
+      font-size: 22px;
+      margin-bottom: 12px;
+      color: var(--text-primary);
+    }
+
+    .feature-card p {
+      color: var(--text-secondary);
+      line-height: 1.8;
+    }
+
+    /* Cost-Free Section */
+    .cost-free {
+      padding: 80px 20px;
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      color: white;
+      text-align: center;
+    }
+
+    .cost-free h2 {
+      font-size: 40px;
+      margin-bottom: 20px;
+    }
+
+    .cost-free .price-comparison {
+      display: flex;
+      gap: 40px;
+      justify-content: center;
+      margin-top: 40px;
+      flex-wrap: wrap;
+    }
+
+    .price-box {
+      background: rgba(255,255,255,0.15);
+      padding: 30px;
+      border-radius: 12px;
+      backdrop-filter: blur(10px);
+      min-width: 250px;
+    }
+
+    .price-box.competitor {
+      opacity: 0.7;
+    }
+
+    .price-box .price {
+      font-size: 48px;
+      font-weight: 700;
+      margin-bottom: 10px;
+    }
+
+    .price-box .label {
+      font-size: 18px;
+      opacity: 0.9;
+    }
+
+    /* Integrations Section */
+    .integrations {
+      padding: 80px 20px;
+      background: var(--bg-color);
+    }
+
+    .integrations-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+      gap: 30px;
+      margin-top: 40px;
+    }
+
+    .integration-card {
+      background: white;
+      padding: 40px;
+      border-radius: 16px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    }
+
+    .integration-card h3 {
+      font-size: 24px;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .integration-card .badge {
+      background: var(--success-color);
+      color: white;
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .integration-features {
+      list-style: none;
+      margin-top: 20px;
+    }
+
+    .integration-features li {
+      padding: 10px 0;
+      padding-left: 30px;
+      position: relative;
+      color: var(--text-secondary);
+    }
+
+    .integration-features li::before {
+      content: '✓';
+      position: absolute;
+      left: 0;
+      color: var(--success-color);
+      font-weight: 700;
+      font-size: 18px;
+    }
+
+    /* Installation Section */
+    .installation {
+      padding: 80px 20px;
+      background: white;
+    }
+
+    .install-steps {
+      max-width: 800px;
+      margin: 40px auto 0;
+    }
+
+    .step {
+      display: flex;
+      gap: 30px;
+      margin-bottom: 40px;
+      align-items: flex-start;
+    }
+
+    .step-number {
+      min-width: 60px;
+      height: 60px;
+      background: var(--primary-color);
+      color: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    .step-content h3 {
+      font-size: 22px;
+      margin-bottom: 10px;
+    }
+
+    .step-content p {
+      color: var(--text-secondary);
+      line-height: 1.8;
+    }
+
+    .code-block {
+      background: var(--bg-color);
+      padding: 16px;
+      border-radius: 8px;
+      margin-top: 12px;
+      font-family: 'Courier New', monospace;
+      font-size: 14px;
+      overflow-x: auto;
+    }
+
+    /* Screenshots Section */
+    .screenshots {
+      padding: 80px 20px;
+      background: var(--bg-color);
+      text-align: center;
+    }
+
+    .screenshot-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+      gap: 30px;
+      margin-top: 40px;
+    }
+
+    .screenshot-card {
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    }
+
+    .screenshot-placeholder {
+      width: 100%;
+      aspect-ratio: 16/10;
+      background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-secondary);
+      font-size: 18px;
+      margin-bottom: 16px;
+    }
+
+    .screenshot-card h3 {
+      font-size: 18px;
+      margin-bottom: 8px;
+    }
+
+    .screenshot-card p {
+      color: var(--text-secondary);
+      font-size: 14px;
+    }
+
+    /* Footer */
+    .footer {
+      background: var(--text-primary);
+      color: white;
+      padding: 60px 20px 30px;
+    }
+
+    .footer-content {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 40px;
+      margin-bottom: 40px;
+    }
+
+    .footer-section h4 {
+      font-size: 18px;
+      margin-bottom: 16px;
+    }
+
+    .footer-section ul {
+      list-style: none;
+    }
+
+    .footer-section a {
+      color: rgba(255,255,255,0.8);
+      text-decoration: none;
+      display: block;
+      padding: 6px 0;
+      transition: color 0.3s ease;
+    }
+
+    .footer-section a:hover {
+      color: white;
+    }
+
+    .footer-bottom {
+      text-align: center;
+      padding-top: 30px;
+      border-top: 1px solid rgba(255,255,255,0.1);
+      color: rgba(255,255,255,0.6);
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .hero h1 {
+        font-size: 40px;
+      }
+
+      .hero .tagline {
+        font-size: 20px;
+      }
+
+      .section-title {
+        font-size: 32px;
+      }
+
+      .features-grid,
+      .integrations-grid,
+      .screenshot-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="hero-content">
+      <div class="feature-icon">⏱️</div>
+      <h1>Neram</h1>
+      <p class="tagline">Professional Time Tracking for Modern Developers</p>
+      <p class="subtitle">Track your productivity across websites, GitHub, and calendar meetings - completely free and privacy-focused</p>
+      <div class="cta-buttons">
+        <a href="#installation" class="btn btn-primary">Get Started Free</a>
+        <a href="https://github.com/yourusername/neram" class="btn btn-secondary" target="_blank">View on GitHub</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features Section -->
+  <section class="features">
+    <div class="container">
+      <h2 class="section-title">Everything You Need to Track Time</h2>
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon">🚀</div>
+          <h3>Automatic Browser Tracking</h3>
+          <p>Effortlessly track time spent on websites with intelligent domain grouping, idle detection, and privacy-focused tracking that respects sensitive sites.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">📊</div>
+          <h3>Comprehensive Analytics</h3>
+          <p>Beautiful charts and insights including productivity scores, focus metrics, hourly heatmaps, and AI-powered recommendations to optimize your workflow.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">✏️</div>
+          <h3>Manual Time Entries</h3>
+          <p>Add time for offline work, IDE development, terminal sessions, and meetings. Tag and categorize entries for perfect time tracking coverage.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">🐙</div>
+          <h3>GitHub Integration</h3>
+          <p>Automatically track commits, pull requests, issues, and code reviews. Correlate GitHub activity with browser sessions for complete development visibility.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">📅</div>
+          <h3>Calendar Sync (BYOC)</h3>
+          <p>Sync meetings from Google Calendar and Microsoft Outlook using your own OAuth credentials. Track attendance, utilization, and meeting patterns.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">🔒</div>
+          <h3>Privacy First</h3>
+          <p>All data stored locally on your device. No external servers, no tracking, no analytics. Your time data belongs to you, always.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">📤</div>
+          <h3>Professional Export</h3>
+          <p>Export timesheet data in CSV format with employee details, perfect for billing, HR reporting, and project management integration.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">🏷️</div>
+          <h3>Tags & Organization</h3>
+          <p>Create color-coded tags, filter by projects, clients, or categories. Organize your time entries exactly how you need them.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">🎯</div>
+          <h3>Focus Mode</h3>
+          <p>Get alerts when spending too much time on distracting sites. Stay productive with customizable thresholds and smart notifications.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Cost-Free Section -->
+  <section class="cost-free">
+    <div class="container">
+      <h2>💰 Zero Monthly Costs</h2>
+      <p style="font-size: 20px; margin-bottom: 20px; opacity: 0.95;">
+        Traditional time tracking solutions with calendar and GitHub integration cost $65-320/month.<br>
+        Neram costs <strong style="font-size: 24px;">$0/month</strong>.
+      </p>
+      <div class="price-comparison">
+        <div class="price-box competitor">
+          <div class="label">Traditional SaaS</div>
+          <div class="price">$65-320</div>
+          <div class="label">per month</div>
+        </div>
+        <div class="price-box">
+          <div class="label">Neram</div>
+          <div class="price">$0</div>
+          <div class="label">forever</div>
+        </div>
+      </div>
+      <p style="font-size: 18px; margin-top: 40px; opacity: 0.9;">
+        ✨ BYOC (Bring Your Own Credentials) architecture means no backend servers, no subscriptions, no hidden fees
+      </p>
+    </div>
+  </section>
+
+  <!-- Integrations Section -->
+  <section class="integrations">
+    <div class="container">
+      <h2 class="section-title">Powerful Integrations</h2>
+      <div class="integrations-grid">
+        <div class="integration-card">
+          <h3>
+            🐙 GitHub Integration
+            <span class="badge">FREE</span>
+          </h3>
+          <p>Track all your development activities automatically using a Personal Access Token</p>
+          <ul class="integration-features">
+            <li>Commits and pushes</li>
+            <li>Pull requests and code reviews</li>
+            <li>Issues and comments</li>
+            <li>Activity correlation with browser time</li>
+            <li>Time estimates per activity type</li>
+            <li>Export GitHub activities to CSV</li>
+          </ul>
+        </div>
+
+        <div class="integration-card">
+          <h3>
+            📅 Calendar Integration
+            <span class="badge">BYOC</span>
+          </h3>
+          <p>Sync meetings using your own OAuth credentials - completely free</p>
+          <ul class="integration-features">
+            <li>Google Calendar sync</li>
+            <li>Microsoft Outlook sync</li>
+            <li>Meeting attendance tracking</li>
+            <li>Utilization metrics</li>
+            <li>Scheduled vs actual time</li>
+            <li>Meeting insights and analytics</li>
+          </ul>
+        </div>
+
+        <div class="integration-card">
+          <h3>
+            📊 Data Export
+            <span class="badge">BUILT-IN</span>
+          </h3>
+          <p>Export your time data in professional formats for reporting and billing</p>
+          <ul class="integration-features">
+            <li>CSV timesheet export</li>
+            <li>Employee profile integration</li>
+            <li>Multiple data sources combined</li>
+            <li>Custom date ranges</li>
+            <li>Excel/Google Sheets compatible</li>
+            <li>Client billing ready</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Installation Section -->
+  <section id="installation" class="installation">
+    <div class="container">
+      <h2 class="section-title">Get Started in Minutes</h2>
+      <div class="install-steps">
+        <div class="step">
+          <div class="step-number">1</div>
+          <div class="step-content">
+            <h3>Clone the Repository</h3>
+            <p>Get the source code from GitHub</p>
+            <div class="code-block">
+git clone https://github.com/yourusername/neram.git<br>
+cd neram
+            </div>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-number">2</div>
+          <div class="step-content">
+            <h3>Install Dependencies & Build</h3>
+            <p>Set up the project and create the extension bundle</p>
+            <div class="code-block">
+npm install<br>
+npm run build
+            </div>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-number">3</div>
+          <div class="step-content">
+            <h3>Load in Browser</h3>
+            <p>Open Chrome/Edge, go to <code>chrome://extensions/</code>, enable "Developer mode", click "Load unpacked", and select the <code>dist</code> folder.</p>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-number">4</div>
+          <div class="step-content">
+            <h3>Start Tracking!</h3>
+            <p>Click the extension icon to see your dashboard. Configure your employee profile and start tracking your time automatically.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Screenshots Section -->
+  <section class="screenshots">
+    <div class="container">
+      <h2 class="section-title">Beautiful & Intuitive Interface</h2>
+      <div class="screenshot-grid">
+        <div class="screenshot-card">
+          <div class="screenshot-placeholder">📊 Dashboard Overview</div>
+          <h3>Comprehensive Dashboard</h3>
+          <p>View all your stats, charts, and insights in one beautiful interface</p>
+        </div>
+        <div class="screenshot-card">
+          <div class="screenshot-placeholder">📈 Analytics</div>
+          <h3>Detailed Analytics</h3>
+          <p>Hourly heatmaps, category breakdowns, and productivity insights</p>
+        </div>
+        <div class="screenshot-card">
+          <div class="screenshot-placeholder">⚙️ Settings</div>
+          <h3>Easy Configuration</h3>
+          <p>Collapsible settings sections for streamlined setup</p>
+        </div>
+        <div class="screenshot-card">
+          <div class="screenshot-placeholder">✏️ Time Entries</div>
+          <h3>Manual Entries</h3>
+          <p>Add, edit, and tag time entries with a clean, intuitive interface</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-content">
+      <div class="footer-section">
+        <h4>Neram</h4>
+        <p style="opacity: 0.8; margin-top: 10px;">Professional time tracking for developers. Built with privacy and simplicity in mind.</p>
+      </div>
+      <div class="footer-section">
+        <h4>Documentation</h4>
+        <ul>
+          <li><a href="README.md">README</a></li>
+          <li><a href="INSTALLATION.md">Installation Guide</a></li>
+          <li><a href="USAGE_GUIDE.md">Usage Guide</a></li>
+          <li><a href="GITHUB_SETUP_GUIDE.md">GitHub Integration</a></li>
+          <li><a href="CALENDAR_SETUP_GUIDE.md">Calendar Setup</a></li>
+        </ul>
+      </div>
+      <div class="footer-section">
+        <h4>Features</h4>
+        <ul>
+          <li><a href="MANUAL_ENTRIES_GUIDE.md">Manual Time Entries</a></li>
+          <li><a href="DATA_SYNC_GUIDE.md">Data Sync & Backup</a></li>
+          <li><a href="#features">All Features</a></li>
+        </ul>
+      </div>
+      <div class="footer-section">
+        <h4>Community</h4>
+        <ul>
+          <li><a href="https://github.com/yourusername/neram" target="_blank">GitHub Repository</a></li>
+          <li><a href="https://github.com/yourusername/neram/issues" target="_blank">Report Issues</a></li>
+          <li><a href="https://github.com/yourusername/neram/discussions" target="_blank">Discussions</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>&copy; 2025 Neram. Open source under MIT License. Made with ⏱️ by developers, for developers.</p>
+    </div>
+  </footer>
+</body>
+</html>
