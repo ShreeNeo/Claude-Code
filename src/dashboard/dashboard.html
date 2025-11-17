@@ -436,76 +436,99 @@
         <!-- Settings Section -->
         <section id="settingsSection" class="section">
           <div class="settings-container">
+            <!-- Setup Status Overview -->
+            <div class="setup-status-overview">
+              <h3 class="section-subtitle">⚡ Quick Setup Status</h3>
+              <div class="status-cards-grid">
+                <div class="setup-status-card" id="profileStatusCard">
+                  <div class="status-card-icon">👤</div>
+                  <div class="status-card-content">
+                    <div class="status-card-title">Employee Profile</div>
+                    <div class="status-card-badge status-pending" id="profileStatusBadge">Not Configured</div>
+                  </div>
+                </div>
+                <div class="setup-status-card" id="githubStatusCard">
+                  <div class="status-card-icon">🐙</div>
+                  <div class="status-card-content">
+                    <div class="status-card-title">GitHub</div>
+                    <div class="status-card-badge status-pending" id="githubStatusBadge">Not Connected</div>
+                  </div>
+                </div>
+                <div class="setup-status-card" id="calendarStatusCard">
+                  <div class="status-card-icon">📅</div>
+                  <div class="status-card-content">
+                    <div class="status-card-title">Calendar</div>
+                    <div class="status-card-badge status-pending" id="calendarStatusBadge">Not Connected</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
             <!-- Quick Actions -->
             <div class="settings-actions-top">
-              <button id="saveSettingsBtn" class="btn btn-primary">💾 Save Settings</button>
+              <button id="saveSettingsBtn" class="btn btn-primary">💾 Save All Settings</button>
             </div>
 
-            <!-- Employee Profile -->
-            <div class="settings-group settings-group-expanded">
-              <h3 class="settings-title">👤 Employee Profile</h3>
-              <p class="settings-description">Configure your employee details for data export</p>
-
-              <div class="setting-item">
-                <div class="setting-label">
-                  <span>Employee Code</span>
-                  <span class="setting-description">Your unique employee identifier</span>
+            <!-- 1. Employee Profile -->
+            <div class="settings-group settings-group-profile">
+              <div class="settings-header">
+                <div>
+                  <h3 class="settings-title">👤 Employee Profile</h3>
+                  <p class="settings-description">Your details for timesheet export and reports</p>
                 </div>
-                <input type="text" id="empCode" class="input" placeholder="e.g., neo10013">
+                <span class="settings-badge settings-badge-required">Required</span>
               </div>
 
-              <div class="setting-item">
-                <div class="setting-label">
-                  <span>Employee Name</span>
-                  <span class="setting-description">Your full name</span>
+              <div class="settings-grid">
+                <div class="setting-field">
+                  <label class="field-label">Employee Code <span class="required-mark">*</span></label>
+                  <input type="text" id="empCode" class="input" placeholder="e.g., neo10013">
+                  <span class="field-hint">Your unique employee identifier</span>
                 </div>
-                <input type="text" id="empName" class="input" placeholder="e.g., SHREEHARAN">
-              </div>
 
-              <div class="setting-item">
-                <div class="setting-label">
-                  <span>Company Code</span>
-                  <span class="setting-description">Your company identifier</span>
+                <div class="setting-field">
+                  <label class="field-label">Employee Name <span class="required-mark">*</span></label>
+                  <input type="text" id="empName" class="input" placeholder="e.g., SHREEHARAN">
+                  <span class="field-hint">Your full name</span>
                 </div>
-                <input type="text" id="companyCode" class="input" placeholder="e.g., N080">
-              </div>
 
-              <div class="setting-item">
-                <div class="setting-label">
-                  <span>Practice</span>
-                  <span class="setting-description">Your practice or department</span>
+                <div class="setting-field">
+                  <label class="field-label">Company Code</label>
+                  <input type="text" id="companyCode" class="input" placeholder="e.g., N080">
+                  <span class="field-hint">Your company identifier</span>
                 </div>
-                <input type="text" id="practice" class="input" placeholder="e.g., Product Management">
-              </div>
 
-              <div class="setting-item">
-                <div class="setting-label">
-                  <span>Product Name</span>
-                  <span class="setting-description">Default product you work on</span>
+                <div class="setting-field">
+                  <label class="field-label">Practice / Department</label>
+                  <input type="text" id="practice" class="input" placeholder="e.g., Product Management">
+                  <span class="field-hint">Your practice or department</span>
                 </div>
-                <input type="text" id="productName" class="input" placeholder="e.g., NeoPAT 2.0">
-              </div>
 
-              <div class="setting-item">
-                <div class="setting-label">
-                  <span>Project/Client</span>
-                  <span class="setting-description">Default project or client</span>
+                <div class="setting-field">
+                  <label class="field-label">Product Name</label>
+                  <input type="text" id="productName" class="input" placeholder="e.g., NeoPAT 2.0">
+                  <span class="field-hint">Default product you work on</span>
                 </div>
-                <input type="text" id="projectClient" class="input" placeholder="e.g., NeoPAT 2.0">
+
+                <div class="setting-field">
+                  <label class="field-label">Project / Client</label>
+                  <input type="text" id="projectClient" class="input" placeholder="e.g., NeoPAT 2.0">
+                  <span class="field-hint">Default project or client</span>
+                </div>
               </div>
             </div>
 
-            <!-- Basic Settings (Collapsible) -->
+            <!-- 2. Tracking Preferences -->
             <div class="settings-group settings-group-collapsible">
-              <h3 class="settings-title settings-title-collapsible" data-target="basicSettings">
-                ⚙️ Basic Settings
+              <h3 class="settings-title settings-title-collapsible" data-target="trackingSettings">
+                ⚙️ Tracking Preferences
                 <span class="settings-toggle">▼</span>
               </h3>
-              <div id="basicSettings" class="settings-content">
+              <div id="trackingSettings" class="settings-content">
                 <div class="setting-item">
                   <div class="setting-label">
                     <span>Enable Tracking</span>
-                    <span class="setting-description">Track time spent on websites</span>
+                    <span class="setting-description">Automatically track time spent on websites</span>
                   </div>
                   <label class="toggle">
                     <input type="checkbox" id="enableTracking" checked>
@@ -534,7 +557,7 @@
 
                 <div class="setting-item">
                   <div class="setting-label">
-                    <span>Focus Mode Threshold (minutes)</span>
+                    <span>Focus Mode Threshold</span>
                     <span class="setting-description">Alert after this many minutes on distracting sites</span>
                   </div>
                   <input type="number" id="focusThreshold" class="input-number" value="30" min="5" max="120">
@@ -542,148 +565,184 @@
               </div>
             </div>
 
-            <!-- Blacklist (Collapsible) -->
-            <div class="settings-group settings-group-collapsible">
+            <!-- 3. Blocked Domains -->
+            <div class="settings-group settings-group-collapsible collapsed">
               <h3 class="settings-title settings-title-collapsible" data-target="blacklistSettings">
                 🚫 Blocked Domains
                 <span class="settings-toggle">▼</span>
               </h3>
-              <div id="blacklistSettings" class="settings-content">
-                <p class="settings-description">Domains to exclude from tracking</p>
+              <div id="blacklistSettings" class="settings-content" style="display: none;">
+                <p class="settings-description">Domains to exclude from tracking (e.g., banking, personal sites)</p>
                 <div class="blacklist-container">
                   <div class="blacklist-input-group">
                     <input type="text" id="blacklistInput" class="input" placeholder="example.com">
-                    <button id="addBlacklistBtn" class="btn btn-secondary">Add</button>
+                    <button id="addBlacklistBtn" class="btn btn-secondary">Add Domain</button>
                   </div>
                   <div id="blacklistList" class="blacklist-list"></div>
                 </div>
               </div>
             </div>
 
-            <!-- Integrations Section (Collapsible) -->
-            <div class="settings-group settings-group-collapsible">
-              <h3 class="settings-title settings-title-collapsible" data-target="integrationsSettings">
-                🔗 Integrations (GitHub & Calendar)
-                <span class="settings-toggle">▼</span>
-              </h3>
-              <div id="integrationsSettings" class="settings-content">
-                <!-- GitHub Integration -->
-                <div class="integration-subsection">
-                  <h4 class="settings-subtitle">🐙 GitHub Integration</h4>
-                  <p class="settings-description">🎉 FREE! Track GitHub commits, PRs, and issues. <a href="https://github.com/settings/tokens" target="_blank" style="color: var(--primary-color);">Get your Personal Access Token</a></p>
+            <!-- 4. GitHub Integration -->
+            <div class="settings-group settings-group-integration">
+              <div class="settings-header">
+                <div>
+                  <h3 class="settings-title">🐙 GitHub Integration</h3>
+                  <p class="settings-description">Track commits, PRs, issues, and code reviews • <a href="GITHUB_SETUP_GUIDE.md" target="_blank" class="setup-link">Setup Guide</a></p>
+                </div>
+                <span class="settings-badge settings-badge-free">100% Free</span>
+              </div>
 
-              <div class="setting-item" style="flex-direction: column; align-items: flex-start; gap: 10px;">
-                <div style="width: 100%;">
-                  <label style="font-weight: 600; margin-bottom: 8px; display: block;">GitHub Username</label>
-                  <input type="text" id="githubUsername" class="input" style="flex: 1; max-width: 100%;" placeholder="Your GitHub username">
+              <div class="integration-info-box">
+                <span class="info-icon">💡</span>
+                <div>
+                  <strong>Personal Access Token Approach</strong><br>
+                  No OAuth complexity, no monthly costs. Just create a token in <a href="https://github.com/settings/tokens" target="_blank" class="setup-link">GitHub Settings</a> and paste it below.
                 </div>
               </div>
 
-              <div class="setting-item" style="flex-direction: column; align-items: flex-start; gap: 10px;">
-                <div style="width: 100%;">
-                  <label style="font-weight: 600; margin-bottom: 8px; display: block;">Personal Access Token</label>
-                  <div style="display: flex; gap: 10px; align-items: center;">
-                    <input type="password" id="githubToken" class="input" style="flex: 1; max-width: 100%;" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx">
-                    <button id="saveGitHubBtn" class="btn btn-primary">Save</button>
-                  </div>
-                  <small style="color: var(--text-secondary); margin-top: 4px; display: block;">
-                    Required scopes: <code>read:user</code>, <code>repo</code> (or <code>public_repo</code> for public repos only)
-                  </small>
-                </div>
+              <div class="setting-field">
+                <label class="field-label">GitHub Username</label>
+                <input type="text" id="githubUsername" class="input" placeholder="Your GitHub username">
+                <span class="field-hint">Your GitHub account username (not email)</span>
               </div>
 
-              <div class="setting-item">
-                <div class="setting-label">
-                  <span>GitHub Connection</span>
-                  <span class="setting-description" id="githubConnectionStatus">Not connected</span>
+              <div class="setting-field">
+                <label class="field-label">Personal Access Token</label>
+                <div class="input-with-button">
+                  <input type="password" id="githubToken" class="input" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx">
+                  <button id="saveGitHubBtn" class="btn btn-primary">Save & Connect</button>
                 </div>
-                <div class="calendar-actions">
-                  <button id="disconnectGitHubBtn" class="btn btn-secondary" style="display: none;">Disconnect</button>
-                </div>
-              </div>
-                </div>
-
-                <!-- Calendar Integration -->
-                <div class="integration-subsection" style="margin-top: 30px; padding-top: 30px; border-top: 1px solid var(--border-color);">
-                  <h4 class="settings-subtitle">📅 Calendar Integration (BYOC)</h4>
-                  <p class="settings-description">🎉 Completely FREE! Use your own OAuth credentials. <a href="CALENDAR_SETUP_GUIDE.md" target="_blank" style="color: var(--primary-color); text-decoration: underline;">Setup Guide</a></p>
-
-              <!-- Google Calendar Client ID -->
-              <div class="setting-item" style="flex-direction: column; align-items: flex-start; gap: 10px;">
-                <div style="width: 100%;">
-                  <label style="font-weight: 600; margin-bottom: 8px; display: block;">Google Calendar Client ID</label>
-                  <div style="display: flex; gap: 10px; align-items: center;">
-                    <input type="text" id="googleClientId" class="input" style="flex: 1; max-width: 100%;" placeholder="Your Google OAuth Client ID (ends with .apps.googleusercontent.com)">
-                    <button id="saveGoogleClientIdBtn" class="btn btn-primary">Save</button>
-                  </div>
-                  <small style="color: var(--text-secondary); margin-top: 4px; display: block;">
-                    <a href="https://console.cloud.google.com/apis/credentials" target="_blank" style="color: var(--primary-color);">Get Client ID from Google Cloud Console</a> - Follow our <a href="CALENDAR_SETUP_GUIDE.md#google-calendar-setup" target="_blank" style="color: var(--primary-color);">5-minute setup guide</a>
-                  </small>
-                </div>
+                <span class="field-hint">
+                  Required scopes: <code>read:user</code>, <code>repo</code> (or <code>public_repo</code> for public repos only)
+                </span>
               </div>
 
-              <div class="setting-item">
-                <div class="setting-label">
-                  <span>Google Calendar Connection</span>
-                  <span class="setting-description" id="googleCalendarStatus">Not connected</span>
-                </div>
-                <div class="calendar-actions">
-                  <button id="connectGoogleBtn" class="btn btn-primary">Connect Google</button>
-                  <button id="disconnectGoogleBtn" class="btn btn-secondary" style="display: none;">Disconnect</button>
-                </div>
-              </div>
-
-              <!-- Microsoft Outlook Client ID -->
-              <div class="setting-item" style="flex-direction: column; align-items: flex-start; gap: 10px;">
-                <div style="width: 100%;">
-                  <label style="font-weight: 600; margin-bottom: 8px; display: block;">Microsoft Outlook Client ID</label>
-                  <div style="display: flex; gap: 10px; align-items: center;">
-                    <input type="text" id="microsoftClientId" class="input" style="flex: 1; max-width: 100%;" placeholder="Your Microsoft OAuth Client ID (GUID format)">
-                    <button id="saveMicrosoftClientIdBtn" class="btn btn-primary">Save</button>
-                  </div>
-                  <small style="color: var(--text-secondary); margin-top: 4px; display: block;">
-                    <a href="https://portal.azure.com/#view/Microsoft_AAD_RegisteredApps/ApplicationsListBlade" target="_blank" style="color: var(--primary-color);">Get Client ID from Azure Portal</a> - Follow our <a href="CALENDAR_SETUP_GUIDE.md#microsoft-outlook-setup" target="_blank" style="color: var(--primary-color);">5-minute setup guide</a>
-                  </small>
-                </div>
-              </div>
-
-              <div class="setting-item">
-                <div class="setting-label">
-                  <span>Microsoft Outlook Connection</span>
-                  <span class="setting-description" id="microsoftCalendarStatus">Not connected</span>
-                </div>
-                <div class="calendar-actions">
-                  <button id="connectMicrosoftBtn" class="btn btn-primary">Connect Outlook</button>
-                  <button id="disconnectMicrosoftBtn" class="btn btn-secondary" style="display: none;">Disconnect</button>
-                </div>
-              </div>
-
-              <div class="setting-item">
-                <div class="setting-label">
-                  <span>Auto-sync Meetings</span>
-                  <span class="setting-description">Automatically sync meetings every hour</span>
-                </div>
-                <label class="toggle">
-                  <input type="checkbox" id="autoSyncMeetings">
-                  <span class="toggle-slider"></span>
-                </label>
-              </div>
-                </div>
+              <div class="connection-status" id="githubConnectionStatusBox" style="display: none;">
+                <span class="status-icon-success">✓</span>
+                <span id="githubConnectionStatus">Not connected</span>
+                <button id="disconnectGitHubBtn" class="btn-link">Disconnect</button>
               </div>
             </div>
 
-            <!-- Data Management (Collapsible) -->
-            <div class="settings-group settings-group-collapsible">
+            <!-- 5. Calendar Integration (Separate Section) -->
+            <div class="settings-group settings-group-integration">
+              <div class="settings-header">
+                <div>
+                  <h3 class="settings-title">📅 Calendar Integration (BYOC)</h3>
+                  <p class="settings-description">Sync meetings from Google Calendar & Microsoft Outlook • <a href="CALENDAR_SETUP_GUIDE.md" target="_blank" class="setup-link">Setup Guide</a></p>
+                </div>
+                <span class="settings-badge settings-badge-free">Bring Your Own Credentials</span>
+              </div>
+
+              <div class="integration-info-box">
+                <span class="info-icon">💡</span>
+                <div>
+                  <strong>BYOC (Bring Your Own Credentials)</strong><br>
+                  Use your own OAuth credentials from Google Cloud or Azure. Zero monthly cost, complete control over your data.
+                </div>
+              </div>
+
+              <!-- Google Calendar -->
+              <div class="calendar-provider-section">
+                <h4 class="provider-title">📧 Google Calendar</h4>
+
+                <div class="setting-field">
+                  <label class="field-label">OAuth Client ID</label>
+                  <div class="input-with-button">
+                    <input type="text" id="googleClientId" class="input" placeholder="xxxxx.apps.googleusercontent.com">
+                    <button id="saveGoogleClientIdBtn" class="btn btn-secondary">Save ID</button>
+                  </div>
+                  <span class="field-hint">
+                    Get from <a href="https://console.cloud.google.com/apis/credentials" target="_blank" class="setup-link">Google Cloud Console</a> (5-minute setup)
+                  </span>
+                </div>
+
+                <div class="calendar-connection-row">
+                  <div class="connection-info">
+                    <span class="connection-label">Status:</span>
+                    <span class="connection-status-text" id="googleCalendarStatus">Not connected</span>
+                  </div>
+                  <div class="calendar-actions">
+                    <button id="connectGoogleBtn" class="btn btn-primary">Connect Google Calendar</button>
+                    <button id="disconnectGoogleBtn" class="btn btn-secondary" style="display: none;">Disconnect</button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Microsoft Outlook -->
+              <div class="calendar-provider-section">
+                <h4 class="provider-title">📨 Microsoft Outlook</h4>
+
+                <div class="setting-field">
+                  <label class="field-label">OAuth Client ID</label>
+                  <div class="input-with-button">
+                    <input type="text" id="microsoftClientId" class="input" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx">
+                    <button id="saveMicrosoftClientIdBtn" class="btn btn-secondary">Save ID</button>
+                  </div>
+                  <span class="field-hint">
+                    Get from <a href="https://portal.azure.com" target="_blank" class="setup-link">Azure Portal</a> (5-minute setup)
+                  </span>
+                </div>
+
+                <div class="calendar-connection-row">
+                  <div class="connection-info">
+                    <span class="connection-label">Status:</span>
+                    <span class="connection-status-text" id="microsoftCalendarStatus">Not connected</span>
+                  </div>
+                  <div class="calendar-actions">
+                    <button id="connectMicrosoftBtn" class="btn btn-primary">Connect Outlook</button>
+                    <button id="disconnectMicrosoftBtn" class="btn btn-secondary" style="display: none;">Disconnect</button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Auto-sync Setting -->
+              <div class="setting-item" style="margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--border-color);">
+                <div class="setting-label">
+                  <span>Auto-sync Meetings</span>
+                  <span class="setting-description">Automatically sync meetings every hour (coming soon)</span>
+                </div>
+                <label class="toggle">
+                  <input type="checkbox" id="autoSyncMeetings" disabled>
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+            </div>
+
+            <!-- 6. Data Management -->
+            <div class="settings-group settings-group-collapsible collapsed">
               <h3 class="settings-title settings-title-collapsible" data-target="dataSettings">
-                🗑️ Data Management
+                💾 Data Management
                 <span class="settings-toggle">▼</span>
               </h3>
               <div id="dataSettings" class="settings-content" style="display: none;">
+                <div class="data-info-box">
+                  <div class="info-section">
+                    <h4>📊 Storage Information</h4>
+                    <p>All your data is stored locally in your browser using IndexedDB. No external servers involved.</p>
+                    <ul class="info-list">
+                      <li>✓ Tracking sessions and manual entries</li>
+                      <li>✓ Employee profile and settings</li>
+                      <li>✓ Integration credentials (encrypted)</li>
+                      <li>✓ Custom categories and tags</li>
+                    </ul>
+                  </div>
 
-                <p class="settings-description" style="color: var(--danger-color); margin-bottom: 15px;">
-                  ⚠️ Warning: Clearing data will permanently delete all tracked sessions, stats, and manual entries. This cannot be undone!
-                </p>
-                <div class="setting-item">
+                  <div class="info-section">
+                    <h4>☁️ Backup Recommendations</h4>
+                    <p>See <a href="DATA_SYNC_GUIDE.md" target="_blank" class="setup-link">Data Sync Guide</a> for backup strategies:</p>
+                    <ul class="info-list">
+                      <li>Export timesheet weekly/monthly</li>
+                      <li>Save CSV files to cloud storage (Google Drive, Dropbox)</li>
+                      <li>Chrome Sync handles settings automatically</li>
+                    </ul>
+                  </div>
+                </div>
+
+                <div class="danger-zone">
+                  <h4 class="danger-title">⚠️ Danger Zone</h4>
+                  <p class="danger-description">Clearing data will permanently delete all tracked sessions, stats, and manual entries. This action cannot be undone. Please export your data first!</p>
                   <button id="clearDataBtn" class="btn btn-danger">🗑️ Clear All Data</button>
                 </div>
               </div>

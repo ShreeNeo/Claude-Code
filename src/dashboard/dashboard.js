@@ -46,6 +46,58 @@ let calendarSettings = {
 document.addEventListener('DOMContentLoaded', initialize);
 
 /**
+ * Updates the setup status cards in settings
+ */
+function updateSetupStatusCards() {
+  // Profile status
+  const profileComplete = employeeProfile && employeeProfile.empCode && employeeProfile.empName;
+  const profileBadge = document.getElementById('profileStatusBadge');
+  const profileCard = document.getElementById('profileStatusCard');
+
+  if (profileBadge) {
+    if (profileComplete) {
+      profileBadge.textContent = 'Configured';
+      profileBadge.className = 'status-card-badge status-complete';
+    } else {
+      profileBadge.textContent = 'Not Configured';
+      profileBadge.className = 'status-card-badge status-pending';
+    }
+  }
+
+  // GitHub status
+  chrome.storage.local.get(['githubToken'], (result) => {
+    const githubConnected = result.githubToken;
+    const githubBadge = document.getElementById('githubStatusBadge');
+
+    if (githubBadge) {
+      if (githubConnected) {
+        githubBadge.textContent = 'Connected';
+        githubBadge.className = 'status-card-badge status-complete';
+      } else {
+        githubBadge.textContent = 'Not Connected';
+        githubBadge.className = 'status-card-badge status-pending';
+      }
+    }
+  });
+
+  // Calendar status
+  chrome.storage.local.get(['googleToken', 'microsoftToken'], (result) => {
+    const calendarConnected = result.googleToken || result.microsoftToken;
+    const calendarBadge = document.getElementById('calendarStatusBadge');
+
+    if (calendarBadge) {
+      if (calendarConnected) {
+        calendarBadge.textContent = 'Connected';
+        calendarBadge.className = 'status-card-badge status-complete';
+      } else {
+        calendarBadge.textContent = 'Not Connected';
+        calendarBadge.className = 'status-card-badge status-pending';
+      }
+    }
+  });
+}
+
+/**
  * Initializes the dashboard
  */
 async function initialize() {
@@ -56,6 +108,7 @@ async function initialize() {
   await loadSettings();
   await initializeCalendarStatus();
   updateGitHubStatus();
+  updateSetupStatusCards();
   await loadTagsForFilter();
   await loadData();
   console.log('Dashboard initialized. Current stats:', currentStats);
@@ -1291,6 +1344,7 @@ async function saveSettings() {
     chrome.runtime.sendMessage({ type: 'updateSettings', settings });
 
     employeeProfile = profile;
+    updateSetupStatusCards(); // Update status cards after saving
     alert('Settings saved successfully!');
   } catch (error) {
     console.error('Error saving settings:', error);
@@ -1639,6 +1693,7 @@ async function connectGoogleCalendar() {
     if (result.success) {
       alert('Google Calendar connected successfully!');
       updateCalendarStatus();
+      updateSetupStatusCards(); // Update status cards after connecting
       loadMeetings();
     } else {
       alert(`Failed to connect Google Calendar: ${result.error}`);
@@ -1667,6 +1722,7 @@ async function connectMicrosoftCalendar() {
     if (result.success) {
       alert('Microsoft Outlook connected successfully!');
       updateCalendarStatus();
+      updateSetupStatusCards(); // Update status cards after connecting
       loadMeetings();
     } else {
       alert(`Failed to connect Microsoft Outlook: ${result.error}`);
@@ -1697,6 +1753,7 @@ async function disconnectCalendar(provider) {
     if (result.success) {
       alert(`${providerName} disconnected successfully!`);
       updateCalendarStatus();
+      updateSetupStatusCards(); // Update status cards after disconnecting
       loadMeetings(); // Refresh meetings list
     } else {
       alert(`Failed to disconnect ${providerName}: ${result.error}`);
@@ -2019,6 +2076,7 @@ async function saveGitHubCredentials() {
     if (result.success) {
       alert('GitHub credentials saved successfully! You can now view your activities in the GitHub tab.');
       updateGitHubStatus();
+      updateSetupStatusCards(); // Update status cards after connecting
     } else {
       alert(`Failed to save credentials: ${result.error}`);
     }
@@ -2044,6 +2102,7 @@ async function disconnectGitHub() {
       document.getElementById('githubToken').value = '';
       alert('GitHub disconnected successfully!');
       updateGitHubStatus();
+      updateSetupStatusCards(); // Update status cards after disconnecting
       loadGitHubActivities(); // Refresh to show empty state
     } else {
       alert(`Failed to disconnect: ${result.error}`);
