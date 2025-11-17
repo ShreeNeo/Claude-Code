@@ -3,7 +3,7 @@
  * Handles all data persistence using IndexedDB and chrome.storage
  */
 
-const DB_NAME = 'TimeTrackerDB';
+const DB_NAME = 'NeramDB';
 const DB_VERSION = 2; // Updated to match manual-entries.js
 
 // IndexedDB Store Names

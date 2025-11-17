@@ -1,4 +1,4 @@
-# TimeTracker Pro - Installation Guide
+# Neram - Installation Guide
 
 ## Quick Start
 
@@ -24,9 +24,9 @@ The extension has been successfully built and is ready to install!
    - Click "Select Folder"
 
 4. **Verify Installation**
-   - You should see "TimeTracker Pro" appear in your extensions list
+   - You should see "Neram" appear in your extensions list
    - The extension icon should appear in your browser toolbar
-   - If you don't see the icon, click the puzzle piece icon and pin TimeTracker Pro
+   - If you don't see the icon, click the puzzle piece icon and pin Neram
 
 ### For Firefox
 
@@ -114,7 +114,7 @@ Once installed:
 
 1. Open DevTools (F12) on the dashboard
 2. Check the Console tab for errors
-3. Go to Application → IndexedDB → TimeTrackerDB
+3. Go to Application → IndexedDB → NeramDB
 4. Verify sessions are being stored
 
 ### Build Errors
@@ -198,12 +198,12 @@ After making changes:
 
 ### Chrome/Edge/Brave
 1. Go to extensions page
-2. Find TimeTracker Pro
+2. Find Neram
 3. Click "Remove"
 
 ### Firefox
 1. Go to `about:addons`
-2. Find TimeTracker Pro
+2. Find Neram
 3. Click "Remove"
 
 ## Data Backup

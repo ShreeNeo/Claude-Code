@@ -2,7 +2,7 @@
 
 ## 🎉 Overview
 
-Calendar integration has been **successfully implemented** for the TimeTracker Pro browser extension. This feature allows users to connect their Google Calendar and Microsoft Outlook accounts to sync meetings and track actual time spent vs scheduled time.
+Calendar integration has been **successfully implemented** for the Neram browser extension. This feature allows users to connect their Google Calendar and Microsoft Outlook accounts to sync meetings and track actual time spent vs scheduled time.
 
 ---
 

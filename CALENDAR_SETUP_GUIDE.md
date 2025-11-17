@@ -2,7 +2,7 @@
 
 ## 📅 Overview
 
-TimeTracker Pro now supports calendar integration with **Google Calendar** and **Microsoft Outlook**, allowing you to:
+Neram now supports calendar integration with **Google Calendar** and **Microsoft Outlook**, allowing you to:
 - Sync meeting details (name, date, time, duration)
 - Track actual time spent in meetings vs scheduled time
 - Correlate browser activity with calendar events
@@ -37,7 +37,7 @@ To use calendar integration, you need to create free OAuth apps for Google and/o
 1. **Go to Google Cloud Console**: https://console.cloud.google.com/
 2. **Create a new project**:
    - Click "Select a project" → "New Project"
-   - Name: `TimeTracker Pro`
+   - Name: `Neram`
    - Click "Create"
 
 ### Step 2: Enable Google Calendar API
@@ -52,14 +52,14 @@ To use calendar integration, you need to create free OAuth apps for Google and/o
 2. **Click "Create Credentials"** → **OAuth client ID**
 3. **Configure OAuth consent screen** (if first time):
    - User Type: **External**
-   - App name: `TimeTracker Pro`
+   - App name: `Neram`
    - User support email: Your email
    - Developer contact: Your email
    - Scopes: Add `https://www.googleapis.com/auth/calendar.readonly`
    - Test users: Add your email (for testing)
 4. **Create OAuth client ID**:
    - Application type: **Chrome extension**
-   - Name: `TimeTracker Pro Extension`
+   - Name: `Neram Extension`
    - Copy the **Extension ID** from Chrome (chrome://extensions/)
    - Paste as **Application ID**
 5. **Copy the Client ID** (looks like: `123456789-abc...apps.googleusercontent.com`)
@@ -93,7 +93,7 @@ To use calendar integration, you need to create free OAuth apps for Google and/o
 1. **Go to Azure Portal**: https://portal.azure.com/
 2. **Navigate to** "Azure Active Directory" → "App registrations"
 3. **Click "New registration"**:
-   - Name: `TimeTracker Pro`
+   - Name: `Neram`
    - Supported account types: **Accounts in any organizational directory and personal Microsoft accounts**
    - Redirect URI: Leave blank for now
    - Click "Register"

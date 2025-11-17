@@ -110,7 +110,7 @@ function sendHeartbeat() {
  */
 function setupActivityListeners() {
   if (!shouldTrackPage()) {
-    console.log('TimeTracker: Not tracking this page (privacy-sensitive)');
+    console.log('Neram: Not tracking this page (privacy-sensitive)');
     return;
   }
 
@@ -131,7 +131,7 @@ function setupActivityListeners() {
   handleActivity();
   sendHeartbeat();
 
-  console.log('TimeTracker: Activity tracking started');
+  console.log('Neram: Activity tracking started');
 }
 
 /**

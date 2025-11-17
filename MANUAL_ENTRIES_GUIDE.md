@@ -2,7 +2,7 @@
 
 ## ✏️ Overview
 
-TimeTracker Pro now supports **Manual Time Entries** and **Tags**, giving you complete control over your time tracking:
+Neram now supports **Manual Time Entries** and **Tags**, giving you complete control over your time tracking:
 - Add time entries manually for work done outside the browser
 - Edit any time entry (automatic or manual)
 - Categorize entries with custom tags
@@ -16,7 +16,7 @@ TimeTracker Pro now supports **Manual Time Entries** and **Tags**, giving you co
 
 ### Automatic Tracking Limitations
 
-While TimeTracker Pro automatically tracks browser activity, some work isn't captured:
+While Neram automatically tracks browser activity, some work isn't captured:
 - ❌ IDE/code editor time (VS Code, IntelliJ, etc.)
 - ❌ Command-line work (terminal, git commands)
 - ❌ Design tools (Figma, Sketch, Photoshop)

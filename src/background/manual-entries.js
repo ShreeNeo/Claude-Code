@@ -3,7 +3,7 @@
  * Handles manual time entries and tags
  */
 
-const DB_NAME = 'TimeTrackerDB';
+const DB_NAME = 'NeramDB';
 const DB_VERSION = 2; // Match storage.js version
 const MANUAL_ENTRIES_STORE = 'manual_entries';
 const TAGS_STORE = 'tags';
@@ -19,7 +19,7 @@ async function openManualEntriesDB() {
     const request = indexedDB.open(DB_NAME, DB_VERSION);
 
     request.onerror = () => {
-      console.error('Failed to open TimeTrackerDB:', request.error);
+      console.error('Failed to open NeramDB:', request.error);
       reject(request.error);
     };
 

@@ -1,4 +1,4 @@
-# TimeTracker Pro
+# Neram
 
 A comprehensive browser extension for tracking time spent on websites with detailed analytics, productivity insights, and **calendar integration** to sync and track meetings from Google Calendar and Microsoft Outlook.
 
@@ -50,8 +50,8 @@ A comprehensive browser extension for tracking time spent on websites with detai
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/yourusername/timetracker-pro.git
-   cd timetracker-pro
+   git clone https://github.com/yourusername/neram.git
+   cd neram
    ```
 
 2. **Install dependencies**
@@ -79,7 +79,7 @@ A comprehensive browser extension for tracking time spent on websites with detai
 
 ### Pre-built Package
 
-1. Download the latest release from the [Releases page](https://github.com/yourusername/timetracker-pro/releases)
+1. Download the latest release from the [Releases page](https://github.com/yourusername/neram/releases)
 2. Extract the ZIP file
 3. Follow the "Load in browser" instructions above
 
@@ -186,7 +186,7 @@ Access settings from the dashboard:
 
 ### Privacy Settings
 
-TimeTracker Pro respects your privacy:
+Neram respects your privacy:
 - Automatically excludes banking and healthcare sites
 - Never tracks password input pages
 - Sanitizes URLs to remove sensitive parameters
@@ -198,7 +198,7 @@ TimeTracker Pro respects your privacy:
 ### Project Structure
 
 ```
-timetracker-pro/
+neram/
 ├── manifest.json              # Extension manifest (Manifest V3)
 ├── package.json              # NPM dependencies
 ├── webpack.config.js         # Build configuration
@@ -390,7 +390,7 @@ We welcome contributions! Please:
 
 ## Privacy Policy
 
-TimeTracker Pro is designed with privacy as a core principle:
+Neram is designed with privacy as a core principle:
 
 - **No external servers**: All data stays on your device
 - **No tracking**: We don't track you or your data
@@ -455,9 +455,9 @@ MIT License - see [LICENSE](LICENSE) file for details
 
 ### Community & Support
 
-- **Issues**: [GitHub Issues](https://github.com/yourusername/timetracker-pro/issues)
-- **Documentation**: [Wiki](https://github.com/yourusername/timetracker-pro/wiki)
-- **Discussions**: [GitHub Discussions](https://github.com/yourusername/timetracker-pro/discussions)
+- **Issues**: [GitHub Issues](https://github.com/yourusername/neram/issues)
+- **Documentation**: [Wiki](https://github.com/yourusername/neram/wiki)
+- **Discussions**: [GitHub Discussions](https://github.com/yourusername/neram/discussions)
 
 ## Roadmap
 

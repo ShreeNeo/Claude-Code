@@ -1,4 +1,4 @@
-# TimeTracker Pro - Usage Guide
+# Neram - Usage Guide
 
 ## 🎯 New Features Overview
 

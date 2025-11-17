@@ -49,7 +49,7 @@ document.addEventListener('DOMContentLoaded', initialize);
  * Initializes the dashboard
  */
 async function initialize() {
-  console.log('TimeTracker Pro Dashboard initializing...');
+  console.log('Neram Dashboard initializing...');
   setupNavigation();
   setupEventListeners();
   await loadEmployeeProfile();
@@ -472,7 +472,7 @@ async function fetchRealData(startTime, endTime) {
  */
 function openDatabase() {
   return new Promise((resolve, reject) => {
-    const request = indexedDB.open('TimeTrackerDB', 2); // Updated to version 2
+    const request = indexedDB.open('NeramDB', 2); // Updated to version 2
 
     request.onerror = (event) => {
       console.error('Failed to open database:', event.target.error);
@@ -1343,6 +1343,7 @@ async function clearAllData() {
 
 /**
  * Exports data in the specified CSV format
+ * Includes automatic tracking, manual entries, and GitHub activities
  */
 async function exportData() {
   try {
@@ -1353,9 +1354,14 @@ async function exportData() {
       return;
     }
 
+    // Collect all data sources
     const sessions = currentStats.sessions || [];
+    const manualEntries = currentTimeEntries.filter(e => e.isManual) || [];
+    const githubActivities = currentGitHubActivities || [];
 
-    if (sessions.length === 0) {
+    const allEntries = [...sessions, ...manualEntries, ...githubActivities];
+
+    if (allEntries.length === 0) {
       alert('No data to export. Start tracking or enable dummy data to see export format.');
       return;
     }
@@ -1370,31 +1376,55 @@ async function exportData() {
       'Project/Client',
       'Task/Description',
       'Working Hours (8H)',
-      'Logged Date'
+      'Logged Date',
+      'Entry Type',
+      'Tags'
     ];
 
-    // Convert sessions to CSV rows
-    const rows = sessions.map(session => {
-      const hours = (session.duration / (1000 * 60 * 60)).toFixed(2);
-      const loggedDate = new Date(session.startTime).toLocaleDateString('en-GB', {
+    // Convert all entries to CSV rows
+    const rows = allEntries.map(entry => {
+      const hours = (entry.duration / (1000 * 60 * 60)).toFixed(2);
+      const loggedDate = new Date(entry.startTime || entry.timestamp).toLocaleDateString('en-GB', {
         day: 'numeric',
         month: 'short',
         year: '2-digit'
       });
 
-      // Generate task description from domain and category
-      const taskDescription = `${session.category} work on ${session.domain}`;
+      // Determine entry type and description
+      let entryType = 'Browser';
+      let taskDescription = '';
+      let projectClient = '';
+
+      if (entry.isManual) {
+        entryType = 'Manual';
+        taskDescription = entry.description || 'Manual time entry';
+        projectClient = employeeProfile.projectClient || 'Manual';
+      } else if (entry.repository) {
+        // GitHub activity
+        entryType = 'GitHub';
+        taskDescription = entry.description || `${entry.type} on ${entry.repository}`;
+        projectClient = entry.repository;
+      } else {
+        // Automatic browser session
+        entryType = entry.isEdited ? 'Browser (Edited)' : 'Browser';
+        taskDescription = `${entry.category} work on ${entry.domain}`;
+        projectClient = entry.domain;
+      }
+
+      const tags = entry.tags ? entry.tags.join(', ') : 'N/A';
 
       return [
         employeeProfile.empCode || 'N/A',
         employeeProfile.empName || 'N/A',
         employeeProfile.companyCode || 'N/A',
         employeeProfile.practice || 'N/A',
-        employeeProfile.productName || session.category,
-        employeeProfile.projectClient || session.domain,
+        employeeProfile.productName || entry.category || 'N/A',
+        projectClient,
         taskDescription,
         hours,
-        loggedDate
+        loggedDate,
+        entryType,
+        tags
       ];
     });
 
@@ -1416,7 +1446,7 @@ async function exportData() {
     link.click();
     URL.revokeObjectURL(url);
 
-    alert('Data exported successfully!');
+    alert(`Data exported successfully! Included ${sessions.length} browser sessions, ${manualEntries.length} manual entries, and ${githubActivities.length} GitHub activities.`);
   } catch (error) {
     console.error('Error exporting data:', error);
     alert('Error exporting data. Please try again.');
@@ -2307,27 +2337,38 @@ function openAddEntryModal() {
  * Open edit entry modal
  */
 window.editEntry = async function(entryId) {
+  console.log('Edit entry called with ID:', entryId);
+
   // Find the entry
   const entry = currentTimeEntries.find(e => (e.id || e.startTime) === entryId);
 
   if (!entry) {
+    console.error('Entry not found for ID:', entryId);
     alert('Entry not found');
     return;
   }
 
+  console.log('Found entry:', entry);
   currentEditingEntry = entry;
   document.getElementById('timeEntryModalTitle').textContent = 'Edit Time Entry';
 
-  // Populate form
+  // Populate form based on entry type
   const startDate = new Date(entry.startTime);
-  document.getElementById('entryDate').valueAsDate = startDate;
-  document.getElementById('entryStartTime').value = startDate.toTimeString().slice(0, 5);
-  document.getElementById('entryDuration').value = Math.round(entry.duration / (1000 * 60));
-  document.getElementById('entryDescription').value = entry.description || entry.title || '';
-  document.getElementById('entryCategory').value = entry.category || 'Other';
-  document.getElementById('entryTags').value = entry.tags ? entry.tags.join(', ') : '';
 
-  document.getElementById('timeEntryModal').style.display = 'flex';
+  try {
+    document.getElementById('entryDate').valueAsDate = startDate;
+    document.getElementById('entryStartTime').value = startDate.toTimeString().slice(0, 5);
+    document.getElementById('entryDuration').value = Math.round(entry.duration / (1000 * 60));
+    document.getElementById('entryDescription').value = entry.description || entry.title || entry.domain || '';
+    document.getElementById('entryCategory').value = entry.category || 'Other';
+    document.getElementById('entryTags').value = entry.tags ? entry.tags.join(', ') : '';
+
+    document.getElementById('timeEntryModal').style.display = 'flex';
+    console.log('Modal displayed successfully');
+  } catch (error) {
+    console.error('Error populating form:', error);
+    alert('Error opening edit form. Check console for details.');
+  }
 };
 
 /**

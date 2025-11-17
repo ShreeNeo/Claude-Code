@@ -39,7 +39,7 @@ const DATA_CLEANUP_INTERVAL = 24 * 60 * 60 * 1000; // Once per day
  * Initializes the extension
  */
 async function initialize() {
-  console.log('TimeTracker Pro initializing...');
+  console.log('Neram initializing...');
 
   try {
     // Initialize database
@@ -71,7 +71,7 @@ async function initialize() {
     chrome.alarms.create('idleCheck', { periodInMinutes: 0.5 });
     chrome.alarms.create('dataCleanup', { periodInMinutes: 1440 }); // Once per day
 
-    console.log('TimeTracker Pro initialized successfully');
+    console.log('Neram initialized successfully');
   } catch (error) {
     console.error('Initialization error:', error);
   }

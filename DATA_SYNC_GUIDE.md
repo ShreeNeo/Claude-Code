@@ -2,7 +2,7 @@
 
 ## 📊 Overview
 
-TimeTracker Pro stores all your tracking data locally on your device using IndexedDB. This guide explains your options for backing up and syncing your data across devices.
+Neram stores all your tracking data locally on your device using IndexedDB. This guide explains your options for backing up and syncing your data across devices.
 
 ---
 

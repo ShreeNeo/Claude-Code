@@ -2,7 +2,7 @@
 
 ## 🐙 Overview
 
-TimeTracker Pro now includes **GitHub Integration** to automatically track your development activities, allowing you to:
+Neram now includes **GitHub Integration** to automatically track your development activities, allowing you to:
 - Sync GitHub events (commits, PRs, issues, reviews)
 - Track time spent on GitHub activities
 - Correlate GitHub work with browser tracking
@@ -38,14 +38,14 @@ GitHub Integration uses a **Personal Access Token (PAT)** approach:
 
 1. **Click "Generate new token"** → **"Generate new token (classic)"**
 2. **Note**: Give your token a descriptive name
-   - Example: `TimeTracker Pro Extension`
+   - Example: `Neram Extension`
 3. **Expiration**: Choose expiration period
    - Recommended: **90 days** (you can regenerate later)
    - Or: **No expiration** (less secure but convenient)
 
 ### Step 3: Select Scopes
 
-For TimeTracker Pro to work, you need these scopes:
+For Neram to work, you need these scopes:
 
 **Required Scopes**:
 - ✅ **`read:user`** - Read user profile data
@@ -56,7 +56,7 @@ For TimeTracker Pro to work, you need these scopes:
 - `read:org` - Read organization data
 - `read:project` - Read project boards
 
-**Note**: Only select the minimum scopes needed. TimeTracker Pro only reads data, never writes.
+**Note**: Only select the minimum scopes needed. Neram only reads data, never writes.
 
 ### Step 4: Generate and Copy Token
 
@@ -120,7 +120,7 @@ The table displays all your GitHub activities:
 
 ### Activity Types Tracked
 
-TimeTracker Pro tracks these GitHub events:
+Neram tracks these GitHub events:
 
 | Event Type | Estimated Duration | Description |
 |------------|-------------------|-------------|
@@ -137,7 +137,7 @@ TimeTracker Pro tracks these GitHub events:
 
 ### Time Correlation
 
-TimeTracker Pro intelligently correlates GitHub activities with your browser tracking:
+Neram intelligently correlates GitHub activities with your browser tracking:
 
 - **2-hour time window**: Matches GitHub events with browser sessions within ±2 hours
 - **GitHub domain tracking**: Identifies time spent on github.com
@@ -254,7 +254,7 @@ The **GitHub Insights** section provides:
 
 **Also revoke the token in GitHub**:
 1. Go to GitHub → Settings → Developer settings → Personal access tokens
-2. Find "TimeTracker Pro Extension" token
+2. Find "Neram Extension" token
 3. Click **"Delete"** or **"Revoke"**
 
 ---
