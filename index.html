@@ -3,11 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Neram - Professional time tracking for modern developers. Track productivity across websites, GitHub, and calendar with complete privacy.">
   <title>Neram | நேரம் - Professional Time Tracking</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&family=Noto+Sans+Tamil:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <style>
     :root {
       --primary: #6366f1;
@@ -33,12 +32,73 @@
     }
 
     body {
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      font-family: 'Poppins', -apple-system, BlinkMacSystemFont, sans-serif;
       line-height: 1.6;
       color: var(--text-primary);
       background: #fff;
       overflow-x: hidden;
+      position: relative;
     }
+
+    /* Animated Clock Background - Follows Scroll */
+    .scroll-clock {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      width: 800px;
+      height: 800px;
+      margin-left: -400px;
+      margin-top: -400px;
+      z-index: 0;
+      pointer-events: none;
+      opacity: 0.03;
+    }
+
+    .clock-dial {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      border: 8px solid var(--primary);
+      border-radius: 50%;
+    }
+
+    .clock-center {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 30px;
+      height: 30px;
+      background: var(--primary);
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 10;
+    }
+
+    .scroll-hand {
+      position: absolute;
+      bottom: 50%;
+      left: 50%;
+      width: 12px;
+      height: 350px;
+      margin-left: -6px;
+      background: linear-gradient(180deg, var(--accent), var(--primary));
+      border-radius: 10px;
+      transform-origin: bottom center;
+      transition: transform 0.1s linear;
+    }
+
+    .clock-number {
+      position: absolute;
+      font-size: 48px;
+      font-weight: 900;
+      color: var(--primary);
+      font-family: 'Poppins', sans-serif;
+    }
+
+    .clock-number.n12 { top: 20px; left: 50%; transform: translateX(-50%); }
+    .clock-number.n3 { right: 20px; top: 50%; transform: translateY(-50%); }
+    .clock-number.n6 { bottom: 20px; left: 50%; transform: translateX(-50%); }
+    .clock-number.n9 { left: 20px; top: 50%; transform: translateY(-50%); }
 
     /* Navigation */
     .nav {
@@ -47,20 +107,16 @@
       left: 0;
       right: 0;
       z-index: 1000;
-      background: rgba(255, 255, 255, 0.95);
+      background: rgba(255, 255, 255, 0.98);
       backdrop-filter: blur(10px);
       border-bottom: 1px solid var(--border);
-      transition: all 0.3s;
-    }
-
-    .nav.scrolled {
-      box-shadow: 0 4px 20px rgba(99, 102, 241, 0.1);
+      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
     }
 
     .nav-container {
       max-width: 1280px;
       margin: 0 auto;
-      padding: 1rem 2rem;
+      padding: 1.2rem 2rem;
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -69,40 +125,44 @@
     .logo {
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 16px;
       text-decoration: none;
-      color: var(--text-primary);
     }
 
     .logo-icon {
-      width: 40px;
-      height: 40px;
+      width: 56px;
+      height: 56px;
+      position: relative;
     }
 
-    .logo-text {
+    .logo-text-container {
       display: flex;
       flex-direction: column;
+      gap: 2px;
     }
 
     .logo-primary {
-      font-size: 24px;
-      font-weight: 800;
+      font-size: 32px;
+      font-weight: 900;
       line-height: 1;
-      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
+      letter-spacing: -0.5px;
+      font-family: 'Poppins', sans-serif;
     }
 
     .logo-secondary {
-      font-size: 11px;
-      font-weight: 500;
+      font-size: 16px;
+      font-weight: 700;
       color: var(--text-secondary);
+      font-family: 'Noto Sans Tamil', sans-serif;
       letter-spacing: 0.5px;
     }
 
     .nav-links {
       display: flex;
-      gap: 2rem;
+      gap: 2.5rem;
       list-style: none;
       align-items: center;
     }
@@ -110,21 +170,37 @@
     .nav-link {
       text-decoration: none;
       color: var(--text-secondary);
-      font-weight: 500;
-      font-size: 14px;
+      font-weight: 600;
+      font-size: 15px;
       transition: color 0.3s;
+      position: relative;
+    }
+
+    .nav-link::after {
+      content: '';
+      position: absolute;
+      bottom: -4px;
+      left: 0;
+      width: 0;
+      height: 2px;
+      background: var(--primary);
+      transition: width 0.3s;
     }
 
     .nav-link:hover {
       color: var(--primary);
     }
 
+    .nav-link:hover::after {
+      width: 100%;
+    }
+
     .btn {
-      padding: 12px 24px;
-      border-radius: 8px;
+      padding: 12px 28px;
+      border-radius: 10px;
       text-decoration: none;
-      font-weight: 600;
-      font-size: 14px;
+      font-weight: 700;
+      font-size: 15px;
       transition: all 0.3s;
       display: inline-flex;
       align-items: center;
@@ -136,15 +212,15 @@
     .btn-primary {
       background: linear-gradient(135deg, var(--primary), var(--secondary));
       color: white;
-      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+      box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
     }
 
     .btn-primary:hover {
       transform: translateY(-2px);
-      box-shadow: 0 8px 24px rgba(99, 102, 241, 0.4);
+      box-shadow: 0 8px 25px rgba(99, 102, 241, 0.5);
     }
 
-    /* Hero with Time Animation */
+    /* Hero */
     .hero {
       min-height: 100vh;
       display: flex;
@@ -153,118 +229,19 @@
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       position: relative;
       overflow: hidden;
-      padding-top: 80px;
+      padding-top: 100px;
     }
 
-    /* Animated Clock Background */
-    .clock-bg {
+    .hero::before {
+      content: '';
       position: absolute;
       width: 100%;
       height: 100%;
-      overflow: hidden;
-    }
-
-    .clock-circle {
-      position: absolute;
-      border: 2px solid rgba(255, 255, 255, 0.1);
-      border-radius: 50%;
-      animation: rotate 60s linear infinite;
-    }
-
-    .clock-circle.c1 {
-      width: 300px;
-      height: 300px;
-      top: 10%;
-      left: 5%;
-      animation-duration: 120s;
-    }
-
-    .clock-circle.c2 {
-      width: 400px;
-      height: 400px;
-      top: 50%;
-      right: 10%;
-      animation-duration: 90s;
-      animation-direction: reverse;
-    }
-
-    .clock-circle.c3 {
-      width: 250px;
-      height: 250px;
-      bottom: 10%;
-      left: 30%;
-      animation-duration: 150s;
-    }
-
-    @keyframes rotate {
-      from { transform: rotate(0deg); }
-      to { transform: rotate(360deg); }
-    }
-
-    /* Time Ticker Numbers */
-    .time-ticker {
-      position: absolute;
-      font-size: 120px;
-      font-weight: 800;
-      color: rgba(255, 255, 255, 0.05);
-      animation: ticker 2s ease-in-out infinite;
-      font-variant-numeric: tabular-nums;
-    }
-
-    .time-ticker.t1 {
-      top: 15%;
-      left: 15%;
-      animation-delay: 0s;
-    }
-
-    .time-ticker.t2 {
-      top: 20%;
-      right: 20%;
-      animation-delay: 0.5s;
-    }
-
-    .time-ticker.t3 {
-      bottom: 20%;
-      left: 25%;
-      animation-delay: 1s;
-    }
-
-    .time-ticker.t4 {
-      bottom: 25%;
-      right: 15%;
-      animation-delay: 1.5s;
-    }
-
-    @keyframes ticker {
-      0%, 100% { opacity: 0.05; transform: scale(1); }
-      50% { opacity: 0.15; transform: scale(1.05); }
-    }
-
-    /* Floating Time Dots */
-    .time-dot {
-      position: absolute;
-      width: 8px;
-      height: 8px;
-      background: rgba(255, 255, 255, 0.3);
-      border-radius: 50%;
-      animation: float-dot 20s linear infinite;
-    }
-
-    @keyframes float-dot {
-      0% {
-        transform: translateY(0) translateX(0);
-        opacity: 0;
-      }
-      10% { opacity: 0.5; }
-      90% { opacity: 0.5; }
-      100% {
-        transform: translateY(-100vh) translateX(100px);
-        opacity: 0;
-      }
+      background: radial-gradient(circle at 30% 50%, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
     }
 
     .hero-content {
-      max-width: 1280px;
+      max-width: 1000px;
       margin: 0 auto;
       padding: 0 2rem;
       text-align: center;
@@ -275,36 +252,23 @@
     .hero-badge {
       display: inline-flex;
       align-items: center;
-      gap: 8px;
-      background: rgba(255, 255, 255, 0.2);
+      gap: 10px;
+      background: rgba(255, 255, 255, 0.25);
       backdrop-filter: blur(10px);
-      padding: 8px 20px;
+      padding: 10px 24px;
       border-radius: 50px;
       color: white;
-      font-size: 14px;
-      font-weight: 600;
-      margin-bottom: 2rem;
-      animation: fadeInUp 0.8s ease-out;
+      font-size: 15px;
+      font-weight: 700;
+      margin-bottom: 2.5rem;
+      border: 1px solid rgba(255, 255, 255, 0.3);
     }
 
-    @keyframes fadeInUp {
-      from {
-        opacity: 0;
-        transform: translateY(30px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    /* Animated Big Clock */
     .hero-clock-container {
-      width: 200px;
-      height: 200px;
-      margin: 0 auto 2rem;
+      width: 220px;
+      height: 220px;
+      margin: 0 auto 3rem;
       position: relative;
-      animation: fadeInUp 0.8s ease-out 0.2s both;
     }
 
     .hero-clock {
@@ -316,24 +280,26 @@
     .clock-face {
       width: 100%;
       height: 100%;
-      border: 3px solid rgba(255, 255, 255, 0.3);
+      border: 5px solid rgba(255, 255, 255, 0.4);
       border-radius: 50%;
       position: relative;
-      background: rgba(255, 255, 255, 0.1);
-      backdrop-filter: blur(10px);
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(20px);
+      box-shadow: 0 15px 50px rgba(0, 0, 0, 0.2),
+                  inset 0 0 30px rgba(255, 255, 255, 0.1);
     }
 
-    .clock-center {
+    .hero-clock .clock-center {
       position: absolute;
       top: 50%;
       left: 50%;
-      width: 12px;
-      height: 12px;
+      width: 16px;
+      height: 16px;
       background: white;
       border-radius: 50%;
       transform: translate(-50%, -50%);
       z-index: 10;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
     }
 
     .clock-hand {
@@ -346,125 +312,108 @@
     }
 
     .hour-hand {
-      width: 6px;
-      height: 50px;
-      margin-left: -3px;
+      width: 8px;
+      height: 60px;
+      margin-left: -4px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
     }
 
     .minute-hand {
-      width: 4px;
-      height: 70px;
-      margin-left: -2px;
+      width: 6px;
+      height: 85px;
+      margin-left: -3px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
     }
 
     .second-hand {
-      width: 2px;
-      height: 80px;
-      margin-left: -1px;
+      width: 3px;
+      height: 95px;
+      margin-left: -1.5px;
       background: var(--accent);
-    }
-
-    .clock-number {
-      position: absolute;
-      font-size: 18px;
-      font-weight: 700;
-      color: white;
+      box-shadow: 0 2px 8px rgba(236, 72, 153, 0.4);
     }
 
     .hero h1 {
-      font-size: clamp(48px, 8vw, 80px);
+      font-size: clamp(56px, 10vw, 96px);
       font-weight: 900;
       color: white;
-      margin-bottom: 1rem;
-      line-height: 1.1;
-      animation: fadeInUp 0.8s ease-out 0.3s both;
+      margin-bottom: 1.5rem;
+      line-height: 1;
+      text-shadow: 0 4px 20px rgba(0,0,0,0.2);
+      font-family: 'Poppins', sans-serif;
+      letter-spacing: -2px;
     }
 
     .tamil-text {
       display: block;
-      font-size: clamp(32px, 5vw, 56px);
-      opacity: 0.9;
-      font-weight: 700;
-      margin-top: 0.5rem;
+      font-size: clamp(36px, 6vw, 64px);
+      opacity: 0.95;
+      font-weight: 800;
+      margin-top: 1rem;
+      font-family: 'Noto Sans Tamil', sans-serif;
+      letter-spacing: 2px;
     }
 
     .hero p {
-      font-size: clamp(18px, 2vw, 24px);
+      font-size: clamp(18px, 2.5vw, 26px);
       color: rgba(255, 255, 255, 0.95);
-      max-width: 700px;
+      max-width: 800px;
       margin: 0 auto 3rem;
-      font-weight: 300;
-      animation: fadeInUp 0.8s ease-out 0.4s both;
+      font-weight: 400;
+      line-height: 1.8;
     }
 
     .hero-cta {
       display: flex;
-      gap: 1rem;
+      gap: 1.5rem;
       justify-content: center;
       flex-wrap: wrap;
-      animation: fadeInUp 0.8s ease-out 0.5s both;
     }
 
     .btn-hero {
-      padding: 16px 32px;
-      font-size: 16px;
+      padding: 18px 40px;
+      font-size: 17px;
+      border-radius: 12px;
     }
 
     .btn-white {
       background: white;
       color: var(--primary);
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.25);
+      font-weight: 800;
     }
 
     .btn-white:hover {
       transform: translateY(-4px);
-      box-shadow: 0 12px 48px rgba(0, 0, 0, 0.3);
+      box-shadow: 0 15px 50px rgba(0, 0, 0, 0.35);
     }
 
     .btn-glass {
-      background: rgba(255, 255, 255, 0.2);
+      background: rgba(255, 255, 255, 0.25);
       color: white;
       backdrop-filter: blur(10px);
-      border: 2px solid rgba(255, 255, 255, 0.3);
+      border: 2px solid rgba(255, 255, 255, 0.4);
+      font-weight: 700;
     }
 
     .btn-glass:hover {
-      background: rgba(255, 255, 255, 0.3);
+      background: rgba(255, 255, 255, 0.35);
     }
 
-    /* Stats with Time Animation */
+    /* Stats */
     .stats {
       background: var(--dark);
       color: white;
       padding: 6rem 2rem;
       position: relative;
-      overflow: hidden;
-    }
-
-    .stats::before {
-      content: '';
-      position: absolute;
-      width: 100%;
-      height: 100%;
-      background: linear-gradient(45deg, rgba(99, 102, 241, 0.05) 25%, transparent 25%, transparent 75%, rgba(99, 102, 241, 0.05) 75%),
-                  linear-gradient(45deg, rgba(99, 102, 241, 0.05) 25%, transparent 25%, transparent 75%, rgba(99, 102, 241, 0.05) 75%);
-      background-size: 60px 60px;
-      background-position: 0 0, 30px 30px;
-      animation: grid-move 20s linear infinite;
-      opacity: 0.3;
-    }
-
-    @keyframes grid-move {
-      0% { background-position: 0 0, 30px 30px; }
-      100% { background-position: 60px 60px, 90px 90px; }
     }
 
     .stats-grid {
       max-width: 1280px;
       margin: 0 auto;
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-      gap: 3rem;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 4rem;
       text-align: center;
       position: relative;
       z-index: 1;
@@ -481,20 +430,25 @@
       transform: translateY(0);
     }
 
+    .stat-icon {
+      font-size: 64px;
+      margin-bottom: 1.5rem;
+    }
+
     .stat-number {
-      font-size: 56px;
+      font-size: 64px;
       font-weight: 900;
       background: linear-gradient(135deg, #818cf8, #ec4899);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
-      margin-bottom: 0.5rem;
+      margin-bottom: 1rem;
       font-variant-numeric: tabular-nums;
     }
 
     .stat-label {
-      font-size: 16px;
-      color: rgba(255, 255, 255, 0.7);
-      font-weight: 500;
+      font-size: 18px;
+      color: rgba(255, 255, 255, 0.8);
+      font-weight: 600;
     }
 
     /* Features */
@@ -502,56 +456,73 @@
       padding: 8rem 2rem;
       background: #f8fafc;
       position: relative;
+      z-index: 1;
     }
 
     .section-header {
       text-align: center;
-      max-width: 800px;
-      margin: 0 auto 5rem;
+      max-width: 900px;
+      margin: 0 auto 6rem;
     }
 
     .section-badge {
       display: inline-block;
       background: var(--primary);
       color: white;
-      padding: 6px 16px;
+      padding: 8px 20px;
       border-radius: 50px;
-      font-size: 12px;
-      font-weight: 700;
-      letter-spacing: 1px;
-      margin-bottom: 1rem;
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: 1.5px;
+      margin-bottom: 1.5rem;
     }
 
     .section-title {
-      font-size: clamp(36px, 5vw, 56px);
+      font-size: clamp(40px, 6vw, 64px);
       font-weight: 900;
       color: var(--text-primary);
-      margin-bottom: 1rem;
-      line-height: 1.2;
+      margin-bottom: 1.5rem;
+      line-height: 1.1;
+      letter-spacing: -1px;
     }
 
     .section-description {
-      font-size: 18px;
+      font-size: 20px;
       color: var(--text-secondary);
       line-height: 1.8;
+      font-weight: 400;
     }
 
     .features-grid {
       max-width: 1280px;
       margin: 0 auto;
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-      gap: 2rem;
+      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+      gap: 2.5rem;
     }
 
     .feature-card {
       background: white;
-      padding: 2.5rem;
-      border-radius: 16px;
-      border: 1px solid var(--border);
+      padding: 3rem 2.5rem;
+      border-radius: 20px;
+      border: 2px solid var(--border);
       transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
       opacity: 0;
       transform: translateY(30px);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .feature-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 4px;
+      background: linear-gradient(90deg, var(--primary), var(--secondary));
+      transform: scaleX(0);
+      transition: transform 0.4s;
     }
 
     .feature-card.visible {
@@ -560,93 +531,153 @@
     }
 
     .feature-card:hover {
-      transform: translateY(-8px);
-      box-shadow: 0 20px 60px rgba(99, 102, 241, 0.15);
+      transform: translateY(-12px);
+      box-shadow: 0 25px 70px rgba(99, 102, 241, 0.2);
       border-color: var(--primary);
     }
 
+    .feature-card:hover::before {
+      transform: scaleX(1);
+    }
+
     .feature-icon {
-      width: 64px;
-      height: 64px;
+      width: 72px;
+      height: 72px;
       background: linear-gradient(135deg, var(--primary), var(--secondary));
-      border-radius: 12px;
+      border-radius: 16px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 32px;
-      margin-bottom: 1.5rem;
+      font-size: 36px;
+      margin-bottom: 2rem;
+      box-shadow: 0 8px 24px rgba(99, 102, 241, 0.3);
     }
 
     .feature-card h3 {
-      font-size: 22px;
-      font-weight: 700;
+      font-size: 24px;
+      font-weight: 800;
       color: var(--text-primary);
       margin-bottom: 1rem;
+      line-height: 1.3;
     }
 
     .feature-card p {
       color: var(--text-secondary);
       line-height: 1.8;
+      font-size: 16px;
     }
 
-    /* How It Works */
-    .how-it-works {
+    /* Vertical Timeline - Get Set Forget */
+    .timeline-section {
       padding: 8rem 2rem;
       background: white;
-    }
-
-    .steps-container {
-      max-width: 1100px;
-      margin: 4rem auto 0;
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-      gap: 3rem;
-    }
-
-    .step {
-      text-align: center;
       position: relative;
+      z-index: 1;
+    }
+
+    .timeline-container {
+      max-width: 900px;
+      margin: 4rem auto 0;
+      position: relative;
+    }
+
+    .timeline-line {
+      position: absolute;
+      left: 40px;
+      top: 0;
+      bottom: 0;
+      width: 4px;
+      background: linear-gradient(180deg, var(--primary), var(--secondary), var(--accent));
+    }
+
+    .timeline-step {
+      position: relative;
+      padding-left: 120px;
+      margin-bottom: 6rem;
       opacity: 0;
-      transform: translateY(30px);
+      transform: translateX(-30px);
       transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
-    .step.visible {
+    .timeline-step.visible {
       opacity: 1;
-      transform: translateY(0);
+      transform: translateX(0);
     }
 
-    .step-number {
+    .timeline-step:last-child {
+      margin-bottom: 0;
+    }
+
+    .timeline-number {
+      position: absolute;
+      left: 0;
+      top: 0;
       width: 80px;
       height: 80px;
       background: linear-gradient(135deg, var(--primary), var(--secondary));
-      color: white;
       border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
+      color: white;
       font-size: 32px;
       font-weight: 900;
-      margin: 0 auto 1.5rem;
-      box-shadow: 0 8px 24px rgba(99, 102, 241, 0.3);
-      animation: pulse-step 2s ease-in-out infinite;
+      box-shadow: 0 10px 30px rgba(99, 102, 241, 0.4);
+      border: 5px solid white;
     }
 
-    @keyframes pulse-step {
-      0%, 100% { transform: scale(1); }
-      50% { transform: scale(1.05); }
-    }
-
-    .step h3 {
-      font-size: 20px;
-      font-weight: 700;
-      color: var(--text-primary);
+    .timeline-badge {
+      display: inline-block;
+      background: var(--primary);
+      color: white;
+      padding: 6px 16px;
+      border-radius: 50px;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 1px;
       margin-bottom: 1rem;
     }
 
-    .step p {
+    .timeline-step h3 {
+      font-size: 36px;
+      font-weight: 900;
+      color: var(--text-primary);
+      margin-bottom: 1rem;
+      line-height: 1.2;
+    }
+
+    .timeline-step p {
+      font-size: 18px;
       color: var(--text-secondary);
       line-height: 1.8;
+      margin-bottom: 1.5rem;
+    }
+
+    .timeline-features {
+      list-style: none;
+      margin-top: 1.5rem;
+    }
+
+    .timeline-features li {
+      padding: 1rem 0;
+      padding-left: 2.5rem;
+      position: relative;
+      font-size: 16px;
+      color: var(--text-secondary);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .timeline-features li:last-child {
+      border-bottom: none;
+    }
+
+    .timeline-features li::before {
+      content: '✓';
+      position: absolute;
+      left: 0;
+      color: var(--success);
+      font-weight: 900;
+      font-size: 20px;
     }
 
     /* Pricing */
@@ -656,36 +687,23 @@
       color: white;
       text-align: center;
       position: relative;
-      overflow: hidden;
-    }
-
-    .pricing::before {
-      content: '';
-      position: absolute;
-      width: 100%;
-      height: 100%;
-      background: radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
-    }
-
-    .pricing-content {
-      position: relative;
       z-index: 1;
     }
 
     .pricing-comparison {
-      max-width: 1000px;
+      max-width: 1100px;
       margin: 4rem auto 0;
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 2rem;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 3rem;
     }
 
     .pricing-card {
-      background: rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.12);
       backdrop-filter: blur(20px);
-      border: 2px solid rgba(255, 255, 255, 0.2);
-      border-radius: 24px;
-      padding: 3rem 2rem;
+      border: 3px solid rgba(255, 255, 255, 0.25);
+      border-radius: 28px;
+      padding: 4rem 3rem;
       transition: all 0.4s;
       opacity: 0;
       transform: scale(0.9);
@@ -701,51 +719,55 @@
     }
 
     .pricing-card.highlight {
-      background: rgba(255, 255, 255, 0.95);
+      background: rgba(255, 255, 255, 0.98);
       color: var(--text-primary);
-      transform: scale(1.05);
+      transform: scale(1.08);
+      border-color: white;
     }
 
     .pricing-label {
-      font-size: 14px;
-      font-weight: 700;
+      font-size: 15px;
+      font-weight: 800;
       text-transform: uppercase;
-      letter-spacing: 1px;
-      margin-bottom: 1rem;
+      letter-spacing: 2px;
+      margin-bottom: 1.5rem;
     }
 
     .pricing-amount {
-      font-size: 64px;
+      font-size: 72px;
       font-weight: 900;
       line-height: 1;
-      margin-bottom: 0.5rem;
+      margin-bottom: 1rem;
       font-variant-numeric: tabular-nums;
     }
 
     .pricing-period {
-      font-size: 18px;
-      opacity: 0.8;
-      margin-bottom: 2rem;
+      font-size: 20px;
+      opacity: 0.9;
+      margin-bottom: 3rem;
+      font-weight: 600;
     }
 
     .pricing-features {
       list-style: none;
-      margin-top: 2rem;
+      margin-top: 2.5rem;
       text-align: left;
     }
 
     .pricing-features li {
-      padding: 0.75rem 0;
-      padding-left: 2rem;
+      padding: 1rem 0;
+      padding-left: 3rem;
       position: relative;
+      font-size: 16px;
+      font-weight: 500;
     }
 
     .pricing-features li::before {
       content: '✓';
       position: absolute;
       left: 0;
-      font-weight: 700;
-      font-size: 18px;
+      font-weight: 900;
+      font-size: 22px;
     }
 
     /* CTA */
@@ -754,26 +776,30 @@
       background: linear-gradient(135deg, var(--dark), var(--dark-2));
       color: white;
       text-align: center;
+      position: relative;
+      z-index: 1;
     }
 
     .cta h2 {
-      font-size: clamp(36px, 5vw, 56px);
+      font-size: clamp(40px, 6vw, 64px);
       font-weight: 900;
-      margin-bottom: 1.5rem;
+      margin-bottom: 2rem;
+      line-height: 1.2;
     }
 
     .cta p {
-      font-size: 20px;
-      color: rgba(255, 255, 255, 0.8);
+      font-size: 22px;
+      color: rgba(255, 255, 255, 0.85);
       margin-bottom: 3rem;
-      max-width: 700px;
+      max-width: 800px;
       margin-left: auto;
       margin-right: auto;
+      line-height: 1.8;
     }
 
     .cta-buttons {
       display: flex;
-      gap: 1rem;
+      gap: 1.5rem;
       justify-content: center;
       flex-wrap: wrap;
     }
@@ -782,22 +808,25 @@
     .footer {
       background: var(--dark);
       color: rgba(255, 255, 255, 0.7);
-      padding: 4rem 2rem 2rem;
+      padding: 5rem 2rem 2rem;
+      position: relative;
+      z-index: 1;
     }
 
     .footer-content {
       max-width: 1280px;
       margin: 0 auto;
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-      gap: 3rem;
-      margin-bottom: 3rem;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 4rem;
+      margin-bottom: 4rem;
     }
 
     .footer-section h4 {
       color: white;
-      font-weight: 700;
-      margin-bottom: 1.5rem;
+      font-weight: 800;
+      margin-bottom: 2rem;
+      font-size: 18px;
     }
 
     .footer-section ul {
@@ -805,11 +834,12 @@
     }
 
     .footer-section a {
-      color: rgba(255, 255, 255, 0.6);
+      color: rgba(255, 255, 255, 0.65);
       text-decoration: none;
       display: block;
-      padding: 0.5rem 0;
+      padding: 0.7rem 0;
       transition: color 0.3s;
+      font-weight: 500;
     }
 
     .footer-section a:hover {
@@ -819,9 +849,10 @@
     .footer-bottom {
       max-width: 1280px;
       margin: 0 auto;
-      padding-top: 2rem;
-      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      padding-top: 3rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.15);
       text-align: center;
+      font-size: 15px;
     }
 
     /* Mobile */
@@ -830,40 +861,83 @@
         display: none;
       }
 
-      .time-ticker {
-        font-size: 60px;
+      .scroll-clock {
+        width: 500px;
+        height: 500px;
+        margin-left: -250px;
+        margin-top: -250px;
+      }
+
+      .timeline-line {
+        left: 30px;
+      }
+
+      .timeline-step {
+        padding-left: 90px;
+      }
+
+      .timeline-number {
+        width: 60px;
+        height: 60px;
+        font-size: 24px;
       }
     }
   </style>
 </head>
 <body>
+  <!-- Scroll-based Clock Background -->
+  <div class="scroll-clock">
+    <div class="clock-dial">
+      <div class="clock-number n12">12</div>
+      <div class="clock-number n3">3</div>
+      <div class="clock-number n6">6</div>
+      <div class="clock-number n9">9</div>
+      <div class="clock-center"></div>
+      <div class="scroll-hand" id="scrollHand"></div>
+    </div>
+  </div>
+
   <!-- Navigation -->
-  <nav class="nav" id="nav">
+  <nav class="nav">
     <div class="nav-container">
       <a href="#" class="logo">
-        <svg class="logo-icon" viewBox="0 0 40 40" fill="none">
-          <circle cx="20" cy="20" r="18" fill="url(#grad1)" stroke="url(#grad2)" stroke-width="2"/>
-          <path d="M20 8V20L26 26" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
-          <circle cx="20" cy="20" r="2" fill="white"/>
+        <svg class="logo-icon" viewBox="0 0 56 56" fill="none">
+          <!-- Outer ring -->
+          <circle cx="28" cy="28" r="26" fill="url(#grad1)" stroke="url(#grad2)" stroke-width="3"/>
+          <!-- Inner circle -->
+          <circle cx="28" cy="28" r="20" fill="url(#grad3)" opacity="0.3"/>
+          <!-- Clock markings -->
+          <line x1="28" y1="4" x2="28" y2="10" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+          <line x1="52" y1="28" x2="46" y2="28" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+          <line x1="28" y1="52" x2="28" y2="46" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+          <line x1="4" y1="28" x2="10" y2="28" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+          <!-- Clock hands -->
+          <path d="M28 12V28L38 38" stroke="white" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <!-- Center dot -->
+          <circle cx="28" cy="28" r="3.5" fill="white"/>
           <defs>
-            <linearGradient id="grad1" x1="0" y1="0" x2="40" y2="40">
+            <linearGradient id="grad1" x1="0" y1="0" x2="56" y2="56">
               <stop stop-color="#6366f1"/>
               <stop offset="1" stop-color="#8b5cf6"/>
             </linearGradient>
-            <linearGradient id="grad2" x1="0" y1="0" x2="40" y2="40">
+            <linearGradient id="grad2" x1="0" y1="0" x2="56" y2="56">
               <stop stop-color="#818cf8"/>
               <stop offset="1" stop-color="#a78bfa"/>
             </linearGradient>
+            <linearGradient id="grad3" x1="0" y1="0" x2="56" y2="56">
+              <stop stop-color="white" stop-opacity="0.3"/>
+              <stop offset="1" stop-color="white" stop-opacity="0.1"/>
+            </linearGradient>
           </defs>
         </svg>
-        <div class="logo-text">
+        <div class="logo-text-container">
           <span class="logo-primary">Neram</span>
           <span class="logo-secondary">நேரம்</span>
         </div>
       </a>
       <ul class="nav-links">
         <li><a href="#features" class="nav-link">Features</a></li>
-        <li><a href="#how-it-works" class="nav-link">How It Works</a></li>
+        <li><a href="#timeline" class="nav-link">How It Works</a></li>
         <li><a href="#pricing" class="nav-link">Pricing</a></li>
         <li><a href="#cta" class="btn btn-primary">Get Started</a></li>
       </ul>
@@ -872,18 +946,6 @@
 
   <!-- Hero -->
   <section class="hero">
-    <!-- Animated Background -->
-    <div class="clock-bg">
-      <div class="clock-circle c1"></div>
-      <div class="clock-circle c2"></div>
-      <div class="clock-circle c3"></div>
-
-      <div class="time-ticker t1" id="ticker1">00:00</div>
-      <div class="time-ticker t2" id="ticker2">12:00</div>
-      <div class="time-ticker t3" id="ticker3">18:30</div>
-      <div class="time-ticker t4" id="ticker4">23:59</div>
-    </div>
-
     <div class="hero-content">
       <div class="hero-badge">
         ⭐ 100% Free • Privacy-First • Open Source
@@ -920,20 +982,24 @@
   <section class="stats">
     <div class="stats-grid">
       <div class="stat">
-        <div class="stat-number" data-target="0">$0</div>
-        <div class="stat-label">Monthly Cost</div>
+        <div class="stat-icon">💰</div>
+        <div class="stat-number">$0</div>
+        <div class="stat-label">Monthly Cost Forever</div>
       </div>
       <div class="stat">
-        <div class="stat-number" data-target="100">100%</div>
-        <div class="stat-label">Privacy Focused</div>
+        <div class="stat-icon">🔒</div>
+        <div class="stat-number">100%</div>
+        <div class="stat-label">Privacy Guaranteed</div>
       </div>
       <div class="stat">
+        <div class="stat-icon">♾️</div>
         <div class="stat-number">∞</div>
         <div class="stat-label">Unlimited Tracking</div>
       </div>
       <div class="stat">
-        <div class="stat-number" data-target="3">3</div>
-        <div class="stat-label">Integrations</div>
+        <div class="stat-icon">🔗</div>
+        <div class="stat-number">3</div>
+        <div class="stat-label">Free Integrations</div>
       </div>
     </div>
   </section>
@@ -941,134 +1007,154 @@
   <!-- Features -->
   <section class="features" id="features">
     <div class="section-header">
-      <span class="section-badge">FEATURES</span>
-      <h2 class="section-title">Everything you need to track time</h2>
-      <p class="section-description">Comprehensive time tracking with automatic browser monitoring, GitHub integration, calendar sync, and detailed analytics.</p>
+      <span class="section-badge">POWERFUL FEATURES</span>
+      <h2 class="section-title">Everything you need to master your time</h2>
+      <p class="section-description">Comprehensive time tracking with automatic browser monitoring, GitHub integration, calendar sync, manual entries, and detailed analytics - all while maintaining complete privacy.</p>
     </div>
     <div class="features-grid">
       <div class="feature-card">
         <div class="feature-icon">🚀</div>
         <h3>Automatic Browser Tracking</h3>
-        <p>Effortlessly track time spent on websites with intelligent domain grouping, idle detection, and privacy-focused tracking.</p>
+        <p>Effortlessly track time spent on every website with intelligent domain grouping, automatic idle detection, and privacy-focused tracking that excludes sensitive sites like banking and healthcare.</p>
       </div>
       <div class="feature-card">
         <div class="feature-icon">📊</div>
         <h3>Comprehensive Analytics</h3>
-        <p>Beautiful charts and insights including productivity scores, focus metrics, and hourly heatmaps.</p>
+        <p>Beautiful charts and insights including productivity scores, focus metrics, hourly heatmaps, category breakdowns, and AI-powered recommendations to optimize your workflow.</p>
       </div>
       <div class="feature-card">
         <div class="feature-icon">✏️</div>
         <h3>Manual Time Entries</h3>
-        <p>Add time for offline work, IDE development, and meetings. Tag and categorize for complete coverage.</p>
+        <p>Add time for offline work, IDE development, terminal sessions, and meetings. Tag and categorize entries with custom labels for perfect time tracking coverage.</p>
       </div>
       <div class="feature-card">
         <div class="feature-icon">🐙</div>
         <h3>GitHub Integration</h3>
-        <p>Track commits, pull requests, issues, and code reviews. Correlate GitHub activity with browser sessions.</p>
+        <p>Automatically track commits, pull requests, issues, and code reviews using your Personal Access Token. Correlate GitHub activity with browser sessions for complete development visibility.</p>
       </div>
       <div class="feature-card">
         <div class="feature-icon">📅</div>
         <h3>Calendar Sync (BYOC)</h3>
-        <p>Sync meetings from Google Calendar and Microsoft Outlook using your own OAuth credentials.</p>
+        <p>Sync meetings from Google Calendar and Microsoft Outlook using your own OAuth credentials. Track attendance, utilization, and meeting patterns with zero monthly cost.</p>
       </div>
       <div class="feature-card">
         <div class="feature-icon">🔒</div>
         <h3>Privacy First</h3>
-        <p>All data stored locally. No external servers, no tracking, no analytics. Your data belongs to you.</p>
+        <p>All data stored locally on your device using IndexedDB. No external servers, no tracking pixels, no analytics. Your time data belongs to you, always and forever.</p>
       </div>
       <div class="feature-card">
         <div class="feature-icon">📤</div>
         <h3>Professional Export</h3>
-        <p>Export timesheet data in CSV format, perfect for billing, HR reporting, and project management.</p>
+        <p>Export comprehensive timesheet data in CSV format with employee details, perfect for billing clients, HR reporting, project management, and integration with accounting systems.</p>
       </div>
       <div class="feature-card">
         <div class="feature-icon">🏷️</div>
         <h3>Tags & Organization</h3>
-        <p>Create color-coded tags, filter by projects, clients, or categories.</p>
+        <p>Create unlimited color-coded tags, filter by projects, clients, or categories. Organize your time entries exactly how you need them with flexible tagging and search.</p>
       </div>
       <div class="feature-card">
         <div class="feature-icon">🎯</div>
         <h3>Focus Mode</h3>
-        <p>Get alerts when spending too much time on distracting sites. Stay productive with customizable thresholds.</p>
+        <p>Get smart alerts when spending too much time on distracting sites. Stay productive with customizable thresholds, domain blocking, and productivity insights.</p>
       </div>
     </div>
   </section>
 
-  <!-- How It Works -->
-  <section class="how-it-works" id="how-it-works">
+  <!-- Timeline: Get, Set, Forget -->
+  <section class="timeline-section" id="timeline">
     <div class="section-header">
       <span class="section-badge">HOW IT WORKS</span>
-      <h2 class="section-title">Track time in 4 simple steps</h2>
+      <h2 class="section-title">Get. Set. Forget.</h2>
+      <p class="section-description">Three simple steps to automatic time tracking that runs in the background while you focus on your work.</p>
     </div>
-    <div class="steps-container">
-      <div class="step">
-        <div class="step-number">1</div>
-        <h3>Install Extension</h3>
-        <p>Clone the repository, install dependencies, build the extension, and load it in your browser.</p>
+    <div class="timeline-container">
+      <div class="timeline-line"></div>
+
+      <div class="timeline-step">
+        <div class="timeline-number">1</div>
+        <span class="timeline-badge">GET</span>
+        <h3>Install & Configure</h3>
+        <p>Clone the repository, install dependencies, and build the extension in under 5 minutes. Load it in your browser and configure your employee profile for timesheet exports.</p>
+        <ul class="timeline-features">
+          <li>One-command installation with npm</li>
+          <li>Load unpacked extension in Chrome/Edge</li>
+          <li>Configure employee details for exports</li>
+          <li>Set tracking preferences and blocked domains</li>
+        </ul>
       </div>
-      <div class="step">
-        <div class="step-number">2</div>
-        <h3>Configure Profile</h3>
-        <p>Set up your employee profile for timesheet exports. Configure tracking settings and preferences.</p>
+
+      <div class="timeline-step">
+        <div class="timeline-number">2</div>
+        <span class="timeline-badge">SET</span>
+        <h3>Connect Your Tools</h3>
+        <p>Optionally connect GitHub with a Personal Access Token and calendar with your own OAuth credentials. All integrations are completely free using the BYOC (Bring Your Own Credentials) approach.</p>
+        <ul class="timeline-features">
+          <li>GitHub integration with PAT (5-minute setup)</li>
+          <li>Google Calendar with your OAuth app</li>
+          <li>Microsoft Outlook with Azure AD app</li>
+          <li>Custom tags and categories for organization</li>
+        </ul>
       </div>
-      <div class="step">
-        <div class="step-number">3</div>
-        <h3>Connect Integrations</h3>
-        <p>Optionally connect GitHub with a Personal Access Token and calendar with BYOC OAuth credentials.</p>
-      </div>
-      <div class="step">
-        <div class="step-number">4</div>
-        <h3>Start Tracking</h3>
-        <p>Browse as usual. Neram automatically tracks your time, categorizes activities, and provides insights.</p>
+
+      <div class="timeline-step">
+        <div class="timeline-number">3</div>
+        <span class="timeline-badge">FORGET</span>
+        <h3>Browse & Track Automatically</h3>
+        <p>That's it! Neram now runs silently in the background, automatically tracking your time across websites, GitHub activities, and calendar meetings. View insights anytime from the beautiful dashboard.</p>
+        <ul class="timeline-features">
+          <li>Automatic tracking with zero user interaction</li>
+          <li>Real-time sync across browser, GitHub, calendar</li>
+          <li>Smart idle detection and activity categorization</li>
+          <li>Export professional timesheets whenever needed</li>
+        </ul>
       </div>
     </div>
   </section>
 
   <!-- Pricing -->
   <section class="pricing" id="pricing">
-    <div class="pricing-content">
-      <div class="section-header">
-        <h2 class="section-title" style="color: white;">Zero Monthly Costs</h2>
-        <p class="section-description" style="color: rgba(255, 255, 255, 0.9);">
-          Traditional time tracking solutions cost $65-320/month.<br>
-          Neram costs <strong style="font-size: 24px;">$0/month</strong>.
-        </p>
-      </div>
-      <div class="pricing-comparison">
-        <div class="pricing-card">
-          <div class="pricing-label">Traditional SaaS</div>
-          <div class="pricing-amount">$65-320</div>
-          <div class="pricing-period">per month</div>
-          <ul class="pricing-features">
-            <li>Backend servers</li>
-            <li>Monthly subscriptions</li>
-            <li>Data privacy concerns</li>
-            <li>Limited features</li>
-          </ul>
-        </div>
-        <div class="pricing-card highlight">
-          <div class="pricing-label" style="color: var(--success);">Neram</div>
-          <div class="pricing-amount" style="background: linear-gradient(135deg, var(--primary), var(--secondary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">$0</div>
-          <div class="pricing-period">forever</div>
-          <ul class="pricing-features" style="color: var(--text-primary);">
-            <li>No backend required</li>
-            <li>100% free forever</li>
-            <li>Complete privacy</li>
-            <li>All features included</li>
-            <li>Open source</li>
-          </ul>
-        </div>
-      </div>
-      <p style="font-size: 18px; margin-top: 3rem;">
-        ✨ BYOC (Bring Your Own Credentials) means no servers, no subscriptions, no hidden fees
+    <div class="section-header">
+      <h2 class="section-title" style="color: white;">Zero Monthly Costs</h2>
+      <p class="section-description" style="color: rgba(255, 255, 255, 0.9); font-size: 22px;">
+        Traditional time tracking solutions with calendar and GitHub integration cost $65-320/month.<br>
+        <strong style="font-size: 28px; color: white;">Neram costs $0/month forever.</strong>
       </p>
     </div>
+    <div class="pricing-comparison">
+      <div class="pricing-card">
+        <div class="pricing-label">Traditional SaaS</div>
+        <div class="pricing-amount">$65-320</div>
+        <div class="pricing-period">per month</div>
+        <ul class="pricing-features">
+          <li>Expensive backend servers</li>
+          <li>Recurring monthly subscriptions</li>
+          <li>Your data on their servers</li>
+          <li>Limited features in basic tier</li>
+          <li>Annual contracts required</li>
+        </ul>
+      </div>
+      <div class="pricing-card highlight">
+        <div class="pricing-label" style="color: var(--success);">Neram (BYOC)</div>
+        <div class="pricing-amount" style="background: linear-gradient(135deg, var(--primary), var(--secondary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">$0</div>
+        <div class="pricing-period">forever</div>
+        <ul class="pricing-features" style="color: var(--text-primary);">
+          <li>No backend infrastructure needed</li>
+          <li>100% free forever, no hidden fees</li>
+          <li>Complete data privacy and ownership</li>
+          <li>All features included from day one</li>
+          <li>Open source and fully transparent</li>
+        </ul>
+      </div>
+    </div>
+    <p style="font-size: 20px; margin-top: 3.5rem; font-weight: 600;">
+      ✨ BYOC (Bring Your Own Credentials) means no servers, no subscriptions, no vendor lock-in
+    </p>
   </section>
 
   <!-- CTA -->
   <section class="cta" id="cta">
     <h2>Ready to track your time?</h2>
-    <p>Get started in minutes with our comprehensive documentation and easy installation process.</p>
+    <p>Get started in minutes with our comprehensive documentation and easy installation process. Join developers who've taken control of their productivity.</p>
     <div class="cta-buttons">
       <a href="https://github.com/yourusername/neram" class="btn btn-white btn-hero" target="_blank">
         Clone Repository →
@@ -1084,15 +1170,15 @@
     <div class="footer-content">
       <div class="footer-section">
         <h4>Neram | நேரம்</h4>
-        <p style="opacity: 0.6; margin-top: 1rem;">Professional time tracking for developers. Built with privacy and simplicity in mind.</p>
+        <p style="opacity: 0.7; margin-top: 1rem; line-height: 1.8;">Professional time tracking for developers. Built with privacy and simplicity in mind. Open source and forever free.</p>
       </div>
       <div class="footer-section">
         <h4>Documentation</h4>
         <ul>
-          <li><a href="README.md">README</a></li>
+          <li><a href="README.md">README & Overview</a></li>
           <li><a href="INSTALLATION.md">Installation Guide</a></li>
           <li><a href="GITHUB_SETUP_GUIDE.md">GitHub Integration</a></li>
-          <li><a href="CALENDAR_SETUP_GUIDE.md">Calendar Setup</a></li>
+          <li><a href="CALENDAR_SETUP_GUIDE.md">Calendar Setup (BYOC)</a></li>
         </ul>
       </div>
       <div class="footer-section">
@@ -1101,6 +1187,7 @@
           <li><a href="MANUAL_ENTRIES_GUIDE.md">Manual Time Entries</a></li>
           <li><a href="DATA_SYNC_GUIDE.md">Data Sync & Backup</a></li>
           <li><a href="#features">All Features</a></li>
+          <li><a href="#timeline">How It Works</a></li>
         </ul>
       </div>
       <div class="footer-section">
@@ -1108,6 +1195,7 @@
         <ul>
           <li><a href="https://github.com/yourusername/neram" target="_blank">GitHub Repository</a></li>
           <li><a href="https://github.com/yourusername/neram/issues" target="_blank">Report Issues</a></li>
+          <li><a href="https://github.com/yourusername/neram/discussions" target="_blank">Discussions</a></li>
         </ul>
       </div>
     </div>
@@ -1117,20 +1205,7 @@
   </footer>
 
   <script>
-    // Generate floating dots
-    function createTimeDots() {
-      const hero = document.querySelector('.clock-bg');
-      for (let i = 0; i < 30; i++) {
-        const dot = document.createElement('div');
-        dot.className = 'time-dot';
-        dot.style.left = Math.random() * 100 + '%';
-        dot.style.animationDelay = Math.random() * 20 + 's';
-        hero.appendChild(dot);
-      }
-    }
-    createTimeDots();
-
-    // Update clock
+    // Update hero clock
     function updateClock() {
       const now = new Date();
       const hours = now.getHours() % 12;
@@ -1150,24 +1225,18 @@
     updateClock();
     setInterval(updateClock, 1000);
 
-    // Update time tickers
-    function updateTickers() {
-      const now = new Date();
-      const formatTime = (h, m) => `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
-
-      document.getElementById('ticker1').textContent = formatTime(now.getHours(), now.getMinutes());
-      document.getElementById('ticker2').textContent = formatTime((now.getHours() + 6) % 24, now.getMinutes());
-      document.getElementById('ticker3').textContent = formatTime((now.getHours() + 12) % 24, now.getMinutes());
-      document.getElementById('ticker4').textContent = formatTime((now.getHours() + 18) % 24, now.getMinutes());
+    // Scroll-based clock hand rotation (0deg at top, 360deg at bottom)
+    function updateScrollClock() {
+      const scrollPercentage = window.scrollY / (document.documentElement.scrollHeight - window.innerHeight);
+      const rotation = scrollPercentage * 360;
+      const scrollHand = document.getElementById('scrollHand');
+      if (scrollHand) {
+        scrollHand.style.transform = `rotate(${rotation}deg)`;
+      }
     }
-    updateTickers();
-    setInterval(updateTickers, 60000);
 
-    // Navbar scroll
-    const nav = document.getElementById('nav');
-    window.addEventListener('scroll', () => {
-      nav.classList.toggle('scrolled', window.scrollY > 50);
-    });
+    window.addEventListener('scroll', updateScrollClock);
+    updateScrollClock();
 
     // Scroll animations
     const observer = new IntersectionObserver((entries) => {
@@ -1178,7 +1247,7 @@
       });
     }, { threshold: 0.1, rootMargin: '0px 0px -100px 0px' });
 
-    document.querySelectorAll('.stat, .feature-card, .step, .pricing-card').forEach(el => {
+    document.querySelectorAll('.stat, .feature-card, .timeline-step, .pricing-card').forEach(el => {
       observer.observe(el);
     });
 
@@ -1191,8 +1260,8 @@
       stat.style.transitionDelay = `${i * 0.15}s`;
     });
 
-    document.querySelectorAll('.step').forEach((step, i) => {
-      step.style.transitionDelay = `${i * 0.15}s`;
+    document.querySelectorAll('.timeline-step').forEach((step, i) => {
+      step.style.transitionDelay = `${i * 0.2}s`;
     });
 
     // Smooth scroll
