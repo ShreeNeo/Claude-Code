@@ -4,50 +4,36 @@
  */
 
 const DB_NAME = 'TimeTrackerDB';
+const DB_VERSION = 2; // Match storage.js version
 const MANUAL_ENTRIES_STORE = 'manual_entries';
 const TAGS_STORE = 'tags';
 const SESSIONS_STORE = 'sessions';
 
 /**
- * Open or create the database with manual entries and tags stores
+ * Opens the existing database (schema is managed by storage.js)
  */
 async function openManualEntriesDB() {
   return new Promise((resolve, reject) => {
-    const request = indexedDB.open(DB_NAME, 2); // Increment version
+    // Just open the database, don't define schema here
+    // Schema is managed centrally in storage.js
+    const request = indexedDB.open(DB_NAME, DB_VERSION);
 
-    request.onerror = () => reject(request.error);
-    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => {
+      console.error('Failed to open TimeTrackerDB:', request.error);
+      reject(request.error);
+    };
 
+    request.onsuccess = () => {
+      const db = request.result;
+      resolve(db);
+    };
+
+    // onupgradeneeded should not fire here if storage.js already initialized the DB
+    // But we keep it as a fallback for safety
     request.onupgradeneeded = (event) => {
-      const db = event.target.result;
-
-      // Create sessions store if it doesn't exist (from storage.js schema)
-      if (!db.objectStoreNames.contains(SESSIONS_STORE)) {
-        const sessionsStore = db.createObjectStore(SESSIONS_STORE, {
-          keyPath: 'id',
-          autoIncrement: true
-        });
-        sessionsStore.createIndex('domain', 'domain', { unique: false });
-        sessionsStore.createIndex('date', 'date', { unique: false });
-        sessionsStore.createIndex('startTime', 'startTime', { unique: false });
-      }
-
-      // Create manual entries store if it doesn't exist
-      if (!db.objectStoreNames.contains(MANUAL_ENTRIES_STORE)) {
-        const manualStore = db.createObjectStore(MANUAL_ENTRIES_STORE, {
-          keyPath: 'id',
-          autoIncrement: true
-        });
-        manualStore.createIndex('date', 'date', { unique: false });
-        manualStore.createIndex('tags', 'tags', { unique: false, multiEntry: true });
-      }
-
-      // Create tags store if it doesn't exist
-      if (!db.objectStoreNames.contains(TAGS_STORE)) {
-        db.createObjectStore(TAGS_STORE, {
-          keyPath: 'name'
-        });
-      }
+      console.warn('Database upgrade triggered from manual-entries.js - this should be handled by storage.js');
+      // The schema should already be created by storage.js
+      // This is just a safety fallback
     };
   });
 }

@@ -186,6 +186,69 @@ body {
   font-size: 14px;
   background: var(--bg-secondary);
   cursor: pointer;
+  transition: all 0.2s;
+}
+
+.select:hover {
+  border-color: var(--primary-color);
+}
+
+.select:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+}
+
+/* Custom Date Range Inputs */
+.custom-date-inputs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+  padding: 10px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+  position: absolute;
+  top: 100%;
+  right: 0;
+  z-index: 100;
+  min-width: 380px;
+}
+
+.date-input {
+  padding: 8px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  font-size: 14px;
+  background: var(--bg-color);
+  transition: all 0.2s;
+}
+
+.date-input:hover {
+  border-color: var(--primary-color);
+}
+
+.date-input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+}
+
+.date-separator {
+  font-size: 13px;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.btn-sm {
+  padding: 8px 16px;
+  font-size: 13px;
+}
+
+.date-range {
+  position: relative;
 }
 
 .tracking-status {

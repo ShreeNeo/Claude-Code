@@ -4,7 +4,7 @@
  */
 
 const DB_NAME = 'TimeTrackerDB';
-const DB_VERSION = 1;
+const DB_VERSION = 2; // Updated to match manual-entries.js
 
 // IndexedDB Store Names
 const STORES = {
@@ -12,7 +12,9 @@ const STORES = {
   DAILY_STATS: 'daily_stats',
   WEEKLY_STATS: 'weekly_stats',
   MONTHLY_STATS: 'monthly_stats',
-  CATEGORIES: 'categories'
+  CATEGORIES: 'categories',
+  MANUAL_ENTRIES: 'manual_entries',
+  TAGS: 'tags'
 };
 
 let db = null;
@@ -38,7 +40,7 @@ export async function initDatabase() {
 
     request.onupgradeneeded = (event) => {
       db = event.target.result;
-      console.log('Database upgrade needed');
+      console.log('Database upgrade needed from version', event.oldVersion, 'to', DB_VERSION);
 
       // Create sessions store
       if (!db.objectStoreNames.contains(STORES.SESSIONS)) {
@@ -49,6 +51,7 @@ export async function initDatabase() {
         sessionsStore.createIndex('domain', 'domain', { unique: false });
         sessionsStore.createIndex('date', 'date', { unique: false });
         sessionsStore.createIndex('startTime', 'startTime', { unique: false });
+        console.log('Created sessions store');
       }
 
       // Create daily_stats store
@@ -57,6 +60,7 @@ export async function initDatabase() {
           keyPath: 'date'
         });
         dailyStore.createIndex('date', 'date', { unique: true });
+        console.log('Created daily_stats store');
       }
 
       // Create weekly_stats store
@@ -66,6 +70,7 @@ export async function initDatabase() {
           autoIncrement: true
         });
         weeklyStore.createIndex('weekStart', 'weekStart', { unique: false });
+        console.log('Created weekly_stats store');
       }
 
       // Create monthly_stats store
@@ -75,6 +80,7 @@ export async function initDatabase() {
           autoIncrement: true
         });
         monthlyStore.createIndex('month_year', ['month', 'year'], { unique: true });
+        console.log('Created monthly_stats store');
       }
 
       // Create categories store
@@ -82,6 +88,26 @@ export async function initDatabase() {
         const categoriesStore = db.createObjectStore(STORES.CATEGORIES, {
           keyPath: 'domain'
         });
+        console.log('Created categories store');
+      }
+
+      // Create manual_entries store (for v2)
+      if (!db.objectStoreNames.contains(STORES.MANUAL_ENTRIES)) {
+        const manualStore = db.createObjectStore(STORES.MANUAL_ENTRIES, {
+          keyPath: 'id',
+          autoIncrement: true
+        });
+        manualStore.createIndex('date', 'date', { unique: false });
+        manualStore.createIndex('tags', 'tags', { unique: false, multiEntry: true });
+        console.log('Created manual_entries store');
+      }
+
+      // Create tags store (for v2)
+      if (!db.objectStoreNames.contains(STORES.TAGS)) {
+        db.createObjectStore(STORES.TAGS, {
+          keyPath: 'name'
+        });
+        console.log('Created tags store');
       }
     };
   });

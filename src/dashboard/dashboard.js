@@ -26,6 +26,8 @@ import {
 // State
 let currentSection = 'overview';
 let currentDateRange = 'today';
+let customStartDate = null;
+let customEndDate = null;
 let allSessions = [];
 let currentStats = null;
 let charts = {};
@@ -139,6 +141,38 @@ function setupEventListeners() {
   // Date range selector
   document.getElementById('dateRange').addEventListener('change', (e) => {
     currentDateRange = e.target.value;
+
+    const customInputs = document.getElementById('customDateInputs');
+    if (currentDateRange === 'custom') {
+      customInputs.style.display = 'flex';
+      // Set default dates
+      const today = new Date();
+      const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
+      document.getElementById('customStartDate').valueAsDate = weekAgo;
+      document.getElementById('customEndDate').valueAsDate = today;
+    } else {
+      customInputs.style.display = 'none';
+      loadData();
+    }
+  });
+
+  // Custom date range apply button
+  document.getElementById('applyCustomRange').addEventListener('click', () => {
+    const startDate = document.getElementById('customStartDate').valueAsDate;
+    const endDate = document.getElementById('customEndDate').valueAsDate;
+
+    if (!startDate || !endDate) {
+      alert('Please select both start and end dates');
+      return;
+    }
+
+    if (startDate > endDate) {
+      alert('Start date must be before end date');
+      return;
+    }
+
+    customStartDate = startDate;
+    customEndDate = endDate;
     loadData();
   });
 
@@ -624,6 +658,19 @@ function getDateRange(range) {
     case 'month':
       start = new Date(now.getFullYear(), now.getMonth(), 1);
       end = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
+      break;
+
+    case 'custom':
+      if (customStartDate && customEndDate) {
+        start = new Date(customStartDate);
+        start.setHours(0, 0, 0, 0);
+        end = new Date(customEndDate);
+        end.setHours(23, 59, 59, 999);
+      } else {
+        // Default to today if custom dates not set
+        start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        end = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
+      }
       break;
 
     default:

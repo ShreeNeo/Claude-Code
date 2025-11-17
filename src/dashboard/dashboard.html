@@ -79,6 +79,12 @@
               <option value="month">This Month</option>
               <option value="custom">Custom Range</option>
             </select>
+            <div id="customDateInputs" class="custom-date-inputs" style="display: none;">
+              <input type="date" id="customStartDate" class="date-input" placeholder="Start Date">
+              <span class="date-separator">to</span>
+              <input type="date" id="customEndDate" class="date-input" placeholder="End Date">
+              <button id="applyCustomRange" class="btn btn-primary btn-sm">Apply</button>
+            </div>
           </div>
           <div class="tracking-status">
             <span class="status-indicator" id="statusIndicator"></span>
