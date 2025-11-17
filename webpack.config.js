@@ -36,6 +36,7 @@ module.exports = {
       patterns: [
         { from: 'manifest.json', to: 'manifest.json' },
         { from: 'index.html', to: 'index.html' },
+        { from: 'landing.js', to: 'landing.js' },
         { from: 'src/popup/popup.html', to: 'popup/popup.html' },
         { from: 'src/popup/popup.css', to: 'popup/popup.css' },
         { from: 'src/dashboard/dashboard.html', to: 'dashboard/dashboard.html' },
