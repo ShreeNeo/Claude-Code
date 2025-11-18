@@ -21,6 +21,7 @@ import {
 } from '../utils/domain-parser.js';
 
 import { classifyDomain } from '../utils/category-classifier.js';
+import { initializeAI, categorizeSession } from '../ai/auto-categorize.js';
 
 // State variables
 let currentSession = null;
@@ -45,6 +46,10 @@ async function initialize() {
     // Initialize database
     await initDatabase();
     console.log('Database initialized');
+
+    // Initialize AI service
+    const aiStatus = await initializeAI();
+    console.log('AI Service initialized:', aiStatus.method);
 
     // Load settings
     settings = await getSettings();
@@ -120,6 +125,15 @@ async function startTrackingTab(tab) {
   };
 
   lastActivityTime = Date.now();
+
+  // AI-powered categorization (async, doesn't block tracking)
+  categorizeSession(currentSession).then(categorized => {
+    currentSession.category = categorized.category;
+    currentSession.categoryConfidence = categorized.categoryConfidence;
+    currentSession.categoryMethod = categorized.categoryMethod;
+  }).catch(error => {
+    console.warn('AI categorization failed, using fallback:', error);
+  });
 
   // Save session to database
   try {

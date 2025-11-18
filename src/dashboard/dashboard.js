@@ -9,6 +9,7 @@
 import Chart from 'chart.js/auto';
 import calendarSync from '../integrations/calendar-sync.js';
 import githubSync from '../integrations/github-sync.js';
+import { renderAIInsights } from './ai-insights.js';
 import {
   addManualEntry,
   updateEntry,
@@ -792,6 +793,12 @@ function updateOverview(stats) {
     document.getElementById('productivityChange').textContent = 'No data';
     document.getElementById('focusChange').textContent = 'No data';
     document.getElementById('sessionChange').textContent = 'No data';
+  }
+
+  // Render AI Insights
+  const aiInsightsContainer = document.getElementById('aiInsightsContainer');
+  if (aiInsightsContainer && allSessions.length > 0) {
+    renderAIInsights(allSessions, aiInsightsContainer, currentDateRange);
   }
 }
 
