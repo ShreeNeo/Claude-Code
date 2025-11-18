@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Neram AI Test</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: 50px auto;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    .status {
+      padding: 15px;
+      margin: 10px 0;
+      border-radius: 8px;
+      background: white;
+      border-left: 4px solid #4f46e5;
+    }
+    .success { border-left-color: #10b981; }
+    .error { border-left-color: #ef4444; }
+    pre {
+      background: #1e293b;
+      color: #e2e8f0;
+      padding: 15px;
+      border-radius: 8px;
+      overflow-x: auto;
+    }
+  </style>
+</head>
+<body>
+  <h1>🤖 Neram AI Features Test</h1>
+  <div id="results"></div>
+
+  <script type="module">
+    const results = document.getElementById('results');
+
+    function addStatus(message, type = 'status') {
+      const div = document.createElement('div');
+      div.className = `status ${type}`;
+      div.innerHTML = message;
+      results.appendChild(div);
+    }
+
+    async function testAI() {
+      try {
+        // Test 1: Check Chrome AI availability
+        addStatus('<h3>1. Checking Chrome AI...</h3>');
+        if (typeof window !== 'undefined' && window.ai && window.ai.languageModel) {
+          const capabilities = await window.ai.languageModel.capabilities();
+          if (capabilities.available === 'readily') {
+            addStatus('✅ Chrome AI (Gemini Nano) is available!', 'success');
+          } else if (capabilities.available === 'after-download') {
+            addStatus('⏳ Chrome AI available after download', 'status');
+          } else {
+            addStatus('❌ Chrome AI not readily available', 'error');
+          }
+        } else {
+          addStatus('ℹ️ Chrome AI not available (will use smart rules)', 'status');
+        }
+
+        // Test 2: Import and test AI service
+        addStatus('<h3>2. Testing AI Service...</h3>');
+        const { default: aiService } = await import('./src/ai/ai-service.js');
+        await aiService.initialize();
+        const status = aiService.getStatus();
+
+        addStatus(`✅ AI Service initialized: <code>${status.method}</code>`, 'success');
+
+        // Test 3: Test categorization
+        addStatus('<h3>3. Testing Auto-Categorization...</h3>');
+        const testDomains = [
+          { domain: 'github.com', title: 'GitHub', url: 'https://github.com' },
+          { domain: 'youtube.com', title: 'YouTube', url: 'https://youtube.com' },
+          { domain: 'stackoverflow.com', title: 'Stack Overflow', url: 'https://stackoverflow.com' }
+        ];
+
+        for (const test of testDomains) {
+          const result = await aiService.categorizeActivity(test.domain, test.title, test.url);
+          addStatus(
+            `${test.domain} → <strong>${result.category}</strong> (confidence: ${Math.round(result.confidence * 100)}%, method: ${result.method})`,
+            'success'
+          );
+        }
+
+        // Test 4: Test insights generation
+        addStatus('<h3>4. Testing Insights Generation...</h3>');
+        const sampleActivities = [
+          { domain: 'github.com', category: 'Development', duration: 3600000, timestamp: Date.now() },
+          { domain: 'youtube.com', category: 'Entertainment', duration: 1800000, timestamp: Date.now() },
+          { domain: 'stackoverflow.com', category: 'Development', duration: 2400000, timestamp: Date.now() }
+        ];
+
+        const insights = await aiService.generateInsights(sampleActivities, 'today');
+        addStatus('✅ Generated insights:', 'success');
+        addStatus('<pre>' + JSON.stringify(insights, null, 2) + '</pre>');
+
+      } catch (error) {
+        addStatus(`❌ Error: ${error.message}`, 'error');
+        console.error(error);
+      }
+    }
+
+    testAI();
+  </script>
+</body>
+</html>
