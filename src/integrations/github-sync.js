@@ -104,13 +104,22 @@ class GitHubSyncManager {
   parseGitHubEvents(events, startDate, endDate) {
     const activities = [];
 
-    events.forEach(event => {
+    // Sort events by timestamp for better duration estimation
+    const sortedEvents = events.sort((a, b) =>
+      new Date(b.created_at) - new Date(a.created_at)
+    );
+
+    sortedEvents.forEach((event, index) => {
       const eventDate = new Date(event.created_at);
 
       // Filter by date range
       if (eventDate < startDate || eventDate > endDate) {
         return;
       }
+
+      // Get next event time for better duration estimation
+      const nextEvent = sortedEvents[index + 1];
+      const nextEventDate = nextEvent ? new Date(nextEvent.created_at) : null;
 
       let activity = {
         id: event.id,
@@ -119,7 +128,7 @@ class GitHubSyncManager {
         repo: event.repo?.name || 'Unknown',
         url: this.extractUrl(event),
         description: this.createDescription(event),
-        duration: this.estimateDuration(event.type)
+        duration: this.estimateDuration(event, nextEventDate)
       };
 
       // Add type-specific details
@@ -232,20 +241,79 @@ class GitHubSyncManager {
 
   /**
    * Estimate duration for different activity types (in milliseconds)
+   * Uses intelligent estimation based on event type, commits, and time between events
    */
-  estimateDuration(eventType) {
-    const durations = {
-      'PushEvent': 30 * 60 * 1000,              // 30 minutes per commit session
-      'PullRequestEvent': 60 * 60 * 1000,       // 1 hour for PR creation/update
-      'IssuesEvent': 15 * 60 * 1000,            // 15 minutes for issue creation
-      'PullRequestReviewEvent': 45 * 60 * 1000, // 45 minutes for code review
-      'PullRequestReviewCommentEvent': 10 * 60 * 1000, // 10 minutes for review comment
-      'IssueCommentEvent': 5 * 60 * 1000,       // 5 minutes for comment
-      'CreateEvent': 10 * 60 * 1000,            // 10 minutes for branch creation
-      'DeleteEvent': 2 * 60 * 1000              // 2 minutes for deletion
+  estimateDuration(event, nextEventDate) {
+    const eventType = event.type;
+    const eventDate = new Date(event.created_at);
+
+    // Base durations for different activities (more realistic)
+    const baseDurations = {
+      'PushEvent': 10 * 60 * 1000,              // 10 minutes base per commit session
+      'PullRequestEvent': 20 * 60 * 1000,       // 20 minutes base for PR
+      'IssuesEvent': 8 * 60 * 1000,             // 8 minutes for issue
+      'PullRequestReviewEvent': 20 * 60 * 1000, // 20 minutes for code review
+      'PullRequestReviewCommentEvent': 5 * 60 * 1000, // 5 minutes for review comment
+      'IssueCommentEvent': 3 * 60 * 1000,       // 3 minutes for comment
+      'CreateEvent': 5 * 60 * 1000,             // 5 minutes for branch creation
+      'DeleteEvent': 1 * 60 * 1000,             // 1 minute for deletion
+      'ForkEvent': 2 * 60 * 1000,               // 2 minutes for fork
+      'WatchEvent': 1 * 60 * 1000,              // 1 minute for starring
+      'ReleaseEvent': 15 * 60 * 1000            // 15 minutes for release
     };
 
-    return durations[eventType] || 15 * 60 * 1000; // Default 15 minutes
+    let estimatedDuration = baseDurations[eventType] || 10 * 60 * 1000;
+
+    // Adjust for PushEvent based on number of commits
+    if (eventType === 'PushEvent') {
+      const commits = event.payload?.commits?.length || 1;
+      // Each commit adds 5-10 minutes
+      const commitFactor = Math.min(commits, 10); // Cap at 10 commits for estimation
+      estimatedDuration = (5 + commitFactor * 5) * 60 * 1000;
+    }
+
+    // Adjust for PullRequestEvent based on action
+    if (eventType === 'PullRequestEvent') {
+      const action = event.payload?.action;
+      if (action === 'opened') {
+        estimatedDuration = 30 * 60 * 1000; // 30 min to create PR
+      } else if (action === 'closed' || action === 'merged') {
+        estimatedDuration = 10 * 60 * 1000; // 10 min to merge/close
+      } else if (action === 'synchronize') {
+        estimatedDuration = 15 * 60 * 1000; // 15 min to update PR
+      }
+    }
+
+    // Adjust for IssuesEvent based on action
+    if (eventType === 'IssuesEvent') {
+      const action = event.payload?.action;
+      if (action === 'opened') {
+        estimatedDuration = 10 * 60 * 1000; // 10 min to create issue
+      } else if (action === 'closed') {
+        estimatedDuration = 3 * 60 * 1000; // 3 min to close issue
+      }
+    }
+
+    // If we have the next event, use time difference but cap it
+    if (nextEventDate) {
+      const timeBetweenEvents = eventDate - nextEventDate;
+
+      // Only use time difference if it's reasonable (between 1 min and 3 hours)
+      const minDuration = 1 * 60 * 1000;   // 1 minute minimum
+      const maxDuration = 180 * 60 * 1000; // 3 hours maximum
+
+      if (timeBetweenEvents > minDuration && timeBetweenEvents < maxDuration) {
+        // Use 70% of time between events as a heuristic
+        // (assuming some time for breaks, context switching)
+        estimatedDuration = Math.round(timeBetweenEvents * 0.7);
+      }
+    }
+
+    // Apply min/max bounds
+    const minBound = 1 * 60 * 1000;   // 1 minute minimum
+    const maxBound = 120 * 60 * 1000; // 2 hours maximum
+
+    return Math.max(minBound, Math.min(estimatedDuration, maxBound));
   }
 
   /**
@@ -254,8 +322,8 @@ class GitHubSyncManager {
   async correlateWithSessions(activities, sessions) {
     return activities.map(activity => {
       // Find browser sessions around the GitHub activity time
-      // Look for sessions within 2 hours before/after the activity
-      const timeWindow = 2 * 60 * 60 * 1000; // 2 hours
+      // Look for sessions within 1 hour before/after the activity
+      const timeWindow = 60 * 60 * 1000; // 1 hour
       const activityTime = activity.timestamp.getTime();
 
       const relatedSessions = sessions.filter(session => {
@@ -272,15 +340,29 @@ class GitHubSyncManager {
 
       // Calculate actual tracked time on GitHub during this period
       const githubSessions = relatedSessions.filter(s =>
-        s.domain.includes('github.com') || s.url.includes('github.com')
+        s.domain && (s.domain.includes('github.com') || (s.url && s.url.includes('github.com')))
       );
 
       const trackedTime = githubSessions.reduce((total, s) => total + s.duration, 0);
 
+      // Use tracked time if available and reasonable, otherwise use estimate
+      let finalEstimatedTime = activity.duration;
+
+      // If we have significant tracked time on GitHub, use a blend
+      if (trackedTime > 0) {
+        // Use tracked time but add some buffer for local work
+        // GitHub time + 50% for local coding/testing
+        finalEstimatedTime = Math.round(trackedTime * 1.5);
+
+        // But cap it at a reasonable maximum
+        const maxEstimate = 120 * 60 * 1000; // 2 hours
+        finalEstimatedTime = Math.min(finalEstimatedTime, maxEstimate);
+      }
+
       return {
         ...activity,
         trackedTime,
-        estimatedTime: activity.duration,
+        estimatedTime: finalEstimatedTime,
         hasTrackedTime: trackedTime > 0,
         relatedSessions: relatedSessions.map(s => ({
           domain: s.domain,
