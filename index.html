@@ -65,13 +65,17 @@
     /* RPM Meter in Corner - Follows Scroll */
     .scroll-clock {
       position: fixed;
-      bottom: 40px;
-      right: 40px;
-      width: 280px;
-      height: 280px;
-      z-index: 100;
+      bottom: 0;
+      right: 0;
+      width: 600px;
+      height: 600px;
+      z-index: 0;
       pointer-events: none;
-      opacity: 0.9;
+      opacity: 0.15;
+    }
+
+    [data-theme="light"] .scroll-clock {
+      opacity: 0.25;
     }
 
     .rpm-meter {
@@ -88,76 +92,58 @@
 
     .rpm-arc {
       fill: none;
-      stroke: rgba(99, 102, 241, 0.2);
-      stroke-width: 20;
+      stroke: var(--text-color);
+      stroke-width: 30;
       stroke-linecap: round;
-    }
-
-    [data-theme="light"] .rpm-arc {
-      stroke: rgba(99, 102, 241, 0.3);
+      opacity: 0.3;
     }
 
     .rpm-arc-active {
       fill: none;
       stroke: url(#rpmGradient);
-      stroke-width: 20;
+      stroke-width: 30;
       stroke-linecap: round;
-      stroke-dasharray: 471;
-      stroke-dashoffset: 471;
+      stroke-dasharray: 1000;
+      stroke-dashoffset: 1000;
       transition: stroke-dashoffset 0.1s linear;
     }
 
     .rpm-center {
       position: absolute;
-      bottom: 20px;
+      bottom: 60px;
       left: 50%;
       transform: translateX(-50%);
-      width: 20px;
-      height: 20px;
+      width: 30px;
+      height: 30px;
       background: linear-gradient(135deg, var(--primary), var(--accent));
       border-radius: 50%;
-      box-shadow: 0 0 20px rgba(236, 72, 153, 0.6);
+      box-shadow: 0 0 30px rgba(236, 72, 153, 0.6);
     }
 
     .rpm-needle {
       position: absolute;
-      bottom: 30px;
+      bottom: 75px;
       left: 50%;
-      width: 6px;
-      height: 120px;
-      margin-left: -3px;
-      background: linear-gradient(180deg, var(--accent), rgba(236, 72, 153, 0.3));
+      width: 10px;
+      height: 250px;
+      margin-left: -5px;
+      background: linear-gradient(180deg, var(--accent), rgba(236, 72, 153, 0.1));
       border-radius: 10px;
       transform-origin: bottom center;
       transition: transform 0.1s linear;
-      box-shadow: 0 0 15px rgba(236, 72, 153, 0.8);
+      box-shadow: 0 0 20px rgba(236, 72, 153, 0.6);
     }
-
-    .rpm-number {
-      position: absolute;
-      font-size: 16px;
-      font-weight: 800;
-      color: var(--text-color);
-      font-family: 'Poppins', sans-serif;
-      opacity: 0.7;
-    }
-
-    .rpm-number.n0 { bottom: 10px; left: 30px; }
-    .rpm-number.n25 { bottom: 100px; left: 10px; }
-    .rpm-number.n50 { top: 80px; left: 50%; transform: translateX(-50%); }
-    .rpm-number.n75 { bottom: 100px; right: 10px; }
-    .rpm-number.n100 { bottom: 10px; right: 30px; }
 
     .rpm-label {
       position: absolute;
-      bottom: -5px;
+      bottom: 20px;
       left: 50%;
       transform: translateX(-50%);
-      font-size: 14px;
+      font-size: 18px;
       font-weight: 700;
       color: var(--text-color);
-      opacity: 0.5;
-      letter-spacing: 3px;
+      opacity: 0.4;
+      letter-spacing: 4px;
     }
 
     /* Theme Toggle */
@@ -236,7 +222,8 @@
     .logo-secondary {
       font-size: 16px;
       font-weight: 700;
-      color: rgba(255, 255, 255, 0.85);
+      color: var(--text-color);
+      opacity: 0.85;
       font-family: 'Noto Sans Tamil', sans-serif;
       letter-spacing: 0.5px;
     }
@@ -335,15 +322,15 @@
       display: inline-flex;
       align-items: center;
       gap: 10px;
-      background: rgba(255, 255, 255, 0.25);
+      background: var(--card-bg);
       backdrop-filter: blur(10px);
       padding: 10px 24px;
       border-radius: 50px;
-      color: white;
+      color: var(--text-color);
       font-size: 15px;
       font-weight: 700;
       margin-bottom: 2.5rem;
-      border: 1px solid rgba(255, 255, 255, 0.3);
+      border: 1px solid var(--card-border);
     }
 
     .hero-clock-container {
@@ -377,7 +364,7 @@
       left: 50%;
       width: 16px;
       height: 16px;
-      background: white;
+      background: var(--text-color);
       border-radius: 50%;
       transform: translate(-50%, -50%);
       z-index: 10;
@@ -389,7 +376,7 @@
       bottom: 50%;
       left: 50%;
       transform-origin: bottom center;
-      background: white;
+      background: var(--text-color);
       border-radius: 10px;
     }
 
@@ -418,7 +405,7 @@
     .hero h1 {
       font-size: clamp(56px, 10vw, 96px);
       font-weight: 900;
-      color: white;
+      color: var(--text-color);
       margin-bottom: 1.5rem;
       line-height: 1;
       text-shadow: 0 4px 20px rgba(0,0,0,0.2);
@@ -438,7 +425,8 @@
 
     .hero p {
       font-size: clamp(18px, 2.5vw, 26px);
-      color: rgba(255, 255, 255, 0.95);
+      color: var(--text-color);
+      opacity: 0.95;
       max-width: 800px;
       margin: 0 auto 3rem;
       font-weight: 400;
@@ -471,10 +459,10 @@
     }
 
     .btn-glass {
-      background: rgba(255, 255, 255, 0.25);
-      color: white;
+      background: var(--card-bg);
+      color: var(--text-color);
       backdrop-filter: blur(10px);
-      border: 2px solid rgba(255, 255, 255, 0.4);
+      border: 2px solid var(--card-border);
       font-weight: 700;
     }
 
@@ -530,7 +518,8 @@
 
     .stat-label {
       font-size: 18px;
-      color: rgba(255, 255, 255, 0.8);
+      color: var(--text-color);
+      opacity: 0.8;
       font-weight: 600;
     }
 
@@ -550,21 +539,21 @@
 
     .section-badge {
       display: inline-block;
-      background: rgba(255, 255, 255, 0.25);
-      color: white;
+      background: var(--card-bg);
+      color: var(--text-color);
       padding: 8px 20px;
       border-radius: 50px;
       font-size: 13px;
       font-weight: 800;
       letter-spacing: 1.5px;
       margin-bottom: 1.5rem;
-      border: 1px solid rgba(255, 255, 255, 0.3);
+      border: 1px solid var(--card-border);
     }
 
     .section-title {
       font-size: clamp(40px, 6vw, 64px);
       font-weight: 900;
-      color: white;
+      color: var(--text-color);
       margin-bottom: 1.5rem;
       line-height: 1.1;
       letter-spacing: -1px;
@@ -572,7 +561,8 @@
 
     .section-description {
       font-size: 20px;
-      color: rgba(255, 255, 255, 0.9);
+      color: var(--text-color);
+      opacity: 0.9;
       line-height: 1.8;
       font-weight: 400;
     }
@@ -617,9 +607,8 @@
 
     .feature-card:hover {
       transform: translateY(-12px);
-      box-shadow: 0 25px 70px rgba(255, 255, 255, 0.15);
-      border-color: rgba(255, 255, 255, 0.4);
-      background: rgba(255, 255, 255, 0.18);
+      box-shadow: 0 25px 70px rgba(99, 102, 241, 0.15);
+      border-color: var(--primary);
     }
 
     .feature-card:hover::before {
@@ -642,13 +631,14 @@
     .feature-card h3 {
       font-size: 24px;
       font-weight: 800;
-      color: white;
+      color: var(--text-color);
       margin-bottom: 1rem;
       line-height: 1.3;
     }
 
     .feature-card p {
-      color: rgba(255, 255, 255, 0.85);
+      color: var(--text-color);
+      opacity: 0.85;
       line-height: 1.8;
       font-size: 16px;
     }
@@ -714,28 +704,29 @@
 
     .timeline-badge {
       display: inline-block;
-      background: rgba(255, 255, 255, 0.25);
-      color: white;
+      background: var(--card-bg);
+      color: var(--text-color);
       padding: 6px 16px;
       border-radius: 50px;
       font-size: 12px;
       font-weight: 800;
       letter-spacing: 1px;
       margin-bottom: 1rem;
-      border: 1px solid rgba(255, 255, 255, 0.3);
+      border: 1px solid var(--card-border);
     }
 
     .timeline-step h3 {
       font-size: 36px;
       font-weight: 900;
-      color: white;
+      color: var(--text-color);
       margin-bottom: 1rem;
       line-height: 1.2;
     }
 
     .timeline-step p {
       font-size: 18px;
-      color: rgba(255, 255, 255, 0.85);
+      color: var(--text-color);
+      opacity: 0.85;
       line-height: 1.8;
       margin-bottom: 1.5rem;
     }
@@ -750,8 +741,9 @@
       padding-left: 2.5rem;
       position: relative;
       font-size: 16px;
-      color: rgba(255, 255, 255, 0.85);
-      border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+      color: var(--text-color);
+      opacity: 0.85;
+      border-bottom: 1px solid var(--card-border);
     }
 
     .timeline-features li:last-child {
@@ -771,7 +763,7 @@
     .pricing {
       padding: 8rem 2rem;
       background: transparent;
-      color: white;
+      color: var(--text-color);
       text-align: center;
       position: relative;
       z-index: 1;
@@ -861,7 +853,7 @@
     .cta {
       padding: 8rem 2rem;
       background: transparent;
-      color: white;
+      color: var(--text-color);
       text-align: center;
       position: relative;
       z-index: 1;
@@ -876,7 +868,8 @@
 
     .cta p {
       font-size: 22px;
-      color: rgba(255, 255, 255, 0.85);
+      color: var(--text-color);
+      opacity: 0.85;
       margin-bottom: 3rem;
       max-width: 800px;
       margin-left: auto;
@@ -894,11 +887,12 @@
     /* Footer */
     .footer {
       background: transparent;
-      color: rgba(255, 255, 255, 0.7);
+      color: var(--text-color);
+      opacity: 0.7;
       padding: 5rem 2rem 2rem;
       position: relative;
       z-index: 1;
-      border-top: 1px solid rgba(255, 255, 255, 0.15);
+      border-top: 1px solid var(--card-border);
     }
 
     .footer-content {
@@ -911,7 +905,7 @@
     }
 
     .footer-section h4 {
-      color: white;
+      color: var(--text-color);
       font-weight: 800;
       margin-bottom: 2rem;
       font-size: 18px;
@@ -922,23 +916,25 @@
     }
 
     .footer-section a {
-      color: rgba(255, 255, 255, 0.65);
+      color: var(--text-color);
+      opacity: 0.65;
       text-decoration: none;
       display: block;
       padding: 0.7rem 0;
-      transition: color 0.3s;
+      transition: all 0.3s;
       font-weight: 500;
     }
 
     .footer-section a:hover {
       color: var(--primary);
+      opacity: 1;
     }
 
     .footer-bottom {
       max-width: 1280px;
       margin: 0 auto;
       padding-top: 3rem;
-      border-top: 1px solid rgba(255, 255, 255, 0.15);
+      border-top: 1px solid var(--card-border);
       text-align: center;
       font-size: 15px;
     }
@@ -976,7 +972,7 @@
   <!-- RPM Meter - Scroll Based -->
   <div class="scroll-clock">
     <div class="rpm-meter">
-      <svg class="rpm-gauge" viewBox="0 0 200 200">
+      <svg class="rpm-gauge" viewBox="0 0 400 400">
         <defs>
           <linearGradient id="rpmGradient" x1="0%" y1="0%" x2="100%" y2="0%">
             <stop offset="0%" stop-color="#6366f1"/>
@@ -985,15 +981,10 @@
           </linearGradient>
         </defs>
         <!-- Background arc -->
-        <path class="rpm-arc" d="M 30 170 A 85 85 0 0 1 170 170" />
+        <path class="rpm-arc" d="M 50 350 A 180 180 0 0 1 350 350" />
         <!-- Active arc that fills based on scroll -->
-        <path class="rpm-arc-active" id="rpmArc" d="M 30 170 A 85 85 0 0 1 170 170" />
+        <path class="rpm-arc-active" id="rpmArc" d="M 50 350 A 180 180 0 0 1 350 350" />
       </svg>
-      <div class="rpm-number n0">0</div>
-      <div class="rpm-number n25">25</div>
-      <div class="rpm-number n50">50</div>
-      <div class="rpm-number n75">75</div>
-      <div class="rpm-number n100">100</div>
       <div class="rpm-needle" id="rpmNeedle"></div>
       <div class="rpm-center"></div>
       <div class="rpm-label">SCROLL</div>

@@ -49,7 +49,7 @@ function updateRPMMeter() {
   }
 
   // Fill the arc based on scroll percentage
-  const arcLength = 471; // Approximate arc length
+  const arcLength = 1000; // Approximate arc length for larger SVG
   const offset = arcLength - (scrollPercentage * arcLength);
   const rpmArc = document.getElementById('rpmArc');
   if (rpmArc) {
