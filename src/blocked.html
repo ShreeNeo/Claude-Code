@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Site Blocked - Neram Focus Mode</title>
+  <link rel="stylesheet" href="blocked.css">
+</head>
+<body>
+  <div class="blocked-container">
+    <div class="blocked-content">
+      <!-- Logo and Header -->
+      <div class="blocked-header">
+        <div class="blocked-icon">🎯</div>
+        <h1 class="blocked-title">Stay Focused!</h1>
+        <p class="blocked-subtitle">This site is blocked during focus mode</p>
+      </div>
+
+      <!-- Blocked URL Info -->
+      <div class="blocked-url-container">
+        <div class="blocked-url-label">Blocked URL:</div>
+        <div class="blocked-url" id="blockedUrl">Loading...</div>
+      </div>
+
+      <!-- Focus Stats -->
+      <div class="focus-status">
+        <div class="status-card">
+          <div class="status-icon">✅</div>
+          <div class="status-value" id="todaySessionsBlocked">0</div>
+          <div class="status-label">Sessions Today</div>
+        </div>
+        <div class="status-card">
+          <div class="status-icon">⏱️</div>
+          <div class="status-value" id="todayFocusTime">0m</div>
+          <div class="status-label">Focus Time</div>
+        </div>
+        <div class="status-card">
+          <div class="status-icon">🚫</div>
+          <div class="status-value" id="todayBlockedCount">0</div>
+          <div class="status-label">Sites Blocked</div>
+        </div>
+      </div>
+
+      <!-- Motivational Message -->
+      <div class="motivation-container">
+        <div class="motivation-icon">💪</div>
+        <p class="motivation-text" id="motivationText">
+          Great job staying focused! Every distraction you avoid brings you closer to your goals.
+        </p>
+      </div>
+
+      <!-- Actions -->
+      <div class="blocked-actions">
+        <button id="goBackBtn" class="btn btn-primary">
+          <span>←</span>
+          <span>Go Back</span>
+        </button>
+        <button id="openDashboardBtn" class="btn btn-secondary">
+          <span>📊</span>
+          <span>Open Dashboard</span>
+        </button>
+      </div>
+
+      <!-- Focus Mode Info -->
+      <div class="focus-info">
+        <p class="focus-info-text">
+          Focus mode is active.
+          <a href="#" id="disableFocusLink" class="focus-info-link">Disable focus mode</a>
+          or modify settings in the dashboard.
+        </p>
+      </div>
+
+      <!-- Branding -->
+      <div class="blocked-footer">
+        <div class="footer-logo">
+          <span class="footer-logo-icon">⏱️</span>
+          <span class="footer-logo-text">Neram | நேரம்</span>
+        </div>
+        <p class="footer-tagline">Stay focused, stay productive</p>
+      </div>
+    </div>
+  </div>
+
+  <script src="blocked.js"></script>
+</body>
+</html>

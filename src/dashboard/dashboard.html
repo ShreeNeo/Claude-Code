@@ -202,6 +202,64 @@
               <div class="loading">Analyzing your activity patterns...</div>
             </div>
           </div>
+
+          <!-- Focus Mode Statistics -->
+          <div class="focus-mode-stats-container" id="focusModeStatsContainer" style="display: none;">
+            <div class="focus-mode-stats-header">
+              <h3 class="section-title">
+                <span>🎯</span>
+                <span>Focus Mode Statistics</span>
+              </h3>
+              <button id="openFocusSettingsBtn" class="btn btn-secondary btn-small">
+                <span>⚙️</span>
+                <span>Settings</span>
+              </button>
+            </div>
+
+            <div class="focus-mode-stats-grid">
+              <div class="focus-mode-stat-card">
+                <div class="stat-card-icon">✅</div>
+                <div class="stat-card-content">
+                  <div class="stat-card-value" id="weeklyFocusSessions">0</div>
+                  <div class="stat-card-label">Focus Sessions This Week</div>
+                </div>
+              </div>
+
+              <div class="focus-mode-stat-card">
+                <div class="stat-card-icon">⏱️</div>
+                <div class="stat-card-content">
+                  <div class="stat-card-value" id="weeklyFocusTime">0h 0m</div>
+                  <div class="stat-card-label">Total Focus Time</div>
+                </div>
+              </div>
+
+              <div class="focus-mode-stat-card">
+                <div class="stat-card-icon">🚫</div>
+                <div class="stat-card-content">
+                  <div class="stat-card-value" id="weeklyBlockedSites">0</div>
+                  <div class="stat-card-label">Sites Blocked</div>
+                </div>
+              </div>
+
+              <div class="focus-mode-stat-card">
+                <div class="stat-card-icon">📈</div>
+                <div class="stat-card-content">
+                  <div class="stat-card-value" id="focusStreak">0</div>
+                  <div class="stat-card-label">Day Streak</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="focus-mode-progress">
+              <div class="progress-header">
+                <span class="progress-label">Weekly Focus Goal</span>
+                <span class="progress-value" id="focusGoalProgress">0 / 20 hours</span>
+              </div>
+              <div class="progress-bar">
+                <div class="progress-fill" id="focusGoalFill" style="width: 0%"></div>
+              </div>
+            </div>
+          </div>
         </section>
 
         <!-- Analytics Section -->
@@ -724,7 +782,184 @@
               </div>
             </div>
 
-            <!-- 6. Data Management -->
+            <!-- 6. Focus Mode & Productivity -->
+            <div class="settings-group settings-group-collapsible collapsed">
+              <h3 class="settings-title settings-title-collapsible" data-target="focusModeSettings">
+                🎯 Focus Mode & Productivity
+                <span class="settings-toggle">▼</span>
+              </h3>
+              <div id="focusModeSettings" class="settings-content" style="display: none;">
+
+                <!-- Enable Focus Mode -->
+                <div class="setting-item">
+                  <div class="setting-label">
+                    <span>Enable Focus Mode</span>
+                    <span class="setting-description">Block distracting websites and track focused work sessions</span>
+                  </div>
+                  <label class="toggle">
+                    <input type="checkbox" id="focusModeEnabled">
+                    <span class="toggle-slider"></span>
+                  </label>
+                </div>
+
+                <!-- Pomodoro Timer Settings -->
+                <div class="focus-subsection">
+                  <h4 class="subsection-title">⏱️ Pomodoro Timer</h4>
+
+                  <div class="setting-item-inline">
+                    <label class="inline-label">Work Duration (minutes)</label>
+                    <input type="number" id="pomodoroWork" value="25" min="1" max="60" class="input input-small">
+                  </div>
+
+                  <div class="setting-item-inline">
+                    <label class="inline-label">Short Break (minutes)</label>
+                    <input type="number" id="pomodoroShortBreak" value="5" min="1" max="30" class="input input-small">
+                  </div>
+
+                  <div class="setting-item-inline">
+                    <label class="inline-label">Long Break (minutes)</label>
+                    <input type="number" id="pomodoroLongBreak" value="15" min="1" max="60" class="input input-small">
+                  </div>
+
+                  <div class="setting-item-inline">
+                    <label class="inline-label">Sessions until long break</label>
+                    <input type="number" id="pomodoroSessionsUntilLongBreak" value="4" min="1" max="10" class="input input-small">
+                  </div>
+                </div>
+
+                <!-- Website Blocking -->
+                <div class="focus-subsection">
+                  <h4 class="subsection-title">🚫 Website Blocking</h4>
+
+                  <div class="setting-item">
+                    <div class="setting-label">
+                      <span>Block Social Media</span>
+                      <span class="setting-description">Facebook, Twitter, Instagram, TikTok, Reddit</span>
+                    </div>
+                    <label class="toggle">
+                      <input type="checkbox" id="blockSocialMedia" checked>
+                      <span class="toggle-slider"></span>
+                    </label>
+                  </div>
+
+                  <div class="setting-item">
+                    <div class="setting-label">
+                      <span>Block News Sites</span>
+                      <span class="setting-description">News websites and aggregators</span>
+                    </div>
+                    <label class="toggle">
+                      <input type="checkbox" id="blockNews">
+                      <span class="toggle-slider"></span>
+                    </label>
+                  </div>
+
+                  <div class="setting-item">
+                    <div class="setting-label">
+                      <span>Block Entertainment</span>
+                      <span class="setting-description">YouTube, Netflix, Twitch, Gaming sites</span>
+                    </div>
+                    <label class="toggle">
+                      <input type="checkbox" id="blockEntertainment" checked>
+                      <span class="toggle-slider"></span>
+                    </label>
+                  </div>
+
+                  <div class="setting-item">
+                    <div class="setting-label">
+                      <span>Block Shopping</span>
+                      <span class="setting-description">E-commerce and shopping websites</span>
+                    </div>
+                    <label class="toggle">
+                      <input type="checkbox" id="blockShopping">
+                      <span class="toggle-slider"></span>
+                    </label>
+                  </div>
+
+                  <div class="form-group" style="margin-top: 20px;">
+                    <label>Custom Blocked Sites (one per line)</label>
+                    <textarea id="customBlockedSites" rows="4" placeholder="example.com&#10;*.reddit.com&#10;facebook.com" class="input"></textarea>
+                    <span class="setting-description" style="display: block; margin-top: 8px;">
+                      Use * for wildcards. Example: *.facebook.com blocks all Facebook subdomains
+                    </span>
+                  </div>
+                </div>
+
+                <!-- Focus Schedule -->
+                <div class="focus-subsection">
+                  <h4 class="subsection-title">📅 Focus Schedule</h4>
+
+                  <div class="setting-item">
+                    <div class="setting-label">
+                      <span>Auto-enable during work hours</span>
+                      <span class="setting-description">Automatically activate focus mode during specified hours</span>
+                    </div>
+                    <label class="toggle">
+                      <input type="checkbox" id="focusScheduleEnabled">
+                      <span class="toggle-slider"></span>
+                    </label>
+                  </div>
+
+                  <div class="setting-item-inline">
+                    <label class="inline-label">Start Time</label>
+                    <input type="time" id="focusScheduleStart" value="09:00" class="input input-small">
+                  </div>
+
+                  <div class="setting-item-inline">
+                    <label class="inline-label">End Time</label>
+                    <input type="time" id="focusScheduleEnd" value="17:00" class="input input-small">
+                  </div>
+                </div>
+
+                <!-- Break Reminders -->
+                <div class="focus-subsection">
+                  <h4 class="subsection-title">🔔 Break Reminders</h4>
+
+                  <div class="setting-item">
+                    <div class="setting-label">
+                      <span>Enable Break Reminders</span>
+                      <span class="setting-description">Get notified when it's time to take a break</span>
+                    </div>
+                    <label class="toggle">
+                      <input type="checkbox" id="breakRemindersEnabled" checked>
+                      <span class="toggle-slider"></span>
+                    </label>
+                  </div>
+
+                  <div class="setting-item">
+                    <div class="setting-label">
+                      <span>Sound Notifications</span>
+                      <span class="setting-description">Play a sound when break time starts</span>
+                    </div>
+                    <label class="toggle">
+                      <input type="checkbox" id="breakSoundEnabled" checked>
+                      <span class="toggle-slider"></span>
+                    </label>
+                  </div>
+                </div>
+
+                <!-- Focus Stats Preview -->
+                <div class="focus-stats-preview">
+                  <h4 class="subsection-title">📊 Today's Focus Stats</h4>
+                  <div class="focus-stats-grid">
+                    <div class="focus-stat-card">
+                      <div class="focus-stat-value" id="todayFocusSessions">0</div>
+                      <div class="focus-stat-label">Focus Sessions</div>
+                    </div>
+                    <div class="focus-stat-card">
+                      <div class="focus-stat-value" id="todayFocusTime">0m</div>
+                      <div class="focus-stat-label">Focus Time</div>
+                    </div>
+                    <div class="focus-stat-card">
+                      <div class="focus-stat-value" id="todayBlockedSites">0</div>
+                      <div class="focus-stat-label">Sites Blocked</div>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+
+            <!-- 7. Data Management -->
             <div class="settings-group settings-group-collapsible collapsed">
               <h3 class="settings-title settings-title-collapsible" data-target="dataSettings">
                 💾 Data Management
@@ -839,6 +1074,56 @@
       </div>
       <div class="form-actions">
         <button class="btn btn-secondary" id="closeTagsModalBtn">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pomodoro Timer Widget -->
+  <div id="pomodoroWidget" class="pomodoro-widget" style="display: none;">
+    <div class="pomodoro-header">
+      <div class="pomodoro-title">
+        <span>🍅</span>
+        <span id="pomodoroTitleText">Pomodoro Timer</span>
+      </div>
+      <div class="pomodoro-controls-header">
+        <button id="minimizePomodoro" title="Minimize">−</button>
+        <button id="closePomodoro" title="Close">×</button>
+      </div>
+    </div>
+
+    <div class="pomodoro-content">
+      <div class="pomodoro-timer-display">
+        <div class="pomodoro-session-type" id="pomodoroSessionType">WORK SESSION</div>
+        <div class="pomodoro-time" id="pomodoroTime">25:00</div>
+        <div class="pomodoro-session-info">
+          <span id="pomodoroSessionCount">Session 1 of 4</span>
+        </div>
+      </div>
+
+      <div class="pomodoro-controls">
+        <button id="startPomodoroBtn" class="btn btn-primary">
+          <span>▶</span>
+          <span>Start</span>
+        </button>
+        <button id="pausePomodoroBtn" class="btn btn-secondary" style="display: none;">
+          <span>⏸</span>
+          <span>Pause</span>
+        </button>
+        <button id="resetPomodoroBtn" class="btn btn-secondary">
+          <span>↻</span>
+          <span>Reset</span>
+        </button>
+      </div>
+
+      <div class="pomodoro-stats">
+        <div class="pomodoro-stat">
+          <div class="pomodoro-stat-value" id="todayCompletedSessions">0</div>
+          <div class="pomodoro-stat-label">Today</div>
+        </div>
+        <div class="pomodoro-stat">
+          <div class="pomodoro-stat-value" id="todayFocusMinutes">0m</div>
+          <div class="pomodoro-stat-label">Focus Time</div>
+        </div>
       </div>
     </div>
   </div>

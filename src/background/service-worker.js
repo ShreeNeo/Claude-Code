@@ -29,6 +29,15 @@ let isTracking = true;
 let isPaused = false;
 let settings = {};
 
+// Focus mode state
+let focusModeSettings = {
+  enabled: false,
+  blockedPatterns: [],
+  scheduleEnabled: false,
+  scheduleStart: '09:00',
+  scheduleEnd: '17:00'
+};
+
 // Constants
 const IDLE_CHECK_INTERVAL = 30000; // 30 seconds
 const IDLE_THRESHOLD = 60; // 60 seconds default
@@ -49,6 +58,9 @@ async function initialize() {
     // Load settings
     settings = await getSettings();
     console.log('Settings loaded:', settings);
+
+    // Load focus mode settings
+    await loadFocusModeSettings();
 
     // Load tracking state
     const state = await getTrackingState();
@@ -286,6 +298,218 @@ async function performDataCleanup() {
   }
 }
 
+// ============================================
+// FOCUS MODE & WEBSITE BLOCKING
+// ============================================
+
+/**
+ * Load focus mode settings
+ */
+async function loadFocusModeSettings() {
+  try {
+    const result = await chrome.storage.sync.get([
+      'focusModeEnabled',
+      'blockSocialMedia',
+      'blockNews',
+      'blockEntertainment',
+      'blockShopping',
+      'customBlockedSites',
+      'focusScheduleEnabled',
+      'focusScheduleStart',
+      'focusScheduleEnd'
+    ]);
+
+    focusModeSettings.enabled = result.focusModeEnabled || false;
+    focusModeSettings.scheduleEnabled = result.focusScheduleEnabled || false;
+    focusModeSettings.scheduleStart = result.focusScheduleStart || '09:00';
+    focusModeSettings.scheduleEnd = result.focusScheduleEnd || '17:00';
+
+    // Build blocked patterns
+    focusModeSettings.blockedPatterns = buildBlockedPatterns(result);
+
+    console.log('Focus mode settings loaded:', focusModeSettings);
+  } catch (error) {
+    console.error('Error loading focus mode settings:', error);
+  }
+}
+
+/**
+ * Build list of blocked URL patterns from settings
+ */
+function buildBlockedPatterns(settings) {
+  const patterns = [];
+
+  // Social media sites
+  if (settings.blockSocialMedia !== false) {
+    patterns.push(
+      '*://*.facebook.com/*',
+      '*://*.fb.com/*',
+      '*://*.twitter.com/*',
+      '*://*.x.com/*',
+      '*://*.instagram.com/*',
+      '*://*.tiktok.com/*',
+      '*://*.reddit.com/*',
+      '*://*.linkedin.com/feed/*',
+      '*://*.snapchat.com/*',
+      '*://*.pinterest.com/*'
+    );
+  }
+
+  // News sites
+  if (settings.blockNews) {
+    patterns.push(
+      '*://*.cnn.com/*',
+      '*://*.bbc.com/news/*',
+      '*://*.nytimes.com/*',
+      '*://*.theguardian.com/*',
+      '*://*.washingtonpost.com/*',
+      '*://*.reuters.com/*',
+      '*://*.apnews.com/*',
+      '*://*.news.google.com/*',
+      '*://*.news.yahoo.com/*',
+      '*://*.huffpost.com/*'
+    );
+  }
+
+  // Entertainment sites
+  if (settings.blockEntertainment !== false) {
+    patterns.push(
+      '*://*.youtube.com/*',
+      '*://*.netflix.com/*',
+      '*://*.twitch.tv/*',
+      '*://*.hulu.com/*',
+      '*://*.disneyplus.com/*',
+      '*://*.spotify.com/*',
+      '*://*.soundcloud.com/*',
+      '*://*.9gag.com/*',
+      '*://*.imgur.com/*'
+    );
+  }
+
+  // Shopping sites
+  if (settings.blockShopping) {
+    patterns.push(
+      '*://*.amazon.com/*',
+      '*://*.ebay.com/*',
+      '*://*.etsy.com/*',
+      '*://*.walmart.com/*',
+      '*://*.target.com/*',
+      '*://*.bestbuy.com/*',
+      '*://*.aliexpress.com/*',
+      '*://*.alibaba.com/*'
+    );
+  }
+
+  // Custom blocked sites
+  if (settings.customBlockedSites) {
+    const customSites = settings.customBlockedSites.split('\n')
+      .map(site => site.trim())
+      .filter(site => site.length > 0);
+
+    for (const site of customSites) {
+      // Convert simple patterns to match patterns
+      if (site.startsWith('*.')) {
+        patterns.push(`*://${site}/*`);
+      } else if (site.includes('*')) {
+        patterns.push(`*://${site}/*`);
+      } else {
+        patterns.push(`*://${site}/*`);
+        patterns.push(`*://*.${site}/*`);
+      }
+    }
+  }
+
+  return patterns;
+}
+
+/**
+ * Check if focus mode should be active based on schedule
+ */
+function isFocusModeActive() {
+  if (!focusModeSettings.enabled) {
+    return false;
+  }
+
+  // If schedule is not enabled, focus mode is always active when enabled
+  if (!focusModeSettings.scheduleEnabled) {
+    return true;
+  }
+
+  // Check if current time is within schedule
+  const now = new Date();
+  const currentTime = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+
+  const start = focusModeSettings.scheduleStart;
+  const end = focusModeSettings.scheduleEnd;
+
+  return currentTime >= start && currentTime <= end;
+}
+
+/**
+ * Check if a URL should be blocked
+ */
+function shouldBlockUrl(url) {
+  if (!isFocusModeActive()) {
+    return false;
+  }
+
+  // Don't block chrome:// or extension pages
+  if (url.startsWith('chrome://') || url.startsWith('chrome-extension://')) {
+    return false;
+  }
+
+  // Check against blocked patterns
+  for (const pattern of focusModeSettings.blockedPatterns) {
+    if (matchesPattern(url, pattern)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+/**
+ * Simple pattern matching for URL blocking
+ */
+function matchesPattern(url, pattern) {
+  // Convert pattern to regex
+  const regexPattern = pattern
+    .replace(/\./g, '\\.')
+    .replace(/\*/g, '.*')
+    .replace(/\?/g, '.');
+
+  const regex = new RegExp(`^${regexPattern}$`);
+  return regex.test(url);
+}
+
+/**
+ * Update blocked sites statistics
+ */
+async function incrementBlockedSiteCount() {
+  try {
+    const result = await chrome.storage.local.get(['focusStats']);
+    const focusStats = result.focusStats || {};
+
+    const today = new Date().toISOString().split('T')[0];
+    if (!focusStats[today]) {
+      focusStats[today] = { completedSessions: 0, focusMinutes: 0, blockedSites: 0 };
+    }
+
+    focusStats[today].blockedSites = (focusStats[today].blockedSites || 0) + 1;
+
+    await chrome.storage.local.set({ focusStats });
+  } catch (error) {
+    console.error('Error updating blocked site count:', error);
+  }
+}
+
+/**
+ * Redirect blocked URL to block page
+ */
+function getBlockPageUrl(originalUrl) {
+  return chrome.runtime.getURL(`blocked.html?url=${encodeURIComponent(originalUrl)}`);
+}
+
 /**
  * Handles alarm events
  * @param {Object} alarm - Alarm object
@@ -369,6 +593,11 @@ async function handleMessage(message, sender, sendResponse) {
         sendResponse({ success: true });
         break;
 
+      case 'updateFocusMode':
+        await loadFocusModeSettings();
+        sendResponse({ success: true });
+        break;
+
       default:
         sendResponse({ success: false, error: 'Unknown message type' });
     }
@@ -387,6 +616,26 @@ chrome.windows.onFocusChanged.addListener(handleWindowFocusChanged);
 chrome.idle.onStateChanged.addListener(handleIdleStateChanged);
 chrome.alarms.onAlarm.addListener(handleAlarm);
 chrome.runtime.onMessage.addListener(handleMessage);
+
+// Focus mode: Block navigation to blocked sites
+chrome.webNavigation.onBeforeNavigate.addListener(
+  async (details) => {
+    if (details.frameId !== 0) return; // Only handle main frame
+
+    const url = details.url;
+    if (shouldBlockUrl(url)) {
+      console.log('Blocking URL:', url);
+
+      // Increment blocked site count
+      await incrementBlockedSiteCount();
+
+      // Redirect to block page
+      chrome.tabs.update(details.tabId, {
+        url: getBlockPageUrl(url)
+      });
+    }
+  }
+);
 
 // Set idle detection interval
 chrome.idle.setDetectionInterval(IDLE_THRESHOLD);

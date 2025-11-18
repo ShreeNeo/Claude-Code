@@ -8,7 +8,9 @@
     "storage",
     "idle",
     "alarms",
-    "identity"
+    "identity",
+    "webNavigation",
+    "notifications"
   ],
   "host_permissions": [
     "<all_urls>"
@@ -42,7 +44,12 @@
   },
   "web_accessible_resources": [
     {
-      "resources": ["assets/*"],
+      "resources": [
+        "assets/*",
+        "blocked.html",
+        "blocked.css",
+        "blocked.js"
+      ],
       "matches": ["<all_urls>"]
     }
   ]

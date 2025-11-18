@@ -1374,6 +1374,11 @@ async function saveSettings() {
     // Save calendar settings separately (local storage)
     await chrome.storage.local.set({ calendarSettings });
 
+    // Save focus mode settings if available
+    if (document.getElementById('focusModeEnabled')) {
+      await saveFocusModeSettings();
+    }
+
     // Update background script
     chrome.runtime.sendMessage({ type: 'updateSettings', settings });
 
@@ -2749,3 +2754,613 @@ window.removeTag = async function(tagName) {
     alert('Failed to delete tag. Please try again.');
   }
 };
+
+// ============================================
+// FOCUS MODE & POMODORO TIMER
+// ============================================
+
+/**
+ * Pomodoro Timer State
+ */
+const pomodoroState = {
+  isRunning: false,
+  isPaused: false,
+  timeRemaining: 25 * 60, // seconds
+  sessionType: 'work', // 'work', 'shortBreak', 'longBreak'
+  currentSession: 1,
+  completedSessions: 0,
+  timer: null,
+  settings: {
+    workDuration: 25,
+    shortBreak: 5,
+    longBreak: 15,
+    sessionsUntilLongBreak: 4
+  },
+  stats: {
+    todayCompletedSessions: 0,
+    todayFocusMinutes: 0,
+    todayBlockedSites: 0
+  }
+};
+
+/**
+ * Initialize Focus Mode settings
+ */
+async function initFocusMode() {
+  try {
+    // Load focus mode settings from Chrome storage
+    const result = await chrome.storage.sync.get([
+      'focusModeEnabled',
+      'pomodoroSettings',
+      'blockSocialMedia',
+      'blockNews',
+      'blockEntertainment',
+      'blockShopping',
+      'customBlockedSites',
+      'focusScheduleEnabled',
+      'focusScheduleStart',
+      'focusScheduleEnd',
+      'breakRemindersEnabled',
+      'breakSoundEnabled'
+    ]);
+
+    // Set pomodoro settings
+    if (result.pomodoroSettings) {
+      pomodoroState.settings = result.pomodoroSettings;
+    }
+
+    // Load settings into UI
+    if (document.getElementById('focusModeEnabled')) {
+      document.getElementById('focusModeEnabled').checked = result.focusModeEnabled || false;
+      document.getElementById('pomodoroWork').value = pomodoroState.settings.workDuration;
+      document.getElementById('pomodoroShortBreak').value = pomodoroState.settings.shortBreak;
+      document.getElementById('pomodoroLongBreak').value = pomodoroState.settings.longBreak;
+      document.getElementById('pomodoroSessionsUntilLongBreak').value = pomodoroState.settings.sessionsUntilLongBreak;
+
+      document.getElementById('blockSocialMedia').checked = result.blockSocialMedia !== false;
+      document.getElementById('blockNews').checked = result.blockNews || false;
+      document.getElementById('blockEntertainment').checked = result.blockEntertainment !== false;
+      document.getElementById('blockShopping').checked = result.blockShopping || false;
+      document.getElementById('customBlockedSites').value = result.customBlockedSites || '';
+
+      document.getElementById('focusScheduleEnabled').checked = result.focusScheduleEnabled || false;
+      document.getElementById('focusScheduleStart').value = result.focusScheduleStart || '09:00';
+      document.getElementById('focusScheduleEnd').value = result.focusScheduleEnd || '17:00';
+
+      document.getElementById('breakRemindersEnabled').checked = result.breakRemindersEnabled !== false;
+      document.getElementById('breakSoundEnabled').checked = result.breakSoundEnabled !== false;
+    }
+
+    // Load today's focus stats
+    await loadFocusStats();
+
+    // Show Pomodoro widget if focus mode is enabled
+    if (result.focusModeEnabled) {
+      showPomodoroWidget();
+    }
+
+  } catch (error) {
+    console.error('Error initializing focus mode:', error);
+  }
+}
+
+/**
+ * Load focus statistics for today
+ */
+async function loadFocusStats() {
+  try {
+    const result = await chrome.storage.local.get(['focusStats']);
+    const focusStats = result.focusStats || {};
+
+    const today = new Date().toISOString().split('T')[0];
+    const todayStats = focusStats[today] || { completedSessions: 0, focusMinutes: 0, blockedSites: 0 };
+
+    pomodoroState.stats = {
+      todayCompletedSessions: todayStats.completedSessions || 0,
+      todayFocusMinutes: todayStats.focusMinutes || 0,
+      todayBlockedSites: todayStats.blockedSites || 0
+    };
+
+    // Update UI
+    updateFocusStatsUI();
+
+  } catch (error) {
+    console.error('Error loading focus stats:', error);
+  }
+}
+
+/**
+ * Update focus stats in UI
+ */
+function updateFocusStatsUI() {
+  // Settings page stats
+  const todayFocusSessionsEl = document.getElementById('todayFocusSessions');
+  const todayFocusTimeEl = document.getElementById('todayFocusTime');
+  const todayBlockedSitesEl = document.getElementById('todayBlockedSites');
+
+  if (todayFocusSessionsEl) todayFocusSessionsEl.textContent = pomodoroState.stats.todayCompletedSessions;
+  if (todayFocusTimeEl) todayFocusTimeEl.textContent = `${pomodoroState.stats.todayFocusMinutes}m`;
+  if (todayBlockedSitesEl) todayBlockedSitesEl.textContent = pomodoroState.stats.todayBlockedSites;
+
+  // Widget stats
+  const todayCompletedSessionsEl = document.getElementById('todayCompletedSessions');
+  const todayFocusMinutesEl = document.getElementById('todayFocusMinutes');
+
+  if (todayCompletedSessionsEl) todayCompletedSessionsEl.textContent = pomodoroState.stats.todayCompletedSessions;
+  if (todayFocusMinutesEl) todayFocusMinutesEl.textContent = `${pomodoroState.stats.todayFocusMinutes}m`;
+}
+
+/**
+ * Save focus statistics
+ */
+async function saveFocusStats() {
+  try {
+    const result = await chrome.storage.local.get(['focusStats']);
+    const focusStats = result.focusStats || {};
+
+    const today = new Date().toISOString().split('T')[0];
+    focusStats[today] = {
+      completedSessions: pomodoroState.stats.todayCompletedSessions,
+      focusMinutes: pomodoroState.stats.todayFocusMinutes,
+      blockedSites: pomodoroState.stats.todayBlockedSites
+    };
+
+    await chrome.storage.local.set({ focusStats });
+  } catch (error) {
+    console.error('Error saving focus stats:', error);
+  }
+}
+
+/**
+ * Show Pomodoro widget
+ */
+function showPomodoroWidget() {
+  const widget = document.getElementById('pomodoroWidget');
+  if (widget) {
+    widget.style.display = 'block';
+  }
+}
+
+/**
+ * Hide Pomodoro widget
+ */
+function hidePomodoroWidget() {
+  const widget = document.getElementById('pomodoroWidget');
+  if (widget) {
+    widget.style.display = 'none';
+  }
+}
+
+/**
+ * Initialize Pomodoro Timer
+ */
+function initPomodoroTimer() {
+  const widget = document.getElementById('pomodoroWidget');
+  const startBtn = document.getElementById('startPomodoroBtn');
+  const pauseBtn = document.getElementById('pausePomodoroBtn');
+  const resetBtn = document.getElementById('resetPomodoroBtn');
+  const minimizeBtn = document.getElementById('minimizePomodoro');
+  const closeBtn = document.getElementById('closePomodoro');
+
+  if (!widget) return;
+
+  // Start button
+  startBtn?.addEventListener('click', () => {
+    if (!pomodoroState.isRunning) {
+      startPomodoro();
+    }
+  });
+
+  // Pause button
+  pauseBtn?.addEventListener('click', () => {
+    if (pomodoroState.isRunning) {
+      pausePomodoro();
+    }
+  });
+
+  // Reset button
+  resetBtn?.addEventListener('click', () => {
+    resetPomodoro();
+  });
+
+  // Minimize button
+  minimizeBtn?.addEventListener('click', () => {
+    widget.classList.toggle('minimized');
+  });
+
+  // Close button
+  closeBtn?.addEventListener('click', () => {
+    if (pomodoroState.isRunning) {
+      if (!confirm('Timer is running. Are you sure you want to close?')) {
+        return;
+      }
+    }
+    hidePomodoroWidget();
+    resetPomodoro();
+  });
+
+  // Click on minimized widget to expand
+  widget.addEventListener('click', (e) => {
+    if (widget.classList.contains('minimized') && !e.target.closest('button')) {
+      widget.classList.remove('minimized');
+    }
+  });
+
+  // Initialize timer display
+  resetPomodoro();
+}
+
+/**
+ * Start Pomodoro timer
+ */
+function startPomodoro() {
+  pomodoroState.isRunning = true;
+  pomodoroState.isPaused = false;
+
+  // Update UI
+  document.getElementById('startPomodoroBtn').style.display = 'none';
+  document.getElementById('pausePomodoroBtn').style.display = 'flex';
+
+  // Start countdown
+  pomodoroState.timer = setInterval(() => {
+    pomodoroState.timeRemaining--;
+
+    if (pomodoroState.timeRemaining <= 0) {
+      completeSession();
+    } else {
+      updateTimerDisplay();
+    }
+  }, 1000);
+
+  updateTimerDisplay();
+}
+
+/**
+ * Pause Pomodoro timer
+ */
+function pausePomodoro() {
+  pomodoroState.isRunning = false;
+  pomodoroState.isPaused = true;
+
+  if (pomodoroState.timer) {
+    clearInterval(pomodoroState.timer);
+    pomodoroState.timer = null;
+  }
+
+  // Update UI
+  document.getElementById('startPomodoroBtn').style.display = 'flex';
+  document.getElementById('pausePomodoroBtn').style.display = 'none';
+  document.getElementById('startPomodoroBtn').innerHTML = '<span>▶</span><span>Resume</span>';
+}
+
+/**
+ * Reset Pomodoro timer
+ */
+function resetPomodoro() {
+  pomodoroState.isRunning = false;
+  pomodoroState.isPaused = false;
+
+  if (pomodoroState.timer) {
+    clearInterval(pomodoroState.timer);
+    pomodoroState.timer = null;
+  }
+
+  // Reset to work session
+  pomodoroState.sessionType = 'work';
+  pomodoroState.timeRemaining = pomodoroState.settings.workDuration * 60;
+
+  // Update UI
+  document.getElementById('startPomodoroBtn').style.display = 'flex';
+  document.getElementById('pausePomodoroBtn').style.display = 'none';
+  document.getElementById('startPomodoroBtn').innerHTML = '<span>▶</span><span>Start</span>';
+
+  updateTimerDisplay();
+}
+
+/**
+ * Complete current session
+ */
+async function completeSession() {
+  // Stop timer
+  if (pomodoroState.timer) {
+    clearInterval(pomodoroState.timer);
+    pomodoroState.timer = null;
+  }
+
+  // Play notification sound
+  playNotificationSound();
+
+  // Show notification
+  if (pomodoroState.sessionType === 'work') {
+    // Work session completed
+    pomodoroState.completedSessions++;
+    pomodoroState.stats.todayCompletedSessions++;
+    pomodoroState.stats.todayFocusMinutes += pomodoroState.settings.workDuration;
+
+    await saveFocusStats();
+    updateFocusStatsUI();
+
+    // Send notification
+    sendNotification('Work Session Complete!', 'Great job! Time for a break.');
+
+    // Determine next session type
+    if (pomodoroState.completedSessions >= pomodoroState.settings.sessionsUntilLongBreak) {
+      // Long break
+      pomodoroState.sessionType = 'longBreak';
+      pomodoroState.timeRemaining = pomodoroState.settings.longBreak * 60;
+      pomodoroState.completedSessions = 0;
+    } else {
+      // Short break
+      pomodoroState.sessionType = 'shortBreak';
+      pomodoroState.timeRemaining = pomodoroState.settings.shortBreak * 60;
+    }
+  } else {
+    // Break completed
+    sendNotification('Break Complete!', 'Ready to focus? Let\'s get back to work!');
+
+    // Back to work
+    pomodoroState.sessionType = 'work';
+    pomodoroState.timeRemaining = pomodoroState.settings.workDuration * 60;
+    pomodoroState.currentSession++;
+  }
+
+  // Reset UI
+  pomodoroState.isRunning = false;
+  document.getElementById('startPomodoroBtn').style.display = 'flex';
+  document.getElementById('pausePomodoroBtn').style.display = 'none';
+  document.getElementById('startPomodoroBtn').innerHTML = '<span>▶</span><span>Start</span>';
+
+  updateTimerDisplay();
+}
+
+/**
+ * Update timer display
+ */
+function updateTimerDisplay() {
+  const minutes = Math.floor(pomodoroState.timeRemaining / 60);
+  const seconds = pomodoroState.timeRemaining % 60;
+
+  const timeDisplay = document.getElementById('pomodoroTime');
+  const sessionTypeDisplay = document.getElementById('pomodoroSessionType');
+  const sessionCountDisplay = document.getElementById('pomodoroSessionCount');
+  const titleText = document.getElementById('pomodoroTitleText');
+
+  if (timeDisplay) {
+    timeDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+  }
+
+  if (sessionTypeDisplay) {
+    if (pomodoroState.sessionType === 'work') {
+      sessionTypeDisplay.textContent = 'WORK SESSION';
+      sessionTypeDisplay.style.color = 'rgba(255, 255, 255, 0.9)';
+    } else if (pomodoroState.sessionType === 'shortBreak') {
+      sessionTypeDisplay.textContent = 'SHORT BREAK';
+      sessionTypeDisplay.style.color = 'rgba(255, 255, 255, 0.9)';
+    } else {
+      sessionTypeDisplay.textContent = 'LONG BREAK';
+      sessionTypeDisplay.style.color = 'rgba(255, 255, 255, 0.9)';
+    }
+  }
+
+  if (sessionCountDisplay) {
+    sessionCountDisplay.textContent = `Session ${pomodoroState.currentSession} • ${pomodoroState.completedSessions}/${pomodoroState.settings.sessionsUntilLongBreak} until long break`;
+  }
+
+  if (titleText) {
+    titleText.textContent = pomodoroState.isRunning ? `${minutes}:${seconds.toString().padStart(2, '0')}` : 'Pomodoro Timer';
+  }
+}
+
+/**
+ * Play notification sound
+ */
+function playNotificationSound() {
+  chrome.storage.sync.get(['breakSoundEnabled'], (result) => {
+    if (result.breakSoundEnabled !== false) {
+      // Play a simple beep sound using Web Audio API
+      try {
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+
+        oscillator.frequency.value = 800;
+        oscillator.type = 'sine';
+
+        gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+
+        oscillator.start(audioContext.currentTime);
+        oscillator.stop(audioContext.currentTime + 0.5);
+      } catch (error) {
+        console.error('Error playing notification sound:', error);
+      }
+    }
+  });
+}
+
+/**
+ * Send browser notification
+ */
+function sendNotification(title, message) {
+  chrome.storage.sync.get(['breakRemindersEnabled'], (result) => {
+    if (result.breakRemindersEnabled !== false) {
+      if (Notification.permission === 'granted') {
+        new Notification(title, {
+          body: message,
+          icon: '../assets/icons/icon48.png',
+          badge: '../assets/icons/icon48.png'
+        });
+      } else if (Notification.permission !== 'denied') {
+        Notification.requestPermission().then(permission => {
+          if (permission === 'granted') {
+            new Notification(title, {
+              body: message,
+              icon: '../assets/icons/icon48.png',
+              badge: '../assets/icons/icon48.png'
+            });
+          }
+        });
+      }
+    }
+  });
+}
+
+/**
+ * Save focus mode settings
+ */
+async function saveFocusModeSettings() {
+  try {
+    const settings = {
+      focusModeEnabled: document.getElementById('focusModeEnabled').checked,
+      pomodoroSettings: {
+        workDuration: parseInt(document.getElementById('pomodoroWork').value) || 25,
+        shortBreak: parseInt(document.getElementById('pomodoroShortBreak').value) || 5,
+        longBreak: parseInt(document.getElementById('pomodoroLongBreak').value) || 15,
+        sessionsUntilLongBreak: parseInt(document.getElementById('pomodoroSessionsUntilLongBreak').value) || 4
+      },
+      blockSocialMedia: document.getElementById('blockSocialMedia').checked,
+      blockNews: document.getElementById('blockNews').checked,
+      blockEntertainment: document.getElementById('blockEntertainment').checked,
+      blockShopping: document.getElementById('blockShopping').checked,
+      customBlockedSites: document.getElementById('customBlockedSites').value,
+      focusScheduleEnabled: document.getElementById('focusScheduleEnabled').checked,
+      focusScheduleStart: document.getElementById('focusScheduleStart').value,
+      focusScheduleEnd: document.getElementById('focusScheduleEnd').value,
+      breakRemindersEnabled: document.getElementById('breakRemindersEnabled').checked,
+      breakSoundEnabled: document.getElementById('breakSoundEnabled').checked
+    };
+
+    await chrome.storage.sync.set(settings);
+
+    // Update pomodoro state
+    pomodoroState.settings = settings.pomodoroSettings;
+
+    // Show/hide widget based on focus mode enabled
+    if (settings.focusModeEnabled) {
+      showPomodoroWidget();
+    } else {
+      hidePomodoroWidget();
+    }
+
+    // Notify service worker to update blocking rules
+    chrome.runtime.sendMessage({
+      action: 'updateFocusMode',
+      settings: settings
+    });
+
+    console.log('Focus mode settings saved successfully');
+  } catch (error) {
+    console.error('Error saving focus mode settings:', error);
+  }
+}
+
+/**
+ * Load and display focus mode statistics for Overview page
+ */
+async function loadFocusModeStatistics() {
+  try {
+    const result = await chrome.storage.local.get(['focusStats']);
+    const focusStats = result.focusStats || {};
+
+    // Show container if focus mode has been used
+    const hasStats = Object.keys(focusStats).length > 0;
+    const container = document.getElementById('focusModeStatsContainer');
+
+    if (hasStats && container) {
+      container.style.display = 'block';
+
+      // Calculate weekly stats
+      const today = new Date();
+      const weekStart = new Date(today);
+      weekStart.setDate(today.getDate() - 7);
+
+      let weeklySessionsTotal = 0;
+      let weeklyFocusMinutes = 0;
+      let weeklyBlockedSites = 0;
+      let streak = 0;
+
+      // Calculate stats for past 7 days
+      for (let i = 0; i < 7; i++) {
+        const date = new Date(today);
+        date.setDate(today.getDate() - i);
+        const dateStr = date.toISOString().split('T')[0];
+
+        const dayStats = focusStats[dateStr];
+        if (dayStats) {
+          weeklySessionsTotal += dayStats.completedSessions || 0;
+          weeklyFocusMinutes += dayStats.focusMinutes || 0;
+          weeklyBlockedSites += dayStats.blockedSites || 0;
+
+          // Calculate streak (consecutive days with at least one session)
+          if (dayStats.completedSessions > 0) {
+            streak++;
+          } else if (i !== 0) { // Don't break streak if today has no sessions yet
+            break;
+          }
+        } else if (i !== 0) {
+          break;
+        }
+      }
+
+      // Update UI
+      document.getElementById('weeklyFocusSessions').textContent = weeklySessionsTotal;
+
+      const hours = Math.floor(weeklyFocusMinutes / 60);
+      const minutes = weeklyFocusMinutes % 60;
+      document.getElementById('weeklyFocusTime').textContent = `${hours}h ${minutes}m`;
+
+      document.getElementById('weeklyBlockedSites').textContent = weeklyBlockedSites;
+      document.getElementById('focusStreak').textContent = streak;
+
+      // Update progress bar (goal: 20 hours per week)
+      const goalHours = 20;
+      const currentHours = weeklyFocusMinutes / 60;
+      const progressPercent = Math.min((currentHours / goalHours) * 100, 100);
+
+      document.getElementById('focusGoalProgress').textContent =
+        `${currentHours.toFixed(1)} / ${goalHours} hours`;
+      document.getElementById('focusGoalFill').style.width = `${progressPercent}%`;
+    }
+
+    // Set up "Open Settings" button
+    const openSettingsBtn = document.getElementById('openFocusSettingsBtn');
+    if (openSettingsBtn) {
+      openSettingsBtn.addEventListener('click', () => {
+        // Navigate to settings section and expand focus mode settings
+        document.getElementById('settingsNav').click();
+
+        setTimeout(() => {
+          const focusSettingsTitle = document.querySelector('[data-target="focusModeSettings"]');
+          if (focusSettingsTitle && focusSettingsTitle.parentElement.classList.contains('collapsed')) {
+            focusSettingsTitle.click();
+          }
+
+          // Scroll to focus mode settings
+          const focusModeSettings = document.getElementById('focusModeSettings');
+          if (focusModeSettings) {
+            focusModeSettings.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        }, 300);
+      });
+    }
+
+  } catch (error) {
+    console.error('Error loading focus mode statistics:', error);
+  }
+}
+
+// Initialize focus mode when page loads
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', () => {
+    initFocusMode();
+    initPomodoroTimer();
+    loadFocusModeStatistics();
+  });
+} else {
+  initFocusMode();
+  initPomodoroTimer();
+  loadFocusModeStatistics();
+}
