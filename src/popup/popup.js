@@ -280,10 +280,9 @@ async function loadPomodoroState() {
       const todayStats = focusStats[today] || { completedSessions: 0, focusMinutes: 0 };
 
       popupSessionsToday.textContent = todayStats.completedSessions || 0;
-      popupTimeToday.textContent = `${todayStats.focusMinutes || 0}m`;
 
       // Update UI
-      updatePomodoroDisplay();
+      await updatePomodoroDisplay();
 
       // Listen for updates from service worker
       chrome.runtime.onMessage.addListener((message) => {
@@ -312,16 +311,43 @@ async function loadTodayFocusStats() {
     const todayStats = focusStats[today] || { completedSessions: 0, focusMinutes: 0 };
 
     popupSessionsToday.textContent = todayStats.completedSessions || 0;
-    popupTimeToday.textContent = `${todayStats.focusMinutes || 0}m`;
+
+    // Time will be updated by updateTimeToday()
   } catch (error) {
     console.error('Error loading focus stats:', error);
   }
 }
 
 /**
+ * Update Time Today display including current session
+ */
+async function updateTimeToday() {
+  try {
+    // Get completed session stats
+    const statsResult = await chrome.storage.local.get(['focusStats']);
+    const focusStats = statsResult.focusStats || {};
+    const today = new Date().toISOString().split('T')[0];
+    const todayStats = focusStats[today] || { completedSessions: 0, focusMinutes: 0 };
+
+    let totalMinutes = todayStats.focusMinutes || 0;
+
+    // If there's an active work session, add elapsed time
+    if (pomodoroState && pomodoroState.isRunning && pomodoroState.sessionType === 'work') {
+      const workDuration = pomodoroState.settings.workDuration;
+      const elapsed = workDuration - Math.floor(pomodoroState.timeRemaining / 60);
+      totalMinutes += elapsed;
+    }
+
+    popupTimeToday.textContent = `${totalMinutes}m`;
+  } catch (error) {
+    console.error('Error updating time today:', error);
+  }
+}
+
+/**
  * Update Pomodoro display
  */
-function updatePomodoroDisplay() {
+async function updatePomodoroDisplay() {
   if (!pomodoroState) return;
 
   const minutes = Math.floor(pomodoroState.timeRemaining / 60);
@@ -349,6 +375,9 @@ function updatePomodoroDisplay() {
     popupStartBtn.style.display = 'flex';
     popupPauseBtn.style.display = 'none';
   }
+
+  // Update Time Today with current session progress
+  await updateTimeToday();
 }
 
 /**

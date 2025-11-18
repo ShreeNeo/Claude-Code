@@ -2888,13 +2888,23 @@ async function loadFocusStats() {
  * Update focus stats in UI
  */
 function updateFocusStatsUI() {
+  // Calculate total time including current session
+  let totalMinutes = pomodoroState.stats.todayFocusMinutes || 0;
+
+  // If there's an active work session, add elapsed time
+  if (pomodoroState.isRunning && pomodoroState.sessionType === 'work') {
+    const workDuration = pomodoroState.settings.workDuration;
+    const elapsed = workDuration - Math.floor(pomodoroState.timeRemaining / 60);
+    totalMinutes += elapsed;
+  }
+
   // Settings page stats
   const todayFocusSessionsEl = document.getElementById('todayFocusSessions');
   const todayFocusTimeEl = document.getElementById('todayFocusTime');
   const todayBlockedSitesEl = document.getElementById('todayBlockedSites');
 
   if (todayFocusSessionsEl) todayFocusSessionsEl.textContent = pomodoroState.stats.todayCompletedSessions;
-  if (todayFocusTimeEl) todayFocusTimeEl.textContent = `${pomodoroState.stats.todayFocusMinutes}m`;
+  if (todayFocusTimeEl) todayFocusTimeEl.textContent = `${totalMinutes}m`;
   if (todayBlockedSitesEl) todayBlockedSitesEl.textContent = pomodoroState.stats.todayBlockedSites;
 
   // Widget stats
@@ -2902,7 +2912,7 @@ function updateFocusStatsUI() {
   const todayFocusMinutesEl = document.getElementById('todayFocusMinutes');
 
   if (todayCompletedSessionsEl) todayCompletedSessionsEl.textContent = pomodoroState.stats.todayCompletedSessions;
-  if (todayFocusMinutesEl) todayFocusMinutesEl.textContent = `${pomodoroState.stats.todayFocusMinutes}m`;
+  if (todayFocusMinutesEl) todayFocusMinutesEl.textContent = `${totalMinutes}m`;
 }
 
 /**
@@ -3086,6 +3096,9 @@ function updateTimerDisplay() {
   if (titleText) {
     titleText.textContent = pomodoroState.isRunning ? `${minutes}:${seconds.toString().padStart(2, '0')}` : 'Pomodoro Timer';
   }
+
+  // Update focus stats with current session time
+  updateFocusStatsUI();
 }
 
 /**
