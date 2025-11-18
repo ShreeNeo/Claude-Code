@@ -3,7 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Neram - Dashboard</title>
+  <title>Neram | நேரம் - Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Tamil:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="dashboard.css">
 </head>
 <body>
@@ -13,7 +16,10 @@
       <div class="sidebar-header">
         <h1 class="logo">
           <span class="logo-icon">⏱️</span>
-          Neram
+          <div class="logo-text-container">
+            <span class="logo-primary">Neram</span>
+            <span class="logo-secondary">நேரம்</span>
+          </div>
         </h1>
       </div>
 
@@ -70,7 +76,7 @@
             <label class="toggle-label">
               <span class="toggle-text">Dummy Data</span>
               <label class="toggle">
-                <input type="checkbox" id="dummyDataToggle" checked>
+                <input type="checkbox" id="dummyDataToggle">
                 <span class="toggle-slider"></span>
               </label>
             </label>
