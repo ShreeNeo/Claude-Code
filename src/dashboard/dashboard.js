@@ -338,6 +338,9 @@ async function loadData() {
       }
     }
 
+    // Update allSessions for AI insights
+    allSessions = currentStats.sessions || [];
+
     // Update all sections
     console.log('Updating overview...');
     updateOverview(currentStats);
