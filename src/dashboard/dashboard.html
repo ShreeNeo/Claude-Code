@@ -195,6 +195,50 @@
             </div>
           </div>
 
+          <!-- Today's Activity -->
+          <div class="today-activity-container">
+            <div class="today-activity-header">
+              <h3 class="section-title">
+                <span>📅</span>
+                <span>Today's Activity</span>
+              </h3>
+              <span class="last-updated" id="todayStatsLastUpdated">Just now</span>
+            </div>
+
+            <div class="today-stats-grid">
+              <div class="today-stat-card">
+                <div class="stat-card-icon">⏱️</div>
+                <div class="stat-card-content">
+                  <div class="stat-card-value" id="todayTotalTime">0h 0m</div>
+                  <div class="stat-card-label">Total Time Tracked</div>
+                </div>
+              </div>
+
+              <div class="today-stat-card">
+                <div class="stat-card-icon">🌐</div>
+                <div class="stat-card-content">
+                  <div class="stat-card-value" id="todaySitesVisited">0</div>
+                  <div class="stat-card-label">Sites Visited</div>
+                </div>
+              </div>
+
+              <div class="today-stat-card">
+                <div class="stat-card-icon">📊</div>
+                <div class="stat-card-content">
+                  <div class="stat-card-value" id="todaySessionsCount">0</div>
+                  <div class="stat-card-label">Sessions</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="top-sites-today">
+              <h4 class="subsection-title">Top Sites Today</h4>
+              <div id="topSitesTodayList" class="top-sites-list">
+                <div class="loading">Loading...</div>
+              </div>
+            </div>
+          </div>
+
           <!-- AI Smart Insights -->
           <div class="insights-container">
             <h3 class="insights-title">AI Smart Insights & Recommendations</h3>

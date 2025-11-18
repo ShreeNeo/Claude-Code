@@ -111,8 +111,12 @@ async function initialize() {
   updateSetupStatusCards();
   await loadTagsForFilter();
   await loadData();
+  await loadTodayActivity(); // Load today's real-time stats
   console.log('Dashboard initialized. Current stats:', currentStats);
   console.log('Dummy data enabled:', useDummyData);
+
+  // Refresh today's stats every 30 seconds
+  setInterval(loadTodayActivity, 30000);
 }
 
 /**
@@ -275,6 +279,19 @@ function setupEventListeners() {
   document.getElementById('manageTagsBtn').addEventListener('click', openTagsModal);
   document.getElementById('filterByTag').addEventListener('change', filterEntriesByTag);
   document.getElementById('entriesSearch').addEventListener('input', filterEntriesTable);
+
+  // Pomodoro timer controls
+  const startPomodoroBtn = document.getElementById('startPomodoroBtn');
+  const pausePomodoroBtn = document.getElementById('pausePomodoroBtn');
+  const resetPomodoroBtn = document.getElementById('resetPomodoroBtn');
+  const minimizePomodoroBtn = document.getElementById('minimizePomodoro');
+  const closePomodoroBtn = document.getElementById('closePomodoro');
+
+  if (startPomodoroBtn) startPomodoroBtn.addEventListener('click', startPomodoro);
+  if (pausePomodoroBtn) pausePomodoroBtn.addEventListener('click', pausePomodoro);
+  if (resetPomodoroBtn) resetPomodoroBtn.addEventListener('click', resetPomodoro);
+  if (minimizePomodoroBtn) minimizePomodoroBtn.addEventListener('click', minimizePomodoroWidget);
+  if (closePomodoroBtn) closePomodoroBtn.addEventListener('click', hidePomodoroWidget);
 
   // Modal close buttons
   document.getElementById('closeTimeEntryModal').addEventListener('click', closeTimeEntryModal);
@@ -2891,8 +2908,8 @@ function updateFocusStatsUI() {
   // Calculate total time including current session
   let totalMinutes = pomodoroState.stats.todayFocusMinutes || 0;
 
-  // If there's an active work session, add elapsed time
-  if (pomodoroState.isRunning && pomodoroState.sessionType === 'work') {
+  // If there's an active or paused work session, add elapsed time
+  if ((pomodoroState.isRunning || pomodoroState.isPaused) && pomodoroState.sessionType === 'work') {
     const workDuration = pomodoroState.settings.workDuration;
     const elapsed = workDuration - Math.floor(pomodoroState.timeRemaining / 60);
     totalMinutes += elapsed;
@@ -2937,6 +2954,113 @@ async function saveFocusStats() {
 }
 
 /**
+ * Load today's activity (real-time stats)
+ */
+async function loadTodayActivity() {
+  try {
+    const db = await openDatabase();
+    if (!db) {
+      console.log('Database not available for today\'s stats');
+      return;
+    }
+
+    // Get today's start and end time
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const todayStart = today.getTime();
+    const todayEnd = new Date().getTime();
+
+    // Fetch today's sessions
+    const sessions = await getSessionsFromDB(db, todayStart, todayEnd);
+
+    if (!sessions || sessions.length === 0) {
+      // No data for today
+      document.getElementById('todayTotalTime').textContent = '0h 0m';
+      document.getElementById('todaySitesVisited').textContent = '0';
+      document.getElementById('todaySessionsCount').textContent = '0';
+      document.getElementById('topSitesTodayList').innerHTML = '<div class="no-data">No activity tracked today yet</div>';
+      updateLastUpdatedTime();
+      return;
+    }
+
+    // Calculate total time
+    const totalTime = sessions.reduce((sum, s) => sum + (s.duration || 0), 0);
+    const hours = Math.floor(totalTime / (1000 * 60 * 60));
+    const minutes = Math.floor((totalTime % (1000 * 60 * 60)) / (1000 * 60));
+
+    // Count unique sites
+    const uniqueSites = new Set(sessions.map(s => s.domain)).size;
+
+    // Update stats
+    document.getElementById('todayTotalTime').textContent = `${hours}h ${minutes}m`;
+    document.getElementById('todaySitesVisited').textContent = uniqueSites;
+    document.getElementById('todaySessionsCount').textContent = sessions.length;
+
+    // Calculate top 3 sites
+    const domainMap = {};
+    sessions.forEach(session => {
+      if (!domainMap[session.domain]) {
+        domainMap[session.domain] = {
+          domain: session.domain,
+          category: session.category || 'Uncategorized',
+          time: 0,
+          visits: 0
+        };
+      }
+      domainMap[session.domain].time += session.duration;
+      domainMap[session.domain].visits++;
+    });
+
+    const topSites = Object.values(domainMap)
+      .sort((a, b) => b.time - a.time)
+      .slice(0, 3);
+
+    // Display top sites
+    const topSitesList = document.getElementById('topSitesTodayList');
+    if (topSites.length === 0) {
+      topSitesList.innerHTML = '<div class="no-data">No sites tracked yet</div>';
+    } else {
+      topSitesList.innerHTML = topSites.map((site, index) => {
+        const siteHours = Math.floor(site.time / (1000 * 60 * 60));
+        const siteMinutes = Math.floor((site.time % (1000 * 60 * 60)) / (1000 * 60));
+        const timeStr = siteHours > 0 ? `${siteHours}h ${siteMinutes}m` : `${siteMinutes}m`;
+
+        return `
+          <div class="top-site-item">
+            <div class="top-site-rank">${index + 1}</div>
+            <div class="top-site-info">
+              <div class="top-site-domain">${site.domain}</div>
+              <div class="top-site-category">${site.category}</div>
+            </div>
+            <div class="top-site-stats">
+              <div class="top-site-time">${timeStr}</div>
+              <div class="top-site-visits">${site.visits} visits</div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    updateLastUpdatedTime();
+
+  } catch (error) {
+    console.error('Error loading today\'s activity:', error);
+  }
+}
+
+/**
+ * Update last updated time
+ */
+function updateLastUpdatedTime() {
+  const now = new Date();
+  const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+  const lastUpdatedEl = document.getElementById('todayStatsLastUpdated');
+  if (lastUpdatedEl) {
+    lastUpdatedEl.textContent = `Updated ${timeStr}`;
+  }
+}
+
+/**
  * Show Pomodoro widget
  */
 function showPomodoroWidget() {
@@ -2953,6 +3077,16 @@ function hidePomodoroWidget() {
   const widget = document.getElementById('pomodoroWidget');
   if (widget) {
     widget.style.display = 'none';
+  }
+}
+
+/**
+ * Minimize Pomodoro widget
+ */
+function minimizePomodoroWidget() {
+  const widget = document.getElementById('pomodoroWidget');
+  if (widget) {
+    widget.classList.toggle('minimized');
   }
 }
 

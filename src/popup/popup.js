@@ -331,8 +331,8 @@ async function updateTimeToday() {
 
     let totalMinutes = todayStats.focusMinutes || 0;
 
-    // If there's an active work session, add elapsed time
-    if (pomodoroState && pomodoroState.isRunning && pomodoroState.sessionType === 'work') {
+    // If there's an active or paused work session, add elapsed time
+    if (pomodoroState && (pomodoroState.isRunning || pomodoroState.isPaused) && pomodoroState.sessionType === 'work') {
       const workDuration = pomodoroState.settings.workDuration;
       const elapsed = workDuration - Math.floor(pomodoroState.timeRemaining / 60);
       totalMinutes += elapsed;
