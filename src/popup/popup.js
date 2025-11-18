@@ -36,7 +36,6 @@ let currentSession = null;
 let isPaused = false;
 let updateInterval = null;
 let pomodoroState = null;
-let pomodoroInterval = null;
 
 /**
  * Formats milliseconds to time string
@@ -258,33 +257,24 @@ async function loadState() {
 // ============================================
 
 /**
- * Loads Pomodoro state from Chrome storage
+ * Loads Pomodoro state from service worker
  */
 async function loadPomodoroState() {
   try {
     const result = await chrome.storage.sync.get(['focusModeEnabled']);
-    const statsResult = await chrome.storage.local.get(['focusStats', 'pomodoroState']);
 
     // Show Pomodoro section if focus mode is enabled
     if (result.focusModeEnabled && pomodoroSection) {
       pomodoroSection.style.display = 'block';
 
-      // Load Pomodoro state
-      pomodoroState = statsResult.pomodoroState || {
-        isRunning: false,
-        timeRemaining: 25 * 60,
-        sessionType: 'work',
-        currentSession: 1,
-        completedSessions: 0,
-        settings: {
-          workDuration: 25,
-          shortBreak: 5,
-          longBreak: 15,
-          sessionsUntilLongBreak: 4
-        }
-      };
+      // Get state from service worker
+      const response = await chrome.runtime.sendMessage({ type: 'getPomodoroState' });
+      if (response.success) {
+        pomodoroState = response.state;
+      }
 
       // Load today's stats
+      const statsResult = await chrome.storage.local.get(['focusStats']);
       const focusStats = statsResult.focusStats || {};
       const today = new Date().toISOString().split('T')[0];
       const todayStats = focusStats[today] || { completedSessions: 0, focusMinutes: 0 };
@@ -295,13 +285,36 @@ async function loadPomodoroState() {
       // Update UI
       updatePomodoroDisplay();
 
-      // Start update interval if timer is running
-      if (pomodoroState.isRunning) {
-        startPomodoroUpdateInterval();
-      }
+      // Listen for updates from service worker
+      chrome.runtime.onMessage.addListener((message) => {
+        if (message.type === 'pomodoroUpdate') {
+          pomodoroState = message.state;
+          updatePomodoroDisplay();
+
+          // Update stats if they changed
+          loadTodayFocusStats();
+        }
+      });
     }
   } catch (error) {
     console.error('Error loading Pomodoro state:', error);
+  }
+}
+
+/**
+ * Load today's focus stats
+ */
+async function loadTodayFocusStats() {
+  try {
+    const statsResult = await chrome.storage.local.get(['focusStats']);
+    const focusStats = statsResult.focusStats || {};
+    const today = new Date().toISOString().split('T')[0];
+    const todayStats = focusStats[today] || { completedSessions: 0, focusMinutes: 0 };
+
+    popupSessionsToday.textContent = todayStats.completedSessions || 0;
+    popupTimeToday.textContent = `${todayStats.focusMinutes || 0}m`;
+  } catch (error) {
+    console.error('Error loading focus stats:', error);
   }
 }
 
@@ -342,146 +355,45 @@ function updatePomodoroDisplay() {
  * Start Pomodoro timer
  */
 async function startPomodoro() {
-  if (!pomodoroState) return;
-
-  pomodoroState.isRunning = true;
-  await savePomodoroState();
-  updatePomodoroDisplay();
-  startPomodoroUpdateInterval();
-
-  // Notify dashboard
-  chrome.runtime.sendMessage({ type: 'pomodoroAction', action: 'start' });
+  try {
+    const response = await chrome.runtime.sendMessage({ type: 'startPomodoro' });
+    if (response.success) {
+      pomodoroState = response.state;
+      updatePomodoroDisplay();
+    }
+  } catch (error) {
+    console.error('Error starting Pomodoro:', error);
+  }
 }
 
 /**
  * Pause Pomodoro timer
  */
 async function pausePomodoro() {
-  if (!pomodoroState) return;
-
-  pomodoroState.isRunning = false;
-  await savePomodoroState();
-  updatePomodoroDisplay();
-  stopPomodoroUpdateInterval();
-
-  // Notify dashboard
-  chrome.runtime.sendMessage({ type: 'pomodoroAction', action: 'pause' });
+  try {
+    const response = await chrome.runtime.sendMessage({ type: 'pausePomodoro' });
+    if (response.success) {
+      pomodoroState = response.state;
+      updatePomodoroDisplay();
+    }
+  } catch (error) {
+    console.error('Error pausing Pomodoro:', error);
+  }
 }
 
 /**
  * Reset Pomodoro timer
  */
 async function resetPomodoro() {
-  if (!pomodoroState) return;
-
-  pomodoroState.isRunning = false;
-  pomodoroState.sessionType = 'work';
-  pomodoroState.timeRemaining = pomodoroState.settings.workDuration * 60;
-  await savePomodoroState();
-  updatePomodoroDisplay();
-  stopPomodoroUpdateInterval();
-
-  // Notify dashboard
-  chrome.runtime.sendMessage({ type: 'pomodoroAction', action: 'reset' });
-}
-
-/**
- * Save Pomodoro state
- */
-async function savePomodoroState() {
   try {
-    await chrome.storage.local.set({ pomodoroState });
-  } catch (error) {
-    console.error('Error saving Pomodoro state:', error);
-  }
-}
-
-/**
- * Start update interval
- */
-function startPomodoroUpdateInterval() {
-  if (pomodoroInterval) return;
-
-  pomodoroInterval = setInterval(async () => {
-    if (pomodoroState && pomodoroState.isRunning && pomodoroState.timeRemaining > 0) {
-      pomodoroState.timeRemaining--;
+    const response = await chrome.runtime.sendMessage({ type: 'resetPomodoro' });
+    if (response.success) {
+      pomodoroState = response.state;
       updatePomodoroDisplay();
-
-      // Save state every 10 seconds
-      if (pomodoroState.timeRemaining % 10 === 0) {
-        await savePomodoroState();
-      }
-
-      // Session complete
-      if (pomodoroState.timeRemaining === 0) {
-        await handleSessionComplete();
-      }
     }
-  }, 1000);
-}
-
-/**
- * Stop update interval
- */
-function stopPomodoroUpdateInterval() {
-  if (pomodoroInterval) {
-    clearInterval(pomodoroInterval);
-    pomodoroInterval = null;
+  } catch (error) {
+    console.error('Error resetting Pomodoro:', error);
   }
-}
-
-/**
- * Handle session complete
- */
-async function handleSessionComplete() {
-  if (!pomodoroState) return;
-
-  pomodoroState.isRunning = false;
-
-  if (pomodoroState.sessionType === 'work') {
-    // Work session completed
-    pomodoroState.completedSessions++;
-
-    // Update stats
-    const result = await chrome.storage.local.get(['focusStats']);
-    const focusStats = result.focusStats || {};
-    const today = new Date().toISOString().split('T')[0];
-
-    if (!focusStats[today]) {
-      focusStats[today] = { completedSessions: 0, focusMinutes: 0, blockedSites: 0 };
-    }
-
-    focusStats[today].completedSessions++;
-    focusStats[today].focusMinutes += pomodoroState.settings.workDuration;
-
-    await chrome.storage.local.set({ focusStats });
-
-    // Update display
-    popupSessionsToday.textContent = focusStats[today].completedSessions;
-    popupTimeToday.textContent = `${focusStats[today].focusMinutes}m`;
-
-    // Determine next session
-    if (pomodoroState.completedSessions >= pomodoroState.settings.sessionsUntilLongBreak) {
-      pomodoroState.sessionType = 'longBreak';
-      pomodoroState.timeRemaining = pomodoroState.settings.longBreak * 60;
-      pomodoroState.completedSessions = 0;
-    } else {
-      pomodoroState.sessionType = 'shortBreak';
-      pomodoroState.timeRemaining = pomodoroState.settings.shortBreak * 60;
-    }
-  } else {
-    // Break completed
-    pomodoroState.sessionType = 'work';
-    pomodoroState.timeRemaining = pomodoroState.settings.workDuration * 60;
-    pomodoroState.currentSession++;
-  }
-
-  await savePomodoroState();
-  updatePomodoroDisplay();
-  stopPomodoroUpdateInterval();
-
-  // Notify dashboard
-  chrome.runtime.sendMessage({ type: 'pomodoroAction', action: 'complete' });
 }
 
 /**
@@ -540,9 +452,6 @@ async function initialize() {
 window.addEventListener('unload', () => {
   if (updateInterval) {
     clearInterval(updateInterval);
-  }
-  if (pomodoroInterval) {
-    clearInterval(pomodoroInterval);
   }
 });
 

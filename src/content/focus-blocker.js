@@ -3,27 +3,40 @@
  * Runs at document_start to block sites immediately
  */
 
-(async function() {
-  try {
-    // Get current URL
-    const currentUrl = window.location.href;
+(function() {
+  'use strict';
 
-    // Check if this URL should be blocked
-    const response = await chrome.runtime.sendMessage({
-      type: 'checkBlockedUrl',
-      url: currentUrl
-    });
+  const currentUrl = window.location.href;
 
-    if (response && response.shouldBlock) {
-      // Immediately redirect to block page
-      const blockPageUrl = chrome.runtime.getURL(`blocked.html?url=${encodeURIComponent(currentUrl)}`);
-      window.location.replace(blockPageUrl);
-
-      // Stop page execution
-      window.stop();
-    }
-  } catch (error) {
-    // Silently fail if extension context is invalid
-    console.error('Focus blocker error:', error);
+  // Skip chrome:// and extension URLs
+  if (currentUrl.startsWith('chrome://') || currentUrl.startsWith('chrome-extension://')) {
+    return;
   }
+
+  // Function to check and block
+  async function checkAndBlock() {
+    try {
+      const response = await chrome.runtime.sendMessage({
+        type: 'checkBlockedUrl',
+        url: currentUrl
+      });
+
+      if (response && response.shouldBlock) {
+        // Block the page immediately
+        const blockPageUrl = chrome.runtime.getURL(`blocked.html?url=${encodeURIComponent(currentUrl)}`);
+
+        // Stop page loading
+        window.stop();
+
+        // Replace location
+        window.location.replace(blockPageUrl);
+      }
+    } catch (error) {
+      // Silently fail if extension context is invalid
+      console.error('Focus blocker error:', error);
+    }
+  }
+
+  // Check immediately
+  checkAndBlock();
 })();

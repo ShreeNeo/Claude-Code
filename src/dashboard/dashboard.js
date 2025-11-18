@@ -2760,16 +2760,15 @@ window.removeTag = async function(tagName) {
 // ============================================
 
 /**
- * Pomodoro Timer State
+ * Pomodoro Timer State (synced with service worker)
  */
-const pomodoroState = {
+let pomodoroState = {
   isRunning: false,
   isPaused: false,
   timeRemaining: 25 * 60, // seconds
   sessionType: 'work', // 'work', 'shortBreak', 'longBreak'
   currentSession: 1,
   completedSessions: 0,
-  timer: null,
   settings: {
     workDuration: 25,
     shortBreak: 5,
@@ -2837,6 +2836,22 @@ async function initFocusMode() {
     // Show Pomodoro widget if focus mode is enabled
     if (result.focusModeEnabled) {
       showPomodoroWidget();
+
+      // Load Pomodoro state from service worker
+      const pomodoroResponse = await chrome.runtime.sendMessage({ type: 'getPomodoroState' });
+      if (pomodoroResponse.success) {
+        pomodoroState = pomodoroResponse.state;
+        updateTimerDisplay();
+      }
+
+      // Listen for Pomodoro updates from service worker
+      chrome.runtime.onMessage.addListener((message) => {
+        if (message.type === 'pomodoroUpdate') {
+          pomodoroState = message.state;
+          updateTimerDisplay();
+          loadFocusStats(); // Reload stats in case they changed
+        }
+      });
     }
 
   } catch (error) {
@@ -2993,124 +3008,46 @@ function initPomodoroTimer() {
 /**
  * Start Pomodoro timer
  */
-function startPomodoro() {
-  pomodoroState.isRunning = true;
-  pomodoroState.isPaused = false;
-
-  // Update UI
-  document.getElementById('startPomodoroBtn').style.display = 'none';
-  document.getElementById('pausePomodoroBtn').style.display = 'flex';
-
-  // Start countdown
-  pomodoroState.timer = setInterval(() => {
-    pomodoroState.timeRemaining--;
-
-    if (pomodoroState.timeRemaining <= 0) {
-      completeSession();
-    } else {
+async function startPomodoro() {
+  try {
+    const response = await chrome.runtime.sendMessage({ type: 'startPomodoro' });
+    if (response.success) {
+      pomodoroState = response.state;
       updateTimerDisplay();
     }
-  }, 1000);
-
-  updateTimerDisplay();
+  } catch (error) {
+    console.error('Error starting Pomodoro:', error);
+  }
 }
 
 /**
  * Pause Pomodoro timer
  */
-function pausePomodoro() {
-  pomodoroState.isRunning = false;
-  pomodoroState.isPaused = true;
-
-  if (pomodoroState.timer) {
-    clearInterval(pomodoroState.timer);
-    pomodoroState.timer = null;
+async function pausePomodoro() {
+  try {
+    const response = await chrome.runtime.sendMessage({ type: 'pausePomodoro' });
+    if (response.success) {
+      pomodoroState = response.state;
+      updateTimerDisplay();
+    }
+  } catch (error) {
+    console.error('Error pausing Pomodoro:', error);
   }
-
-  // Update UI
-  document.getElementById('startPomodoroBtn').style.display = 'flex';
-  document.getElementById('pausePomodoroBtn').style.display = 'none';
-  document.getElementById('startPomodoroBtn').innerHTML = '<span>▶</span><span>Resume</span>';
 }
 
 /**
  * Reset Pomodoro timer
  */
-function resetPomodoro() {
-  pomodoroState.isRunning = false;
-  pomodoroState.isPaused = false;
-
-  if (pomodoroState.timer) {
-    clearInterval(pomodoroState.timer);
-    pomodoroState.timer = null;
-  }
-
-  // Reset to work session
-  pomodoroState.sessionType = 'work';
-  pomodoroState.timeRemaining = pomodoroState.settings.workDuration * 60;
-
-  // Update UI
-  document.getElementById('startPomodoroBtn').style.display = 'flex';
-  document.getElementById('pausePomodoroBtn').style.display = 'none';
-  document.getElementById('startPomodoroBtn').innerHTML = '<span>▶</span><span>Start</span>';
-
-  updateTimerDisplay();
-}
-
-/**
- * Complete current session
- */
-async function completeSession() {
-  // Stop timer
-  if (pomodoroState.timer) {
-    clearInterval(pomodoroState.timer);
-    pomodoroState.timer = null;
-  }
-
-  // Play notification sound
-  playNotificationSound();
-
-  // Show notification
-  if (pomodoroState.sessionType === 'work') {
-    // Work session completed
-    pomodoroState.completedSessions++;
-    pomodoroState.stats.todayCompletedSessions++;
-    pomodoroState.stats.todayFocusMinutes += pomodoroState.settings.workDuration;
-
-    await saveFocusStats();
-    updateFocusStatsUI();
-
-    // Send notification
-    sendNotification('Work Session Complete!', 'Great job! Time for a break.');
-
-    // Determine next session type
-    if (pomodoroState.completedSessions >= pomodoroState.settings.sessionsUntilLongBreak) {
-      // Long break
-      pomodoroState.sessionType = 'longBreak';
-      pomodoroState.timeRemaining = pomodoroState.settings.longBreak * 60;
-      pomodoroState.completedSessions = 0;
-    } else {
-      // Short break
-      pomodoroState.sessionType = 'shortBreak';
-      pomodoroState.timeRemaining = pomodoroState.settings.shortBreak * 60;
+async function resetPomodoro() {
+  try {
+    const response = await chrome.runtime.sendMessage({ type: 'resetPomodoro' });
+    if (response.success) {
+      pomodoroState = response.state;
+      updateTimerDisplay();
     }
-  } else {
-    // Break completed
-    sendNotification('Break Complete!', 'Ready to focus? Let\'s get back to work!');
-
-    // Back to work
-    pomodoroState.sessionType = 'work';
-    pomodoroState.timeRemaining = pomodoroState.settings.workDuration * 60;
-    pomodoroState.currentSession++;
+  } catch (error) {
+    console.error('Error resetting Pomodoro:', error);
   }
-
-  // Reset UI
-  pomodoroState.isRunning = false;
-  document.getElementById('startPomodoroBtn').style.display = 'flex';
-  document.getElementById('pausePomodoroBtn').style.display = 'none';
-  document.getElementById('startPomodoroBtn').innerHTML = '<span>▶</span><span>Start</span>';
-
-  updateTimerDisplay();
 }
 
 /**
