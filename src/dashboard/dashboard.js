@@ -280,19 +280,6 @@ function setupEventListeners() {
   document.getElementById('filterByTag').addEventListener('change', filterEntriesByTag);
   document.getElementById('entriesSearch').addEventListener('input', filterEntriesTable);
 
-  // Pomodoro timer controls
-  const startPomodoroBtn = document.getElementById('startPomodoroBtn');
-  const pausePomodoroBtn = document.getElementById('pausePomodoroBtn');
-  const resetPomodoroBtn = document.getElementById('resetPomodoroBtn');
-  const minimizePomodoroBtn = document.getElementById('minimizePomodoro');
-  const closePomodoroBtn = document.getElementById('closePomodoro');
-
-  if (startPomodoroBtn) startPomodoroBtn.addEventListener('click', startPomodoro);
-  if (pausePomodoroBtn) pausePomodoroBtn.addEventListener('click', pausePomodoro);
-  if (resetPomodoroBtn) resetPomodoroBtn.addEventListener('click', resetPomodoro);
-  if (minimizePomodoroBtn) minimizePomodoroBtn.addEventListener('click', minimizePomodoroWidget);
-  if (closePomodoroBtn) closePomodoroBtn.addEventListener('click', hidePomodoroWidget);
-
   // Modal close buttons
   document.getElementById('closeTimeEntryModal').addEventListener('click', closeTimeEntryModal);
   document.getElementById('cancelTimeEntry').addEventListener('click', closeTimeEntryModal);
@@ -2854,6 +2841,9 @@ async function initFocusMode() {
     if (result.focusModeEnabled) {
       showPomodoroWidget();
 
+      // Attach Pomodoro event listeners after widget is shown
+      attachPomodoroEventListeners();
+
       // Load Pomodoro state from service worker
       const pomodoroResponse = await chrome.runtime.sendMessage({ type: 'getPomodoroState' });
       if (pomodoroResponse.success) {
@@ -3057,6 +3047,38 @@ function updateLastUpdatedTime() {
   const lastUpdatedEl = document.getElementById('todayStatsLastUpdated');
   if (lastUpdatedEl) {
     lastUpdatedEl.textContent = `Updated ${timeStr}`;
+  }
+}
+
+/**
+ * Attach Pomodoro event listeners
+ */
+function attachPomodoroEventListeners() {
+  const startPomodoroBtn = document.getElementById('startPomodoroBtn');
+  const pausePomodoroBtn = document.getElementById('pausePomodoroBtn');
+  const resetPomodoroBtn = document.getElementById('resetPomodoroBtn');
+  const minimizePomodoroBtn = document.getElementById('minimizePomodoro');
+  const closePomodoroBtn = document.getElementById('closePomodoro');
+
+  if (startPomodoroBtn) {
+    startPomodoroBtn.addEventListener('click', startPomodoro);
+    console.log('Start Pomodoro button listener attached');
+  }
+  if (pausePomodoroBtn) {
+    pausePomodoroBtn.addEventListener('click', pausePomodoro);
+    console.log('Pause Pomodoro button listener attached');
+  }
+  if (resetPomodoroBtn) {
+    resetPomodoroBtn.addEventListener('click', resetPomodoro);
+    console.log('Reset Pomodoro button listener attached');
+  }
+  if (minimizePomodoroBtn) {
+    minimizePomodoroBtn.addEventListener('click', minimizePomodoroWidget);
+    console.log('Minimize Pomodoro button listener attached');
+  }
+  if (closePomodoroBtn) {
+    closePomodoroBtn.addEventListener('click', hidePomodoroWidget);
+    console.log('Close Pomodoro button listener attached');
   }
 }
 

@@ -106,41 +106,68 @@ function updateCurrentSession() {
 }
 
 /**
- * Loads and displays today's stats
+ * Loads and displays today's stats from IndexedDB
  */
 async function loadTodayStats() {
   try {
-    // Get today's sessions from storage
-    const startOfDay = new Date();
-    startOfDay.setHours(0, 0, 0, 0);
-    const endOfDay = new Date();
-    endOfDay.setHours(23, 59, 59, 999);
+    // Get today's start and end time
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const todayStart = today.getTime();
+    const todayEnd = new Date().getTime();
 
-    // Since we can't directly import from background script, we'll use messaging
-    // For now, we'll calculate from the current session
-    // In a real implementation, you'd fetch this from the background script
-
-    // Placeholder stats
-    let totalTime = 0;
-    let sessionCount = 0;
-    let productivityScore = 0;
-    let topSites = [];
-
-    // This would normally be fetched from background script
-    // For demo purposes, we'll show current session if available
-    if (currentSession) {
-      const now = Date.now();
-      totalTime = now - currentSession.startTime;
-      sessionCount = 1;
-      productivityScore = 75; // Placeholder
-
-      topSites = [{
-        domain: currentSession.domain,
-        time: totalTime,
-        percentage: 100,
-        category: currentSession.category || 'Other'
-      }];
+    // Open IndexedDB
+    const db = await openDatabase();
+    if (!db) {
+      console.log('Database not available');
+      showEmptyStats();
+      return;
     }
+
+    // Fetch today's sessions
+    const sessions = await getSessionsFromDB(db, todayStart, todayEnd);
+
+    if (!sessions || sessions.length === 0) {
+      showEmptyStats();
+      return;
+    }
+
+    // Calculate total time
+    const totalTime = sessions.reduce((sum, s) => sum + (s.duration || 0), 0);
+    const sessionCount = sessions.length;
+
+    // Calculate productivity score (percentage of productive time)
+    const productiveCategories = ['Development', 'Work & Productivity', 'Design', 'Education'];
+    const productiveTime = sessions
+      .filter(s => productiveCategories.includes(s.category))
+      .reduce((sum, s) => sum + (s.duration || 0), 0);
+    const productivityScore = totalTime > 0 ? Math.round((productiveTime / totalTime) * 100) : 0;
+
+    // Calculate top 3 sites
+    const domainMap = {};
+    sessions.forEach(session => {
+      if (!domainMap[session.domain]) {
+        domainMap[session.domain] = {
+          domain: session.domain,
+          category: session.category || 'Uncategorized',
+          time: 0,
+          visits: 0
+        };
+      }
+      domainMap[session.domain].time += session.duration;
+      domainMap[session.domain].visits++;
+    });
+
+    const topSites = Object.values(domainMap)
+      .sort((a, b) => b.time - a.time)
+      .slice(0, 3)
+      .map(site => ({
+        domain: site.domain,
+        category: site.category,
+        time: site.time,
+        visits: site.visits,
+        percentage: totalTime > 0 ? (site.time / totalTime) * 100 : 0
+      }));
 
     // Update stats display
     todayTotal.textContent = formatShortDuration(totalTime);
@@ -157,6 +184,71 @@ async function loadTodayStats() {
 }
 
 /**
+ * Show empty state for stats
+ */
+function showEmptyStats() {
+  todayTotal.textContent = '0h 0m';
+  todaySessions.textContent = '0';
+  todayProductivity.textContent = '—';
+  todayProductivity.className = 'stat-value';
+  topSitesList.innerHTML = `
+    <div class="empty-state">
+      <div class="empty-state-icon">📊</div>
+      <div class="empty-state-text">No data yet. Start browsing!</div>
+    </div>
+  `;
+}
+
+/**
+ * Open IndexedDB database
+ */
+function openDatabase() {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open('NeramDB', 2);
+
+    request.onerror = (event) => {
+      console.error('Failed to open database:', event.target.error);
+      resolve(null);
+    };
+
+    request.onsuccess = () => {
+      resolve(request.result);
+    };
+
+    request.onupgradeneeded = (event) => {
+      console.log('Database upgrade triggered in popup');
+    };
+  });
+}
+
+/**
+ * Get sessions from IndexedDB
+ */
+function getSessionsFromDB(db, startTime, endTime) {
+  return new Promise((resolve, reject) => {
+    try {
+      const transaction = db.transaction(['sessions'], 'readonly');
+      const store = transaction.objectStore('sessions');
+      const index = store.index('startTime');
+      const range = IDBKeyRange.bound(startTime, endTime);
+      const request = index.getAll(range);
+
+      request.onsuccess = () => {
+        resolve(request.result || []);
+      };
+
+      request.onerror = () => {
+        console.error('Error fetching sessions from DB');
+        resolve([]);
+      };
+    } catch (error) {
+      console.error('Error accessing database:', error);
+      resolve([]);
+    }
+  });
+}
+
+/**
  * Updates top sites list
  */
 function updateTopSitesList(sites) {
@@ -170,7 +262,7 @@ function updateTopSitesList(sites) {
     return;
   }
 
-  topSitesList.innerHTML = sites.slice(0, 5).map((site, index) => `
+  topSitesList.innerHTML = sites.map((site, index) => `
     <div class="site-item">
       <div class="site-rank">${index + 1}</div>
       <div class="site-info">
