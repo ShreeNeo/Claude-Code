@@ -32,7 +32,7 @@ let customEndDate = null;
 let allSessions = [];
 let currentStats = null;
 let charts = {};
-let useDummyData = true;
+let useDummyData = false;
 let employeeProfile = {};
 let currentMeetings = [];
 let currentGitHubActivities = [];
@@ -286,6 +286,20 @@ function setupEventListeners() {
   // Form submissions
   document.getElementById('timeEntryForm').addEventListener('submit', handleTimeEntrySubmit);
   document.getElementById('addTagBtn').addEventListener('click', handleAddTag);
+
+  // Event delegation for edit and delete buttons in time entries table
+  document.getElementById('entriesTableBody').addEventListener('click', async (e) => {
+    const editBtn = e.target.closest('.btn-edit-entry');
+    const deleteBtn = e.target.closest('.btn-delete-entry');
+
+    if (editBtn) {
+      const entryId = parseInt(editBtn.dataset.entryId) || editBtn.dataset.entryId;
+      await editEntry(entryId);
+    } else if (deleteBtn) {
+      const entryId = parseInt(deleteBtn.dataset.entryId);
+      await deleteEntry(entryId);
+    }
+  });
 }
 
 /**
@@ -2397,9 +2411,10 @@ function updateTimeEntriesTable(filteredEntries = null) {
       type = '<span class="badge badge-neutral">Auto</span>';
     }
 
+    const entryIdentifier = entry.id || entry.startTime;
     const actions = `
-      <button onclick="editEntry(${entry.id || entry.startTime})" class="btn btn-secondary" style="padding: 4px 8px; font-size: 12px;">✏️ Edit</button>
-      ${entry.isManual ? `<button onclick="deleteEntry(${entry.id})" class="btn btn-danger" style="padding: 4px 8px; font-size: 12px; margin-left: 4px;">🗑️ Delete</button>` : ''}
+      <button class="btn-edit-entry btn btn-secondary" data-entry-id="${entryIdentifier}" style="padding: 4px 8px; font-size: 12px;">✏️ Edit</button>
+      ${entry.isManual ? `<button class="btn-delete-entry btn btn-danger" data-entry-id="${entry.id}" style="padding: 4px 8px; font-size: 12px; margin-left: 4px;">🗑️ Delete</button>` : ''}
     `;
 
     return `<tr>
@@ -2432,7 +2447,7 @@ function openAddEntryModal() {
 /**
  * Open edit entry modal
  */
-window.editEntry = async function(entryId) {
+async function editEntry(entryId) {
   console.log('Edit entry called with ID:', entryId);
 
   // Find the entry
@@ -2470,7 +2485,7 @@ window.editEntry = async function(entryId) {
 /**
  * Delete entry
  */
-window.deleteEntry = async function(entryId) {
+async function deleteEntry(entryId) {
   if (!confirm('Are you sure you want to delete this entry?')) {
     return;
   }
