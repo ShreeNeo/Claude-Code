@@ -810,6 +810,9 @@ function updateOverview(stats) {
     document.getElementById('focusChange').textContent = 'No data';
     document.getElementById('sessionChange').textContent = 'No data';
   }
+
+  // Update AI insights
+  updateInsights();
 }
 
 /**
@@ -1168,13 +1171,27 @@ function updateInsights() {
     });
   }
 
+  // Update Analytics page insights
   const insightsList = document.getElementById('insightsList');
-  insightsList.innerHTML = insights.map(insight => `
-    <div class="insight-item ${insight.type}">
-      <div class="insight-title">${insight.title}</div>
-      <div class="insight-message">${insight.message}</div>
-    </div>
-  `).join('');
+  if (insightsList) {
+    insightsList.innerHTML = insights.map(insight => `
+      <div class="insight-item insight-${insight.type}">
+        <div class="insight-title">${insight.title}</div>
+        <div class="insight-message">${insight.message}</div>
+      </div>
+    `).join('');
+  }
+
+  // Update Overview page insights
+  const overviewInsightsList = document.getElementById('overviewInsightsList');
+  if (overviewInsightsList) {
+    overviewInsightsList.innerHTML = insights.map(insight => `
+      <div class="insight-item insight-${insight.type}">
+        <div class="insight-title">${insight.title}</div>
+        <div class="insight-message">${insight.message}</div>
+      </div>
+    `).join('');
+  }
 }
 
 /**

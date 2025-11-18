@@ -1391,6 +1391,31 @@ textarea.form-input {
   line-height: 1.6;
 }
 
+.insight-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 6px;
+}
+
+.insight-message {
+  font-size: 14px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+.insight-item.success {
+  border-left-color: var(--success);
+}
+
+.insight-item.warning {
+  border-left-color: var(--warning);
+}
+
+.insight-item.info {
+  border-left-color: var(--info);
+}
+
 /* ============================================
    CALENDAR & GITHUB STATUS CARDS
    ============================================ */
