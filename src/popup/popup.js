@@ -18,10 +18,25 @@ const topSitesList = document.getElementById('topSitesList');
 const dashboardBtn = document.getElementById('dashboardBtn');
 const currentSessionInfo = document.getElementById('currentSessionInfo');
 
+// Pomodoro elements
+const pomodoroSection = document.getElementById('pomodoroSection');
+const togglePomodoroBtn = document.getElementById('togglePomodoroBtn');
+const pomodoroContent = document.getElementById('pomodoroContent');
+const popupPomodoroType = document.getElementById('popupPomodoroType');
+const popupPomodoroTime = document.getElementById('popupPomodoroTime');
+const popupPomodoroSession = document.getElementById('popupPomodoroSession');
+const popupStartBtn = document.getElementById('popupStartBtn');
+const popupPauseBtn = document.getElementById('popupPauseBtn');
+const popupResetBtn = document.getElementById('popupResetBtn');
+const popupSessionsToday = document.getElementById('popupSessionsToday');
+const popupTimeToday = document.getElementById('popupTimeToday');
+
 // State
 let currentSession = null;
 let isPaused = false;
 let updateInterval = null;
+let pomodoroState = null;
+let pomodoroInterval = null;
 
 /**
  * Formats milliseconds to time string
@@ -238,6 +253,250 @@ async function loadState() {
   }
 }
 
+// ============================================
+// POMODORO TIMER FUNCTIONS
+// ============================================
+
+/**
+ * Loads Pomodoro state from Chrome storage
+ */
+async function loadPomodoroState() {
+  try {
+    const result = await chrome.storage.sync.get(['focusModeEnabled']);
+    const statsResult = await chrome.storage.local.get(['focusStats', 'pomodoroState']);
+
+    // Show Pomodoro section if focus mode is enabled
+    if (result.focusModeEnabled && pomodoroSection) {
+      pomodoroSection.style.display = 'block';
+
+      // Load Pomodoro state
+      pomodoroState = statsResult.pomodoroState || {
+        isRunning: false,
+        timeRemaining: 25 * 60,
+        sessionType: 'work',
+        currentSession: 1,
+        completedSessions: 0,
+        settings: {
+          workDuration: 25,
+          shortBreak: 5,
+          longBreak: 15,
+          sessionsUntilLongBreak: 4
+        }
+      };
+
+      // Load today's stats
+      const focusStats = statsResult.focusStats || {};
+      const today = new Date().toISOString().split('T')[0];
+      const todayStats = focusStats[today] || { completedSessions: 0, focusMinutes: 0 };
+
+      popupSessionsToday.textContent = todayStats.completedSessions || 0;
+      popupTimeToday.textContent = `${todayStats.focusMinutes || 0}m`;
+
+      // Update UI
+      updatePomodoroDisplay();
+
+      // Start update interval if timer is running
+      if (pomodoroState.isRunning) {
+        startPomodoroUpdateInterval();
+      }
+    }
+  } catch (error) {
+    console.error('Error loading Pomodoro state:', error);
+  }
+}
+
+/**
+ * Update Pomodoro display
+ */
+function updatePomodoroDisplay() {
+  if (!pomodoroState) return;
+
+  const minutes = Math.floor(pomodoroState.timeRemaining / 60);
+  const seconds = pomodoroState.timeRemaining % 60;
+
+  popupPomodoroTime.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+
+  // Update session type
+  if (pomodoroState.sessionType === 'work') {
+    popupPomodoroType.textContent = 'WORK SESSION';
+  } else if (pomodoroState.sessionType === 'shortBreak') {
+    popupPomodoroType.textContent = 'SHORT BREAK';
+  } else {
+    popupPomodoroType.textContent = 'LONG BREAK';
+  }
+
+  // Update session info
+  popupPomodoroSession.textContent = `Session ${pomodoroState.currentSession} • ${pomodoroState.completedSessions}/${pomodoroState.settings.sessionsUntilLongBreak} until long break`;
+
+  // Update button visibility
+  if (pomodoroState.isRunning) {
+    popupStartBtn.style.display = 'none';
+    popupPauseBtn.style.display = 'flex';
+  } else {
+    popupStartBtn.style.display = 'flex';
+    popupPauseBtn.style.display = 'none';
+  }
+}
+
+/**
+ * Start Pomodoro timer
+ */
+async function startPomodoro() {
+  if (!pomodoroState) return;
+
+  pomodoroState.isRunning = true;
+  await savePomodoroState();
+  updatePomodoroDisplay();
+  startPomodoroUpdateInterval();
+
+  // Notify dashboard
+  chrome.runtime.sendMessage({ type: 'pomodoroAction', action: 'start' });
+}
+
+/**
+ * Pause Pomodoro timer
+ */
+async function pausePomodoro() {
+  if (!pomodoroState) return;
+
+  pomodoroState.isRunning = false;
+  await savePomodoroState();
+  updatePomodoroDisplay();
+  stopPomodoroUpdateInterval();
+
+  // Notify dashboard
+  chrome.runtime.sendMessage({ type: 'pomodoroAction', action: 'pause' });
+}
+
+/**
+ * Reset Pomodoro timer
+ */
+async function resetPomodoro() {
+  if (!pomodoroState) return;
+
+  pomodoroState.isRunning = false;
+  pomodoroState.sessionType = 'work';
+  pomodoroState.timeRemaining = pomodoroState.settings.workDuration * 60;
+  await savePomodoroState();
+  updatePomodoroDisplay();
+  stopPomodoroUpdateInterval();
+
+  // Notify dashboard
+  chrome.runtime.sendMessage({ type: 'pomodoroAction', action: 'reset' });
+}
+
+/**
+ * Save Pomodoro state
+ */
+async function savePomodoroState() {
+  try {
+    await chrome.storage.local.set({ pomodoroState });
+  } catch (error) {
+    console.error('Error saving Pomodoro state:', error);
+  }
+}
+
+/**
+ * Start update interval
+ */
+function startPomodoroUpdateInterval() {
+  if (pomodoroInterval) return;
+
+  pomodoroInterval = setInterval(async () => {
+    if (pomodoroState && pomodoroState.isRunning && pomodoroState.timeRemaining > 0) {
+      pomodoroState.timeRemaining--;
+      updatePomodoroDisplay();
+
+      // Save state every 10 seconds
+      if (pomodoroState.timeRemaining % 10 === 0) {
+        await savePomodoroState();
+      }
+
+      // Session complete
+      if (pomodoroState.timeRemaining === 0) {
+        await handleSessionComplete();
+      }
+    }
+  }, 1000);
+}
+
+/**
+ * Stop update interval
+ */
+function stopPomodoroUpdateInterval() {
+  if (pomodoroInterval) {
+    clearInterval(pomodoroInterval);
+    pomodoroInterval = null;
+  }
+}
+
+/**
+ * Handle session complete
+ */
+async function handleSessionComplete() {
+  if (!pomodoroState) return;
+
+  pomodoroState.isRunning = false;
+
+  if (pomodoroState.sessionType === 'work') {
+    // Work session completed
+    pomodoroState.completedSessions++;
+
+    // Update stats
+    const result = await chrome.storage.local.get(['focusStats']);
+    const focusStats = result.focusStats || {};
+    const today = new Date().toISOString().split('T')[0];
+
+    if (!focusStats[today]) {
+      focusStats[today] = { completedSessions: 0, focusMinutes: 0, blockedSites: 0 };
+    }
+
+    focusStats[today].completedSessions++;
+    focusStats[today].focusMinutes += pomodoroState.settings.workDuration;
+
+    await chrome.storage.local.set({ focusStats });
+
+    // Update display
+    popupSessionsToday.textContent = focusStats[today].completedSessions;
+    popupTimeToday.textContent = `${focusStats[today].focusMinutes}m`;
+
+    // Determine next session
+    if (pomodoroState.completedSessions >= pomodoroState.settings.sessionsUntilLongBreak) {
+      pomodoroState.sessionType = 'longBreak';
+      pomodoroState.timeRemaining = pomodoroState.settings.longBreak * 60;
+      pomodoroState.completedSessions = 0;
+    } else {
+      pomodoroState.sessionType = 'shortBreak';
+      pomodoroState.timeRemaining = pomodoroState.settings.shortBreak * 60;
+    }
+  } else {
+    // Break completed
+    pomodoroState.sessionType = 'work';
+    pomodoroState.timeRemaining = pomodoroState.settings.workDuration * 60;
+    pomodoroState.currentSession++;
+  }
+
+  await savePomodoroState();
+  updatePomodoroDisplay();
+  stopPomodoroUpdateInterval();
+
+  // Notify dashboard
+  chrome.runtime.sendMessage({ type: 'pomodoroAction', action: 'complete' });
+}
+
+/**
+ * Toggle Pomodoro section
+ */
+function togglePomodoroSection() {
+  if (pomodoroContent) {
+    pomodoroContent.classList.toggle('collapsed');
+    const arrow = togglePomodoroBtn.querySelector('span');
+    if (arrow) {
+      arrow.textContent = pomodoroContent.classList.contains('collapsed') ? '▶' : '▼';
+    }
+  }
+}
+
 /**
  * Initializes popup
  */
@@ -248,9 +507,26 @@ async function initialize() {
   // Load today's stats
   await loadTodayStats();
 
+  // Load Pomodoro state
+  await loadPomodoroState();
+
   // Set up event listeners
   pauseBtn.addEventListener('click', togglePause);
   dashboardBtn.addEventListener('click', openDashboard);
+
+  // Pomodoro event listeners
+  if (togglePomodoroBtn) {
+    togglePomodoroBtn.addEventListener('click', togglePomodoroSection);
+  }
+  if (popupStartBtn) {
+    popupStartBtn.addEventListener('click', startPomodoro);
+  }
+  if (popupPauseBtn) {
+    popupPauseBtn.addEventListener('click', pausePomodoro);
+  }
+  if (popupResetBtn) {
+    popupResetBtn.addEventListener('click', resetPomodoro);
+  }
 
   // Update current session every second
   updateInterval = setInterval(() => {
@@ -264,6 +540,9 @@ async function initialize() {
 window.addEventListener('unload', () => {
   if (updateInterval) {
     clearInterval(updateInterval);
+  }
+  if (pomodoroInterval) {
+    clearInterval(pomodoroInterval);
   }
 });
 

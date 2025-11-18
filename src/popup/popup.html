@@ -28,6 +28,44 @@
       </div>
     </section>
 
+    <!-- Pomodoro Timer -->
+    <section class="pomodoro-section" id="pomodoroSection" style="display: none;">
+      <div class="pomodoro-header">
+        <h2 class="section-title">🎯 Focus Timer</h2>
+        <button id="togglePomodoroBtn" class="btn-icon-small" title="Expand/Collapse">
+          <span>▼</span>
+        </button>
+      </div>
+      <div class="pomodoro-content" id="pomodoroContent">
+        <div class="pomodoro-display">
+          <div class="pomodoro-type" id="popupPomodoroType">WORK SESSION</div>
+          <div class="pomodoro-time-large" id="popupPomodoroTime">25:00</div>
+          <div class="pomodoro-session-info" id="popupPomodoroSession">Session 1 of 4</div>
+        </div>
+        <div class="pomodoro-controls-popup">
+          <button id="popupStartBtn" class="btn-pomodoro btn-pomodoro-start">
+            <span>▶</span>
+          </button>
+          <button id="popupPauseBtn" class="btn-pomodoro btn-pomodoro-pause" style="display: none;">
+            <span>⏸</span>
+          </button>
+          <button id="popupResetBtn" class="btn-pomodoro btn-pomodoro-reset">
+            <span>↻</span>
+          </button>
+        </div>
+        <div class="pomodoro-stats-popup">
+          <div class="stat-mini">
+            <span class="stat-mini-label">Today:</span>
+            <span class="stat-mini-value" id="popupSessionsToday">0</span>
+          </div>
+          <div class="stat-mini">
+            <span class="stat-mini-label">Time:</span>
+            <span class="stat-mini-value" id="popupTimeToday">0m</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <!-- Today's Stats -->
     <section class="today-stats">
       <h2 class="section-title">Today</h2>

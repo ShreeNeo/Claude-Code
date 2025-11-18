@@ -5,6 +5,7 @@ module.exports = {
   entry: {
     'background/service-worker': './src/background/service-worker.js',
     'content/activity-tracker': './src/content/activity-tracker.js',
+    'content/focus-blocker': './src/content/focus-blocker.js',
     'popup/popup': './src/popup/popup.js',
     'dashboard/dashboard': './src/dashboard/dashboard.js',
   },

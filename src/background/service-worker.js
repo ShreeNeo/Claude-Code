@@ -598,6 +598,14 @@ async function handleMessage(message, sender, sendResponse) {
         sendResponse({ success: true });
         break;
 
+      case 'checkBlockedUrl':
+        const shouldBlock = shouldBlockUrl(message.url);
+        if (shouldBlock) {
+          await incrementBlockedSiteCount();
+        }
+        sendResponse({ shouldBlock });
+        break;
+
       default:
         sendResponse({ success: false, error: 'Unknown message type' });
     }
@@ -616,26 +624,6 @@ chrome.windows.onFocusChanged.addListener(handleWindowFocusChanged);
 chrome.idle.onStateChanged.addListener(handleIdleStateChanged);
 chrome.alarms.onAlarm.addListener(handleAlarm);
 chrome.runtime.onMessage.addListener(handleMessage);
-
-// Focus mode: Block navigation to blocked sites
-chrome.webNavigation.onBeforeNavigate.addListener(
-  async (details) => {
-    if (details.frameId !== 0) return; // Only handle main frame
-
-    const url = details.url;
-    if (shouldBlockUrl(url)) {
-      console.log('Blocking URL:', url);
-
-      // Increment blocked site count
-      await incrementBlockedSiteCount();
-
-      // Redirect to block page
-      chrome.tabs.update(details.tabId, {
-        url: getBlockPageUrl(url)
-      });
-    }
-  }
-);
 
 // Set idle detection interval
 chrome.idle.setDetectionInterval(IDLE_THRESHOLD);
