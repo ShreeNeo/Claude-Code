@@ -270,9 +270,9 @@
         <!-- Time Entries Section -->
         <section id="timeentriesSection" class="section">
           <!-- Add Manual Entry Button -->
-          <div style="margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;">
+          <div class="time-entries-controls">
             <button id="addManualEntryBtn" class="btn btn-primary">+ Add Manual Time Entry</button>
-            <div style="display: flex; gap: 10px;">
+            <div class="time-entries-filters">
               <button id="manageTagsBtn" class="btn btn-secondary">🏷️ Manage Tags</button>
               <select id="filterByTag" class="select">
                 <option value="">All Tags</option>
@@ -359,10 +359,10 @@
                 <tbody id="meetingsTableBody">
                   <tr>
                     <td colspan="8" class="empty-state">
-                      <div style="padding: 40px; text-align: center;">
-                        <div style="font-size: 48px; margin-bottom: 16px;">📅</div>
-                        <div style="font-size: 16px; font-weight: 600; margin-bottom: 8px;">No Calendar Connected</div>
-                        <div style="font-size: 14px; color: #6b7280;">Connect your Google or Microsoft calendar in Settings to sync meetings</div>
+                      <div class="empty-state-content">
+                        <div class="empty-state-icon">📅</div>
+                        <div class="empty-state-title">No Calendar Connected</div>
+                        <div class="empty-state-text">Connect your Google or Microsoft calendar in Settings to sync meetings</div>
                       </div>
                     </td>
                   </tr>
@@ -418,10 +418,10 @@
                 <tbody id="githubTableBody">
                   <tr>
                     <td colspan="6" class="empty-state">
-                      <div style="padding: 40px; text-align: center;">
-                        <div style="font-size: 48px; margin-bottom: 16px;">🐙</div>
-                        <div style="font-size: 16px; font-weight: 600; margin-bottom: 8px;">No GitHub Connected</div>
-                        <div style="font-size: 14px; color: #6b7280;">Connect your GitHub account in Settings to sync activities</div>
+                      <div class="empty-state-content">
+                        <div class="empty-state-icon">🐙</div>
+                        <div class="empty-state-title">No GitHub Connected</div>
+                        <div class="empty-state-text">Connect your GitHub account in Settings to sync activities</div>
                       </div>
                     </td>
                   </tr>
