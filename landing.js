@@ -37,28 +37,17 @@ themeToggle?.addEventListener('click', () => {
   themeIcon.textContent = newTheme === 'dark' ? '🌙' : '☀️';
 });
 
-// RPM meter scroll animation
-function updateRPMMeter() {
+// Scroll progress indicator
+function updateScrollProgress() {
   const scrollPercentage = window.scrollY / (document.documentElement.scrollHeight - window.innerHeight);
-
-  // Rotate needle from -90deg (left) to 90deg (right)
-  const rotation = -90 + (scrollPercentage * 180);
-  const rpmNeedle = document.getElementById('rpmNeedle');
-  if (rpmNeedle) {
-    rpmNeedle.style.transform = `rotate(${rotation}deg)`;
-  }
-
-  // Fill the arc based on scroll percentage
-  const arcLength = 1000; // Approximate arc length for larger SVG
-  const offset = arcLength - (scrollPercentage * arcLength);
-  const rpmArc = document.getElementById('rpmArc');
-  if (rpmArc) {
-    rpmArc.style.strokeDashoffset = offset;
+  const scrollProgress = document.getElementById('scrollProgress');
+  if (scrollProgress) {
+    scrollProgress.style.width = (scrollPercentage * 100) + '%';
   }
 }
 
-window.addEventListener('scroll', updateRPMMeter);
-updateRPMMeter();
+window.addEventListener('scroll', updateScrollProgress);
+updateScrollProgress();
 
 // Scroll animations
 const observer = new IntersectionObserver((entries) => {
